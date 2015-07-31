@@ -4,13 +4,13 @@ Provides extensions over xUnit to author performance tests.
 ## Authoring benchmarks
 
 1. Create a new class library project
-2. Add a reference to the "xunit" NuGet package
+2. Add a reference to the "xUnit" NuGet package
 3. Add a reference to xunit.performance.dll
 4. Tag your test methods with [Benchmark] instead of [Fact]
 
 ## Running benchmarks
 
-The normal Xunit runners will run Benchmarks.  The difference between a Benchmark and a Fact is that a Benchmark will be run multiple times, until the test framework decides it's got enough data to make an accurate assessment of the performance of the method.  The test execution times reported in the normal Xunit test results are an aggregate of all iterations, and so do not tell you much about the time taken by each individual iteration.
+The normal xUnit runners will run Benchmarks.  The difference between a Benchmark and a Fact is that a Benchmark will be run multiple times, until the test framework decides it's got enough data to make an accurate assessment of the performance of the method.  The test execution times reported in the normal xUnit test results are an aggregate of all iterations, and so do not tell you much about the time taken by each individual iteration.
 
 To collect more detailed data, set some environment variables prior to running the tests:
 
