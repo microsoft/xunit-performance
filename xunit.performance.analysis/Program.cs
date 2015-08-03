@@ -15,7 +15,7 @@ namespace xunit.performance.run
         static int Usage()
         {
             Console.Error.WriteLine(
-                "usage: xunit.performance.analyzer <etlPaths> [-compare \"baselineRunId\" \"comparisonRunId\"]  -xml <output.xml>");
+                "usage: xunit.performance.analysis <etlPaths> [-compare \"baselineRunId\" \"comparisonRunId\"]  -xml <output.xml>");
             return 1;
         }
 
