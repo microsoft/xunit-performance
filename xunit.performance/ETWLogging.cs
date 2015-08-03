@@ -49,7 +49,7 @@ namespace Microsoft.Xunit.Performance
 
         public static bool CanLog => TraceEventSession.IsElevated() ?? false;
 
-        public static void Start(string filename, string runId)
+        public static IDisposable Start(string filename, string runId)
         {
             var sessionName = "xunit.performance/" + runId;
 
@@ -61,6 +61,8 @@ namespace Microsoft.Xunit.Performance
             session.EnableProvider(ClrRundownTraceEventParser.ProviderGuid, TraceEventLevel.Informational, (ulong)ClrRundownKeywords);
 
             //TODO: add CPU counters, see TraceEventProfileSources
+
+            return session;
         }
     }
 }
