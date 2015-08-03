@@ -15,6 +15,7 @@ namespace Microsoft.Xunit.Performance
         static bool _initialized;
         static bool _loggingFailed;
         static string _runId;
+        static IDisposable _etwLogger; // just to keep the logger rooted, so it doesn't get finalized during the run
 
         public BenchmarkTestInvoker(ITest test,
                                 IMessageBus messageBus,
@@ -42,7 +43,7 @@ namespace Microsoft.Xunit.Performance
                         _loggingFailed = true;
 
                     if (ETWLogging.CanLog)
-                        ETWLogging.Start(etwLogPath, _runId);
+                        _etwLogger = ETWLogging.Start(etwLogPath, _runId);
 
                     _initialized = true;
                 }
