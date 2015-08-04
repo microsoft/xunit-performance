@@ -113,7 +113,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                                     new XAttribute("min", durationStats.Minimum.ToString("G3")),
                                     new XAttribute("mean", durationStats.Mean.ToString("G3")),
                                     new XAttribute("max", durationStats.Maximum.ToString("G3")),
-                                    new XAttribute("errorRatio", durationStats.MarginOfError(ErrorConfidence).ToString("G3")),
+                                    new XAttribute("marginOfError", durationStats.MarginOfError(ErrorConfidence).ToString("G3")),
                                     new XAttribute("stddev", durationStats.StandardDeviation.ToString("G3"))
                                 ),
                                 new XElement("gcCount",
@@ -121,7 +121,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                                     new XAttribute("min", gcCountStats.Minimum.ToString("G3")),
                                     new XAttribute("mean", gcCountStats.Mean.ToString("G3")),
                                     new XAttribute("max", gcCountStats.Maximum.ToString("G3")),
-                                    new XAttribute("errorRatio", gcCountStats.MarginOfError(ErrorConfidence).ToString("G3")),
+                                    new XAttribute("marginOfError", gcCountStats.MarginOfError(ErrorConfidence).ToString("G3")),
                                     new XAttribute("stddev", gcCountStats.StandardDeviation.ToString("G3"))
                                 )
                             )
