@@ -16,7 +16,7 @@ namespace Microsoft.Xunit.Performance
         /// results, but in a shorter time.  
         /// </summary>
         public double MarginOfError { get; set; }
-        internal const double DefaultMarginOfError = 0.05;
+        internal const double DefaultMarginOfError = 0.10;
 
         /// <summary>
         /// The desired confidence in the test results.  The default is 0.95, meaning that we want to be 95% confident that
