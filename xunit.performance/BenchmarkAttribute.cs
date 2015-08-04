@@ -15,7 +15,7 @@ namespace Microsoft.Xunit.Performance
         /// requires more test iterations, and thus more overall test execution time.  A larger value yields less accurate
         /// results, but in a shorter time.  
         /// </summary>
-        public double MarginOfError { get; set; } = DefaultMarginOfError;
+        public double MarginOfError { get; set; }
         internal const double DefaultMarginOfError = 0.05;
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace Microsoft.Xunit.Performance
         /// the method's average execution time is within the range specified by <see cref="MarginOfError"/>.  Higher confidence
         /// values result in more test iterations, and thus more overall test execution time.
         /// </summary>
-        public double Confidence { get; set; } = DefaultConfidence;
+        public double Confidence { get; set; }
         internal const double DefaultConfidence = 0.95;
 
         /// <summary>
