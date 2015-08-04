@@ -8,10 +8,10 @@ namespace Microsoft.Xunit.Performance
 {
     internal class BenchmarkTestCase : XunitTestCase
     {
-        internal double MarginOfError { get; private set; }
-        internal double Confidence { get; private set; }
-        internal bool? TriggersGC { get; private set; }
-        internal bool SkipWarmup { get; private set; }
+        public virtual double MarginOfError { get; protected set; }
+        public virtual double Confidence { get; protected set; }
+        public virtual bool? TriggersGC { get; protected set; }
+        public bool SkipWarmup { get; protected set; }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         [Obsolete("Called by the de-serializer; should only be called by deriving classes for de-serialization purposes")]
