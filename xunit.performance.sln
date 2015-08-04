@@ -7,7 +7,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance", "xunit.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.analysis", "xunit.performance.analysis\xunit.performance.analysis.csproj", "{E114F722-0353-4BCE-A1BE-A6D729FDEACD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SImplePerfTests", "samples\SimplePerfTests\SimplePerfTests.csproj", "{F92BE283-3DC0-49E5-8FD1-E1F5FADD4ADC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplePerfTests", "samples\SimplePerfTests\SimplePerfTests.csproj", "{F92BE283-3DC0-49E5-8FD1-E1F5FADD4ADC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.TestDiscoverer", "TestDiscoverer\xunit.TestDiscoverer.csproj", "{6C564825-1C70-4C65-B4CA-774203333ECB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{F92BE283-3DC0-49E5-8FD1-E1F5FADD4ADC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F92BE283-3DC0-49E5-8FD1-E1F5FADD4ADC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F92BE283-3DC0-49E5-8FD1-E1F5FADD4ADC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C564825-1C70-4C65-B4CA-774203333ECB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C564825-1C70-4C65-B4CA-774203333ECB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C564825-1C70-4C65-B4CA-774203333ECB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C564825-1C70-4C65-B4CA-774203333ECB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
