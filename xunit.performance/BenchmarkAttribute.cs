@@ -10,8 +10,8 @@ namespace Microsoft.Xunit.Performance
     public class BenchmarkAttribute : FactAttribute, ITraitAttribute
     {
         /// <summary>
-        /// The desired margin of error in the test results.  The default is 0.05, meaning that we want to measure the
-        /// method's execution time to within +/-5%.  A smaller value allows detection of smaller changes in performance, but
+        /// The desired margin of error in the test results.  The default is 0.10, meaning that we want to measure the
+        /// method's execution time to within +/-10%.  A smaller value allows detection of smaller changes in performance, but
         /// requires more test iterations, and thus more overall test execution time.  A larger value yields less accurate
         /// results, but in a shorter time.  
         /// </summary>
