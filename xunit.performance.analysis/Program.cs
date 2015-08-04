@@ -1,4 +1,5 @@
-﻿using Microsoft.Diagnostics.Tracing;
+﻿using MathNet.Numerics.Statistics;
+using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Session;
 using System;
@@ -8,10 +9,12 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace xunit.performance.run
+namespace Microsoft.Xunit.Performance.Analysis
 {
     class Program
     {
+        const double ErrorConfidence = 0.95; // TODO: make configurable
+
         static int Usage()
         {
             Console.Error.WriteLine(
@@ -79,10 +82,58 @@ namespace xunit.performance.run
 
             var allIterations = ParseEtlFiles(etlPaths);
 
-            foreach (var iteration in allIterations)
+            var iterationsByRunId = allIterations.Where(iteration => iteration.TestIteration != 0).GroupBy(iteration => iteration.RunId);
+
+            var resultElem = new XElement("results");
+            var xmlDoc = new XDocument(resultElem);
+
+            foreach (var runIdIterations in iterationsByRunId)
             {
-                Console.WriteLine($"{iteration.TestName},{iteration.Duration},{iteration.GCCount}");
+                var runIdElem = new XElement("run", new XAttribute("id", runIdIterations.Key));
+                resultElem.Add(runIdElem);
+
+                foreach (var testCaseIterations in runIdIterations.GroupBy(iteration => iteration.TestName))
+                {
+                    var durationStats = new RunningStatistics(testCaseIterations.Select(iteration => iteration.Duration));
+                    var gcCountStats = new RunningStatistics(testCaseIterations.Select(iteration => (double)iteration.GCCount));
+
+                    var testElem = new XElement("test", new XAttribute("name", testCaseIterations.Key));
+                    runIdElem.Add(testElem);
+
+                    if (testCaseIterations.Any(iteration => !iteration.Success))
+                    {
+                        testElem.Add(new XAttribute("failed", true));
+                    }
+                    else
+                    {
+                        testElem.Add(
+                            new XElement("summary",
+                                new XElement("duration",
+                                    new XAttribute("unit", "milliseconds"),
+                                    new XAttribute("min", durationStats.Minimum.ToString("G3")),
+                                    new XAttribute("mean", durationStats.Mean.ToString("G3")),
+                                    new XAttribute("max", durationStats.Maximum.ToString("G3")),
+                                    new XAttribute("errorRatio", durationStats.MarginOfError(ErrorConfidence).ToString("G3")),
+                                    new XAttribute("stddev", durationStats.StandardDeviation.ToString("G3"))
+                                ),
+                                new XElement("gcCount",
+                                    new XAttribute("unit", "count"),
+                                    new XAttribute("min", gcCountStats.Minimum.ToString("G3")),
+                                    new XAttribute("mean", gcCountStats.Mean.ToString("G3")),
+                                    new XAttribute("max", gcCountStats.Maximum.ToString("G3")),
+                                    new XAttribute("errorRatio", gcCountStats.MarginOfError(ErrorConfidence).ToString("G3")),
+                                    new XAttribute("stddev", gcCountStats.StandardDeviation.ToString("G3"))
+                                )
+                            )
+                        );
+                    }
+                }
             }
+
+            if (xmlOutputPath == null)
+                Console.WriteLine(xmlDoc);
+            else
+                xmlDoc.Save(xmlOutputPath);
 
             return 0;
         }
@@ -115,6 +166,7 @@ namespace xunit.performance.run
             public double RelativeStopMilliseconds;
             public double Duration => RelativeStopMilliseconds - RelativeStartMilliseconds;
             public int GCCount;
+            public bool Success;
 
             public HashSet<int> tempProcessIds = new HashSet<int>(); // process IDs active for this iteration; used only while parsing.
         }
@@ -159,6 +211,7 @@ namespace xunit.performance.run
                 {
                     TestIterationResult currentIteration = currentIterations[args.RunId];
                     currentIteration.RelativeStopMilliseconds = args.TimeStampRelativeMSec;
+                    currentIteration.Success = args.Success;
 
                     currentIterations.Remove(args.RunId);
                     currentIteration.tempProcessIds = null;

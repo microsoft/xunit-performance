@@ -1,4 +1,5 @@
 ﻿using MathNet.Numerics.Statistics;
+using Microsoft.Xunit.Performance.Analysis;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -144,7 +145,7 @@ namespace Microsoft.Xunit.Performance
                                         //
                                         // Keep running iterations until we've reached the desired margin of error in the result.
                                         //
-                                        if (HaveDesiredMarginOfError(stats, benchmarkTestCase.MarginOfError, benchmarkTestCase.Confidence))
+                                        if (stats.MarginOfError(benchmarkTestCase.Confidence) < benchmarkTestCase.MarginOfError)
                                         {
                                             //
                                             // If the test says it doesn't use the GC, we can stop now.
@@ -170,7 +171,7 @@ namespace Microsoft.Xunit.Performance
                                                 // never allocate, and so will never trigger a GC.  So we need to give up if it looks like nobody
                                                 // is allocating anything.
                                                 //
-                                                // (We can't *just* chech GC.GetTotalMemory, because it's only updated when each thread's 
+                                                // (We can't *just* check GC.GetTotalMemory, because it's only updated when each thread's 
                                                 // "allocation context" is exhausted.  So we make sure to run for a while before trusting
                                                 // GC.GetTotalMemory.  We assume that the minimum object size is 16 bytes, and the allocation
                                                 // contexts are 8 KB, so we need 512 iterations to be sure.
@@ -182,7 +183,7 @@ namespace Microsoft.Xunit.Performance
                                                 // If the iterations so far have taken a significant amount of time, and yet a GC has not occurred,
                                                 // we give up and assume that the GC isn't going to be a significant factor for this method.
                                                 //
-                                                if (overallTimer.Elapsed.TotalMilliseconds >= 10)
+                                                if (overallTimer.Elapsed.TotalSeconds >= 10)
                                                     break;
                                             }
                                         }
