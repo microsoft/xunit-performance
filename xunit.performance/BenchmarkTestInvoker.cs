@@ -173,17 +173,16 @@ namespace Microsoft.Xunit.Performance
                                                 //
                                                 // (We can't *just* check GC.GetTotalMemory, because it's only updated when each thread's 
                                                 // "allocation context" is exhausted.  So we make sure to run for a while before trusting
-                                                // GC.GetTotalMemory.  We assume that the minimum object size is 16 bytes, and the allocation
-                                                // contexts are 8 KB, so we need 512 iterations to be sure.
+                                                // GC.GetTotalMemory.)
                                                 //
-                                                if (i >= 512 && GC.GetTotalMemory(false) == totalMemoryAfterWarmup)
+                                                if (i >= 1024 && GC.GetTotalMemory(false) == totalMemoryAfterWarmup)
                                                     break;
 
                                                 //
                                                 // If the iterations so far have taken a significant amount of time, and yet a GC has not occurred,
                                                 // we give up and assume that the GC isn't going to be a significant factor for this method.
                                                 //
-                                                if (overallTimer.Elapsed.TotalSeconds >= 10)
+                                                if (overallTimer.Elapsed.TotalSeconds >= 1)
                                                     break;
                                             }
                                         }
