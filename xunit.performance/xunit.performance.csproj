@@ -79,6 +79,7 @@
     <Compile Include="BenchmarkTestRunner.cs" />
     <Compile Include="BenchmarkTraitDiscoverer.cs" />
     <Compile Include="ETWLogging.cs" />
+    <Compile Include="MathExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
