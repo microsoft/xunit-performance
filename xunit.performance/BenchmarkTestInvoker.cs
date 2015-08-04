@@ -52,6 +52,8 @@ namespace Microsoft.Xunit.Performance
 
         protected override async Task<decimal> InvokeTestMethodAsync(object testClassInstance)
         {
+            var benchmarkTestCase = (BenchmarkTestCase)TestCase;
+
             var oldSyncContext = SynchronizationContext.Current;
             try
             {
@@ -91,39 +93,43 @@ namespace Microsoft.Xunit.Performance
 
                                 for (int i = 0; ; i++)
                                 {
-                                    double elapsedMilliseconds;
-                                    bool success = false;
-                                    BenchmarkEventSource.Log.BenchmarkExecutionStart(_runId, DisplayName, i);
-                                    iterationTimer.Start();
+                                    double elapsedMilliseconds = 0;
 
-                                    try
+                                    if (i != 0 || !benchmarkTestCase.SkipWarmup)
                                     {
-                                        object result = invoker();
+                                        bool success = false;
+                                        BenchmarkEventSource.Log.BenchmarkExecutionStart(_runId, DisplayName, i);
+                                        iterationTimer.Start();
 
-                                        var task = result as Task;
-                                        if (task != null)
+                                        try
                                         {
-                                            await task;
-                                            success = true;
-                                        }
-                                        else
-                                        {
-                                            var ex = await asyncSyncContext.WaitForCompletionAsync();
-                                            if (ex == null)
+                                            object result = invoker();
+
+                                            var task = result as Task;
+                                            if (task != null)
+                                            {
+                                                await task;
                                                 success = true;
+                                            }
                                             else
-                                                Aggregator.Add(ex);
+                                            {
+                                                var ex = await asyncSyncContext.WaitForCompletionAsync();
+                                                if (ex == null)
+                                                    success = true;
+                                                else
+                                                    Aggregator.Add(ex);
+                                            }
                                         }
-                                    }
-                                    finally
-                                    {
-                                        iterationTimer.Stop();
-                                        elapsedMilliseconds = iterationTimer.Elapsed.TotalMilliseconds;
-                                        BenchmarkEventSource.Log.BenchmarkExecutionStop(_runId, DisplayName, i, success);
-                                    }
+                                        finally
+                                        {
+                                            iterationTimer.Stop();
+                                            elapsedMilliseconds = iterationTimer.Elapsed.TotalMilliseconds;
+                                            BenchmarkEventSource.Log.BenchmarkExecutionStop(_runId, DisplayName, i, success);
+                                        }
 
-                                    if (!success)
-                                        break;
+                                        if (!success)
+                                            break;
+                                    }
 
                                     if (i == 0)
                                     {
@@ -135,16 +141,50 @@ namespace Microsoft.Xunit.Performance
                                     {
                                         stats.Push(elapsedMilliseconds);
 
-                                        if (EnoughIterations(stats, 0.05))
+                                        //
+                                        // Keep running iterations until we've reached the desired margin of error in the result.
+                                        //
+                                        if (HaveDesiredMarginOfError(stats, benchmarkTestCase.MarginOfError, benchmarkTestCase.Confidence))
                                         {
+                                            //
+                                            // If the test says it doesn't use the GC, we can stop now.
+                                            //
+                                            if (benchmarkTestCase.TriggersGC.HasValue && !benchmarkTestCase.TriggersGC.Value)
+                                                break;
+
+                                            //
+                                            // If a GC ocurred during the iterations so far, then we've accounted for that in the result,
+                                            // and can stop now.
+                                            //
                                             if (GC.CollectionCount(0) > gcCountAfterWarmup)
                                                 break;
 
-                                            if (i >= 1024 && GC.GetTotalMemory(false) == totalMemoryAfterWarmup)
-                                                break;
+                                            //
+                                            // If the test has not stated whether it uses the GC, we need to guess.
+                                            //
+                                            if (!benchmarkTestCase.TriggersGC.HasValue)
+                                            {
+                                                //
+                                                // Maybe the method allocates, but we haven't executed enough iterations for this to trigger
+                                                // the GC.  If so, we're missing a large part of the cost of the method.  But, some methods will
+                                                // never allocate, and so will never trigger a GC.  So we need to give up if it looks like nobody
+                                                // is allocating anything.
+                                                //
+                                                // (We can't *just* chech GC.GetTotalMemory, because it's only updated when each thread's 
+                                                // "allocation context" is exhausted.  So we make sure to run for a while before trusting
+                                                // GC.GetTotalMemory.  We assume that the minimum object size is 16 bytes, and the allocation
+                                                // contexts are 8 KB, so we need 512 iterations to be sure.
+                                                //
+                                                if (i >= 512 && GC.GetTotalMemory(false) == totalMemoryAfterWarmup)
+                                                    break;
 
-                                            if (overallTimer.Elapsed.TotalMilliseconds >= 10)
-                                                break;
+                                                //
+                                                // If the iterations so far have taken a significant amount of time, and yet a GC has not occurred,
+                                                // we give up and assume that the GC isn't going to be a significant factor for this method.
+                                                //
+                                                if (overallTimer.Elapsed.TotalMilliseconds >= 10)
+                                                    break;
+                                            }
                                         }
                                     }
                                 }
@@ -186,20 +226,24 @@ namespace Microsoft.Xunit.Performance
         }
 
 
-        private bool EnoughIterations(RunningStatistics stats, double threshold)
+        /// <summary>
+        /// Computes whether we've executed enough iterations to have the desired margin of error, with the desired confidence.
+        /// </summary>
+        /// <param name="stats"></param>
+        /// <param name="marginOfError"></param>
+        /// <param name="confidence"></param>
+        /// <returns></returns>
+        private bool HaveDesiredMarginOfError(RunningStatistics stats, double marginOfError, double confidence)
         {
             if (stats.Count < 2)
                 return false;
 
-            if (stats.Count == 1000)
-                Aggregator.Add(new Exception($"Test is extremely noisy"));
-
             var stderr = stats.StandardDeviation / Math.Sqrt(stats.Count);
-            var t = MathNet.Numerics.ExcelFunctions.TInv(0.05, (int)stats.Count - 1);
+            var t = MathNet.Numerics.ExcelFunctions.TInv(1.0 - confidence, (int)stats.Count - 1);
             var mean = stats.Mean;
             var interval = t * stderr;
-            var ratio = interval / mean;
-            return ratio < threshold;
+
+            return (interval / mean) < marginOfError;
         }
     }
 }

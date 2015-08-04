@@ -20,7 +20,7 @@ namespace Microsoft.Xunit.Performance
             if (factAttribute.GetNamedArgument<string>("Skip") != null)
                 return new[] { new XunitTestCase(_diagnosticMessageSink, defaultMethodDisplay, testMethod) };
 
-            return new XunitTestCase[] { new BenchmarkTestCase(_diagnosticMessageSink, defaultMethodDisplay, testMethod) };
+            return new XunitTestCase[] { new BenchmarkTestCase(_diagnosticMessageSink, defaultMethodDisplay, testMethod, factAttribute) };
         }
     }
 }
