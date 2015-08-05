@@ -82,6 +82,20 @@ namespace Microsoft.Xunit.Performance.Analysis
 
             var allIterations = ParseEtlFiles(etlPaths);
 
+            var testResults = SummarizeTestResults(allIterations);
+
+            var xmlDoc = WriteTestResultsXml(testResults);
+
+            if (xmlOutputPath == null)
+                Console.WriteLine(xmlDoc);
+            else
+                xmlDoc.Save(xmlOutputPath);
+
+            return 0;
+        }
+
+        private static Dictionary<string, Dictionary<string, TestResult>> SummarizeTestResults(IEnumerable<TestIterationResult> allIterations)
+        {
             var testResults = new Dictionary<string, Dictionary<string, TestResult>>();
 
             foreach (var iteration in allIterations)
@@ -103,6 +117,11 @@ namespace Microsoft.Xunit.Performance.Analysis
                 result.Failed |= iteration.Failed;
             }
 
+            return testResults;
+        }
+
+        private static XDocument WriteTestResultsXml(Dictionary<string, Dictionary<string, TestResult>> testResults)
+        {
             var resultElem = new XElement("results");
             var xmlDoc = new XDocument(resultElem);
 
@@ -146,14 +165,8 @@ namespace Microsoft.Xunit.Performance.Analysis
                 }
             }
 
-            if (xmlOutputPath == null)
-                Console.WriteLine(xmlDoc);
-            else
-                xmlDoc.Save(xmlOutputPath);
-
-            return 0;
+            return xmlDoc;
         }
-
 
         static IEnumerable<string> ExpandFilePath(string path)
         {
