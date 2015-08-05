@@ -25,7 +25,7 @@ namespace Microsoft.Xunit.Performance.Analysis
         static int Main(string[] args)
         {
             var etlPaths = new List<string>();
-            var comparisonIds = new List<Tuple<string, string>>();
+            var allComparisonIds = new List<Tuple<string, string>>();
             var xmlOutputPath = (string)null;
 
             for (int i = 0; i < args.Length; i++)
@@ -42,7 +42,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                             if (++i >= args.Length)
                                 return Usage();
                             string comparison = args[i];
-                            comparisonIds.Add(Tuple.Create(baseline, comparison));
+                            allComparisonIds.Add(Tuple.Create(baseline, comparison));
                             break;
 
                         case "xml":
@@ -84,7 +84,9 @@ namespace Microsoft.Xunit.Performance.Analysis
 
             var testResults = SummarizeTestResults(allIterations);
 
-            var xmlDoc = WriteTestResultsXml(testResults);
+            var comparisonResults = DoComparisons(allComparisonIds, testResults);
+
+            var xmlDoc = WriteTestResultsXml(testResults, comparisonResults);
 
             if (xmlOutputPath == null)
                 Console.WriteLine(xmlDoc);
@@ -92,6 +94,45 @@ namespace Microsoft.Xunit.Performance.Analysis
                 xmlDoc.Save(xmlOutputPath);
 
             return 0;
+        }
+
+        private static List<TestResultComparison> DoComparisons(List<Tuple<string, string>> allComparisonIds, Dictionary<string, Dictionary<string, TestResult>> testResults)
+        {
+            var comparisonResults = new List<TestResultComparison>();
+
+            foreach (var comparisonIds in allComparisonIds)
+            {
+                var baseline = testResults[comparisonIds.Item1];
+                var comparison = testResults[comparisonIds.Item2];
+
+                foreach (var comparisonTest in comparison.Values)
+                {
+                    var baselineTest = baseline[comparisonTest.TestName];
+
+                    // Compute the standard error in the difference
+                    var baselineCount = baselineTest.Iterations.Count;
+                    var baselineSum = baselineTest.Iterations.Sum(iteration => iteration.Duration);
+                    var baselineSumSquared = baselineSum * baselineSum;
+                    var baselineSumOfSquares = baselineTest.Iterations.Sum(iteration => iteration.Duration * iteration.Duration);
+
+                    var comparisonCount = comparisonTest.Iterations.Count;
+                    var comparisonSum = comparisonTest.Iterations.Sum(iteration => iteration.Duration);
+                    var comparisonSumSquared = comparisonSum * comparisonSum;
+                    var comparisonSumOfSquares = comparisonTest.Iterations.Sum(iteration => iteration.Duration * iteration.Duration);
+
+                    var stdErrorDiff = Math.Sqrt((baselineSumOfSquares - (baselineSumSquared / baselineCount) + comparisonSumOfSquares - (comparisonSumSquared / comparisonCount)) * (1.0 / baselineCount + 1.0 / comparisonCount) / (baselineCount + comparisonCount - 1));
+                    var interval = stdErrorDiff * MathNet.Numerics.ExcelFunctions.TInv(1.0 - ErrorConfidence, baselineCount + comparisonCount - 2);
+
+                    var comparisonResult = new TestResultComparison();
+                    comparisonResult.BaselineResult = baselineTest;
+                    comparisonResult.ComparisonResult = comparisonTest;
+                    comparisonResult.TestName = comparisonTest.TestName;
+                    comparisonResult.PercentChange = (comparisonTest.DurationStats.Mean - baselineTest.DurationStats.Mean) / baselineTest.DurationStats.Mean;
+                    comparisonResult.PercentChangeError = interval / baselineTest.DurationStats.Mean;
+                }
+            }
+
+            return comparisonResults;
         }
 
         private static Dictionary<string, Dictionary<string, TestResult>> SummarizeTestResults(IEnumerable<TestIterationResult> allIterations)
@@ -115,12 +156,14 @@ namespace Microsoft.Xunit.Performance.Analysis
                 result.DurationStats.Push(iteration.Duration);
                 result.GCCountStats.Push(iteration.GCCount);
                 result.Failed |= iteration.Failed;
+
+                result.Iterations.Add(iteration);
             }
 
             return testResults;
         }
 
-        private static XDocument WriteTestResultsXml(Dictionary<string, Dictionary<string, TestResult>> testResults)
+        private static XDocument WriteTestResultsXml(Dictionary<string, Dictionary<string, TestResult>> testResults, List<TestResultComparison> comparisonResults)
         {
             var resultElem = new XElement("results");
             var xmlDoc = new XDocument(resultElem);
@@ -165,6 +208,17 @@ namespace Microsoft.Xunit.Performance.Analysis
                 }
             }
 
+            foreach (var comparison in comparisonResults)
+            {
+                var comparisonElem = new XElement("comparison", new XAttribute("baselineId", comparison.BaselineResult.RunId), new XAttribute("comparisonId", comparison.ComparisonResult.RunId));
+                resultElem.Add(comparisonElem);
+
+                comparisonElem.Add(
+                    new XElement("duration",
+                        new XAttribute("changeRatio", comparison.PercentChange),
+                        new XAttribute("changeRatioError", comparison.PercentChangeError)));
+            }
+
             return xmlDoc;
         }
 
@@ -191,6 +245,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             public bool Failed;
             public RunningStatistics DurationStats = new RunningStatistics();
             public RunningStatistics GCCountStats = new RunningStatistics();
+            public List<TestIterationResult> Iterations = new List<TestIterationResult>();
         }
 
         class TestIterationResult
@@ -207,6 +262,17 @@ namespace Microsoft.Xunit.Performance.Analysis
             public bool Failed;
 
             public HashSet<int> tempProcessIds = new HashSet<int>(); // process IDs active for this iteration; used only while parsing.
+        }
+
+        class TestResultComparison
+        {
+            public string TestName;
+            public TestResult BaselineResult;
+            public TestResult ComparisonResult;
+            public double PercentChange;
+            public double PercentChangeError;
+            public double MinPercentChange => PercentChange - PercentChangeError;
+            public double MaxPercentChange => PercentChange + PercentChangeError;
         }
 
         static IEnumerable<TestIterationResult> ParseEtlFiles(IEnumerable<string> etlPaths)
