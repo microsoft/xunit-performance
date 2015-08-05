@@ -215,8 +215,8 @@ namespace Microsoft.Xunit.Performance.Analysis
 
                 comparisonElem.Add(
                     new XElement("duration",
-                        new XAttribute("changeRatio", comparison.PercentChange),
-                        new XAttribute("changeRatioError", comparison.PercentChangeError)));
+                        new XAttribute("changeRatio", comparison.PercentChange.ToString("G3")),
+                        new XAttribute("changeRatioError", comparison.PercentChangeError.ToString("G3"))));
             }
 
             return xmlDoc;
