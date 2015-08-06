@@ -3,6 +3,7 @@ using Microsoft.Xunit.Performance.Analysis;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -172,22 +173,85 @@ namespace Microsoft.Xunit.Performance
         }
 
 
+        private Func<object> MakeInvoker0()
+        {
+            if (TestMethod.ReturnType == typeof(void))
+            {
+                var action = (Action)TestMethod.CreateDelegate(typeof(Action));
+                return () => { action(); return null; };
+            }
+            else
+            {
+                return (Func<object>)TestMethod.CreateDelegate(typeof(Func<object>));
+            }
+        }
+
+        private Func<object> MakeInvoker1<T>(T arg)
+        {
+            if (TestMethod.ReturnType == typeof(void))
+            {
+                var action = (Action<T>)TestMethod.CreateDelegate(typeof(Action<T>));
+                return () => { action(arg); return null; };
+            }
+            else
+            {
+                var func = (Func<T, object>)TestMethod.CreateDelegate(typeof(Func<T, object>));
+                return () => func(arg);
+            }
+        }
+
+        private Func<object> MakeInvoker2<T1, T2>(T1 arg1, T2 arg2)
+        {
+            if (TestMethod.ReturnType == typeof(void))
+            {
+                var action = (Action<T1, T2>)TestMethod.CreateDelegate(typeof(Action<T1, T2>));
+                return () => { action(arg1, arg2); return null; };
+            }
+            else
+            {
+                var func = (Func<T1, T2, object>)TestMethod.CreateDelegate(typeof(Func<T1, T2, object>));
+                return () => func(arg1, arg2);
+            }
+        }
+
         private Func<object> MakeInvokerDelegate(object testClassInstance)
         {
-            if (TestMethodArguments == null || TestMethodArguments.Length == 0)
+            object[] args;
+            Type[] types;
+            var testMethodParamTypes = TestMethod.GetParameters().Select(p => p.ParameterType).ToArray();
+
+            if (testClassInstance == null)
             {
-                if (TestMethod.ReturnType == typeof(void))
-                {
-                    Action testMethodAction = (Action)TestMethod.CreateDelegate(typeof(Action), testClassInstance);
-                    return () => { testMethodAction(); return null; };
-                }
-                else if (typeof(Task).IsAssignableFrom(TestMethod.ReturnType))
-                {
-                    return (Func<Task>)TestMethod.CreateDelegate(typeof(Func<Task>), testClassInstance);
-                }
+                args = TestMethodArguments;
+                types = testMethodParamTypes;
+            }
+            else
+            {
+                args = new object[TestMethodArguments.Length + 1];
+                types = new Type[TestMethodArguments.Length + 1];
+                args[0] = testClassInstance;
+                types[0] = testClassInstance.GetType();
+                Array.Copy(TestMethodArguments, 0, args, 1, TestMethodArguments.Length);
+                Array.Copy(testMethodParamTypes, 0, types, 1, testMethodParamTypes.Length);
             }
 
-            return () => TestMethod.Invoke(testClassInstance, TestMethodArguments);
+            if (args.Length == 0)
+                return MakeInvoker0();
+
+            string invokerFactoryName;
+
+            switch (args.Length)
+            {
+                case 1: invokerFactoryName = nameof(MakeInvoker1); break;
+                case 2: invokerFactoryName = nameof(MakeInvoker2); break;
+
+                default: return () => TestMethod.Invoke(testClassInstance, TestMethodArguments);
+            }
+
+            var invokerFactory = typeof(BenchmarkTestInvoker).GetMethod(invokerFactoryName, BindingFlags.Instance | BindingFlags.NonPublic);
+            var invokerFactoryInstance = invokerFactory.MakeGenericMethod(types);
+
+            return (Func<object>)invokerFactoryInstance.Invoke(this, args);
         }
 
 

@@ -12,14 +12,17 @@ namespace Microsoft.Xunit.Performance
         public virtual double Confidence { get; protected set; }
         public virtual bool? TriggersGC { get; protected set; }
         public bool SkipWarmup { get; protected set; }
+        public bool DiscoverArguments { get; protected set; }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         [Obsolete("Called by the de-serializer; should only be called by deriving classes for de-serialization purposes")]
         public BenchmarkTestCase() { }
 
-        public BenchmarkTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, IAttributeInfo attr)
-            : base(diagnosticMessageSink, defaultMethodDisplay, testMethod)
+        public BenchmarkTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, IAttributeInfo attr, object[] testMethodArguments = null)
+            : base(diagnosticMessageSink, defaultMethodDisplay, testMethod, testMethodArguments)
         {
+            DiscoverArguments = testMethodArguments == null;
+
             MarginOfError = attr.GetNamedArgument<double>(nameof(BenchmarkAttribute.MarginOfError));
             if (MarginOfError == default(double))
                 MarginOfError = BenchmarkAttribute.DefaultMarginOfError;
@@ -43,7 +46,7 @@ namespace Microsoft.Xunit.Performance
                                                   ExceptionAggregator aggregator,
                                                   CancellationTokenSource cancellationTokenSource)
         {
-            return new BenchmarkTestCaseRunner(this, DisplayName, SkipReason, constructorArguments, diagnosticMessageSink, messageBus, aggregator, cancellationTokenSource).RunAsync();
+            return new BenchmarkTestCaseRunner(this, DisplayName, SkipReason, constructorArguments, DiscoverArguments ? null : TestMethodArguments, diagnosticMessageSink, messageBus, aggregator, cancellationTokenSource).RunAsync();
         }
 
         public override void Serialize(IXunitSerializationInfo data)
@@ -53,6 +56,7 @@ namespace Microsoft.Xunit.Performance
             data.AddValue(nameof(Confidence), Confidence);
             data.AddValue(nameof(TriggersGC), TriggersGC);
             data.AddValue(nameof(SkipWarmup), SkipWarmup);
+            data.AddValue(nameof(DiscoverArguments), DiscoverArguments);
         }
 
         public override void Deserialize(IXunitSerializationInfo data)
@@ -61,6 +65,7 @@ namespace Microsoft.Xunit.Performance
             Confidence = data.GetValue<double>(nameof(Confidence));
             TriggersGC = data.GetValue<bool?>(nameof(TriggersGC));
             SkipWarmup = data.GetValue<bool>(nameof(SkipWarmup));
+            DiscoverArguments = data.GetValue<bool>(nameof(DiscoverArguments));
             base.Deserialize(data);
         }
     }
