@@ -190,12 +190,6 @@ namespace Microsoft.Xunit.Performance
             return () => TestMethod.Invoke(testClassInstance, TestMethodArguments);
         }
 
-        [System.Security.SecuritySafeCritical]
-        static void SetSynchronizationContext(SynchronizationContext context)
-        {
-            SynchronizationContext.SetSynchronizationContext(context);
-        }
-
 
         /// <summary>
         /// Computes whether we've executed enough iterations to have the desired margin of error, with the desired confidence.
