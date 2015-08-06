@@ -51,155 +51,126 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
-        protected override async Task<decimal> InvokeTestMethodAsync(object testClassInstance)
+        protected override object CallTestMethod(object testClassInstance)
+        {
+            if (_loggingFailed)
+                throw new Exception("ETW logging was requested, but this process is not running with elevated permissions.");
+
+            return IterateAsync(testClassInstance);
+        }
+
+        private async Task IterateAsync(object testClassInstance)
         {
             var benchmarkTestCase = (BenchmarkTestCase)TestCase;
+            var invoker = MakeInvokerDelegate(testClassInstance);
+            var asyncSyncContext = (AsyncTestSyncContext)SynchronizationContext.Current;
 
-            var oldSyncContext = SynchronizationContext.Current;
-            try
+            Stopwatch iterationTimer = new Stopwatch();
+            Stopwatch overallTimer = new Stopwatch();
+            RunningStatistics stats = new RunningStatistics();
+
+            long totalMemoryAfterWarmup = 0;
+            int gcCountAfterWarmup = 0;
+
+            for (int i = 0; ; i++)
             {
-                var asyncSyncContext = new AsyncTestSyncContext(oldSyncContext);
-                SetSynchronizationContext(asyncSyncContext);
+                double elapsedMilliseconds = 0;
 
-                await Aggregator.RunAsync(
-                    () => Timer.AggregateAsync(
-                        async () =>
+                if (i != 0 || !benchmarkTestCase.SkipWarmup)
+                {
+                    bool success = false;
+                    BenchmarkEventSource.Log.BenchmarkExecutionStart(_runId, DisplayName, i);
+                    iterationTimer.Start();
+
+                    try
+                    {
+                        object result = invoker();
+
+                        var task = result as Task;
+                        if (task != null)
                         {
-                            var parameterCount = TestMethod.GetParameters().Length;
-                            var valueCount = TestMethodArguments == null ? 0 : TestMethodArguments.Length;
-                            if (parameterCount != valueCount)
-                            {
-                                Aggregator.Add(
-                                    new InvalidOperationException(
-                                        string.Format("The test method expected {0} parameter value{1}, but {2} parameter value{3} {4} provided.",
-                                                      parameterCount, parameterCount == 1 ? "" : "s",
-                                                      valueCount, valueCount == 1 ? "" : "s", valueCount == 1 ? "was" : "were"))
-                                );
-                            }
-                            else if (_loggingFailed)
-                            {
-                                Aggregator.Add(
-                                    new Exception("ETW logging was requested, but this process is not running with elevated permissions."));
-                            }
-                            else
-                            {
-                                var invoker = MakeInvokerDelegate(testClassInstance);
-
-                                Stopwatch iterationTimer = new Stopwatch();
-                                Stopwatch overallTimer = new Stopwatch();
-                                RunningStatistics stats = new RunningStatistics();
-
-                                long totalMemoryAfterWarmup = 0;
-                                int gcCountAfterWarmup = 0;
-
-                                for (int i = 0; ; i++)
-                                {
-                                    double elapsedMilliseconds = 0;
-
-                                    if (i != 0 || !benchmarkTestCase.SkipWarmup)
-                                    {
-                                        bool success = false;
-                                        BenchmarkEventSource.Log.BenchmarkExecutionStart(_runId, DisplayName, i);
-                                        iterationTimer.Start();
-
-                                        try
-                                        {
-                                            object result = invoker();
-
-                                            var task = result as Task;
-                                            if (task != null)
-                                            {
-                                                await task;
-                                                success = true;
-                                            }
-                                            else
-                                            {
-                                                var ex = await asyncSyncContext.WaitForCompletionAsync();
-                                                if (ex == null)
-                                                    success = true;
-                                                else
-                                                    Aggregator.Add(ex);
-                                            }
-                                        }
-                                        finally
-                                        {
-                                            iterationTimer.Stop();
-                                            elapsedMilliseconds = iterationTimer.Elapsed.TotalMilliseconds;
-                                            BenchmarkEventSource.Log.BenchmarkExecutionStop(_runId, DisplayName, i, success);
-                                        }
-
-                                        if (!success)
-                                            break;
-                                    }
-
-                                    if (i == 0)
-                                    {
-                                        totalMemoryAfterWarmup = GC.GetTotalMemory(true);
-                                        gcCountAfterWarmup = GC.CollectionCount(0);
-                                        overallTimer.Start();
-                                    }
-                                    else
-                                    {
-                                        stats.Push(elapsedMilliseconds);
-
-                                        //
-                                        // Keep running iterations until we've reached the desired margin of error in the result.
-                                        //
-                                        if (stats.MarginOfError(benchmarkTestCase.Confidence) < benchmarkTestCase.MarginOfError)
-                                        {
-                                            //
-                                            // If the test says it doesn't use the GC, we can stop now.
-                                            //
-                                            if (benchmarkTestCase.TriggersGC.HasValue && !benchmarkTestCase.TriggersGC.Value)
-                                                break;
-
-                                            //
-                                            // If a GC ocurred during the iterations so far, then we've accounted for that in the result,
-                                            // and can stop now.
-                                            //
-                                            if (GC.CollectionCount(0) > gcCountAfterWarmup)
-                                                break;
-
-                                            //
-                                            // If the test has not stated whether it uses the GC, we need to guess.
-                                            //
-                                            if (!benchmarkTestCase.TriggersGC.HasValue)
-                                            {
-                                                //
-                                                // Maybe the method allocates, but we haven't executed enough iterations for this to trigger
-                                                // the GC.  If so, we're missing a large part of the cost of the method.  But, some methods will
-                                                // never allocate, and so will never trigger a GC.  So we need to give up if it looks like nobody
-                                                // is allocating anything.
-                                                //
-                                                // (We can't *just* check GC.GetTotalMemory, because it's only updated when each thread's 
-                                                // "allocation context" is exhausted.  So we make sure to run for a while before trusting
-                                                // GC.GetTotalMemory.)
-                                                //
-                                                if (i >= 1024 && GC.GetTotalMemory(false) == totalMemoryAfterWarmup)
-                                                    break;
-
-                                                //
-                                                // If the iterations so far have taken a significant amount of time, and yet a GC has not occurred,
-                                                // we give up and assume that the GC isn't going to be a significant factor for this method.
-                                                //
-                                                if (overallTimer.Elapsed.TotalSeconds >= 1)
-                                                    break;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            await task;
+                            success = true;
                         }
-                    )
-                );
-            }
-            finally
-            {
-                SetSynchronizationContext(oldSyncContext);
+                        else
+                        {
+                            var ex = await asyncSyncContext.WaitForCompletionAsync();
+                            if (ex == null)
+                                success = true;
+                            else
+                                Aggregator.Add(ex);
+                        }
+                    }
+                    finally
+                    {
+                        iterationTimer.Stop();
+                        elapsedMilliseconds = iterationTimer.Elapsed.TotalMilliseconds;
+                        BenchmarkEventSource.Log.BenchmarkExecutionStop(_runId, DisplayName, i, success);
+                    }
+
+                    if (!success)
+                        break;
+                }
+
+                if (i == 0)
+                {
+                    totalMemoryAfterWarmup = GC.GetTotalMemory(true);
+                    gcCountAfterWarmup = GC.CollectionCount(0);
+                    overallTimer.Start();
+                }
+                else
+                {
+                    stats.Push(elapsedMilliseconds);
+
+                    //
+                    // Keep running iterations until we've reached the desired margin of error in the result.
+                    //
+                    if (stats.MarginOfError(benchmarkTestCase.Confidence) < benchmarkTestCase.MarginOfError)
+                    {
+                        //
+                        // If the test says it doesn't use the GC, we can stop now.
+                        //
+                        if (benchmarkTestCase.TriggersGC.HasValue && !benchmarkTestCase.TriggersGC.Value)
+                            break;
+
+                        //
+                        // If a GC ocurred during the iterations so far, then we've accounted for that in the result,
+                        // and can stop now.
+                        //
+                        if (GC.CollectionCount(0) > gcCountAfterWarmup)
+                            break;
+
+                        //
+                        // If the test has not stated whether it uses the GC, we need to guess.
+                        //
+                        if (!benchmarkTestCase.TriggersGC.HasValue)
+                        {
+                            //
+                            // Maybe the method allocates, but we haven't executed enough iterations for this to trigger
+                            // the GC.  If so, we're missing a large part of the cost of the method.  But, some methods will
+                            // never allocate, and so will never trigger a GC.  So we need to give up if it looks like nobody
+                            // is allocating anything.
+                            //
+                            // (We can't *just* check GC.GetTotalMemory, because it's only updated when each thread's 
+                            // "allocation context" is exhausted.  So we make sure to run for a while before trusting
+                            // GC.GetTotalMemory.)
+                            //
+                            if (i >= 1024 && GC.GetTotalMemory(false) == totalMemoryAfterWarmup)
+                                break;
+
+                            //
+                            // If the iterations so far have taken a significant amount of time, and yet a GC has not occurred,
+                            // we give up and assume that the GC isn't going to be a significant factor for this method.
+                            //
+                            if (overallTimer.Elapsed.TotalSeconds >= 1)
+                                break;
+                        }
+                    }
+                }
             }
 
-            return Timer.Total;
         }
+
 
         private Func<object> MakeInvokerDelegate(object testClassInstance)
         {
