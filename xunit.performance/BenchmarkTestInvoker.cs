@@ -214,6 +214,34 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
+        private Func<object> MakeInvoker3<T1, T2, T3>(T1 arg1, T2 arg2, T3 arg3)
+        {
+            if (TestMethod.ReturnType == typeof(void))
+            {
+                var action = (Action<T1, T2, T3>)TestMethod.CreateDelegate(typeof(Action<T1, T2, T3>));
+                return () => { action(arg1, arg2, arg3); return null; };
+            }
+            else
+            {
+                var func = (Func<T1, T2, T3, object>)TestMethod.CreateDelegate(typeof(Func<T1, T2, T3, object>));
+                return () => func(arg1, arg2, arg3);
+            }
+        }
+
+        private Func<object> MakeInvoker4<T1, T2, T3, T4>(T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+        {
+            if (TestMethod.ReturnType == typeof(void))
+            {
+                var action = (Action<T1, T2, T3, T4>)TestMethod.CreateDelegate(typeof(Action<T1, T2, T3, T4>));
+                return () => { action(arg1, arg2, arg3, arg4); return null; };
+            }
+            else
+            {
+                var func = (Func<T1, T2, T3, T4, object>)TestMethod.CreateDelegate(typeof(Func<T1, T2, T3, T4, object>));
+                return () => func(arg1, arg2, arg3, arg4);
+            }
+        }
+
         private Func<object> MakeInvokerDelegate(object testClassInstance)
         {
             object[] args;
@@ -244,6 +272,8 @@ namespace Microsoft.Xunit.Performance
             {
                 case 1: invokerFactoryName = nameof(MakeInvoker1); break;
                 case 2: invokerFactoryName = nameof(MakeInvoker2); break;
+                case 3: invokerFactoryName = nameof(MakeInvoker3); break;
+                case 4: invokerFactoryName = nameof(MakeInvoker4); break;
 
                 default: return () => TestMethod.Invoke(testClassInstance, TestMethodArguments);
             }
