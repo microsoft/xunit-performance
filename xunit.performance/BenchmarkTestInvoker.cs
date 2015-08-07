@@ -73,6 +73,9 @@ namespace Microsoft.Xunit.Performance
             long totalMemoryAfterWarmup = 0;
             int gcCountAfterWarmup = 0;
 
+            var allocatesAttribute = TestCase.TestMethod.Method.GetCustomAttributes(typeof(AllocatesAttribute)).FirstOrDefault();
+            var allocates = (bool?)allocatesAttribute?.GetConstructorArguments().First();
+
             for (int i = 0; ; i++)
             {
                 double elapsedMilliseconds = 0;
@@ -131,7 +134,7 @@ namespace Microsoft.Xunit.Performance
                         //
                         // If the test says it doesn't use the GC, we can stop now.
                         //
-                        if (benchmarkTestCase.TriggersGC.HasValue && !benchmarkTestCase.TriggersGC.Value)
+                        if (allocates.HasValue && !allocates.Value)
                             break;
 
                         //
@@ -144,7 +147,7 @@ namespace Microsoft.Xunit.Performance
                         //
                         // If the test has not stated whether it uses the GC, we need to guess.
                         //
-                        if (!benchmarkTestCase.TriggersGC.HasValue)
+                        if (!allocates.HasValue)
                         {
                             //
                             // Maybe the method allocates, but we haven't executed enough iterations for this to trigger

@@ -27,13 +27,6 @@ namespace Microsoft.Xunit.Performance
         internal const double DefaultConfidence = 0.95;
 
         /// <summary>
-        /// If set, indicates whether the test allocates from the GC heap.  If true, test iterations will run until a GC occurs (and may
-        /// continue to run due to other factors).  If null, the test framework will attempt to determine whether the test has been
-        /// allocating.
-        /// </summary>
-        public bool? TriggersGC { get; set; }
-
-        /// <summary>
         /// If true, performance metrics will be computed for all iterations of the method.  If false (the default), the first
         /// iteration of the method will be ignored when computing results.  This "warmup" iteration helps eliminate one-time costs 
         /// (such as JIT compilation time) from the results, but may be unnecessary for some tests.

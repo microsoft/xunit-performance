@@ -10,7 +10,6 @@ namespace Microsoft.Xunit.Performance
     {
         public virtual double MarginOfError { get; protected set; }
         public virtual double Confidence { get; protected set; }
-        public virtual bool? TriggersGC { get; protected set; }
         public bool SkipWarmup { get; protected set; }
         public bool DiscoverArguments { get; protected set; }
 
@@ -35,7 +34,6 @@ namespace Microsoft.Xunit.Performance
             if (Confidence <= 0.0 || Confidence >= 1.0)
                 throw new InvalidOperationException($"Invalid {nameof(Confidence)}.  Must be greater than 0.0, and less than 1.0.");
 
-            TriggersGC = attr.GetNamedArgument<bool?>(nameof(BenchmarkAttribute.TriggersGC));
             SkipWarmup = attr.GetNamedArgument<bool>(nameof(BenchmarkAttribute.SkipWarmup));
         }
 
@@ -54,7 +52,6 @@ namespace Microsoft.Xunit.Performance
             base.Serialize(data);
             data.AddValue(nameof(MarginOfError), MarginOfError);
             data.AddValue(nameof(Confidence), Confidence);
-            data.AddValue(nameof(TriggersGC), TriggersGC);
             data.AddValue(nameof(SkipWarmup), SkipWarmup);
             data.AddValue(nameof(DiscoverArguments), DiscoverArguments);
         }
@@ -63,7 +60,6 @@ namespace Microsoft.Xunit.Performance
         {
             MarginOfError = data.GetValue<double>(nameof(MarginOfError));
             Confidence = data.GetValue<double>(nameof(Confidence));
-            TriggersGC = data.GetValue<bool?>(nameof(TriggersGC));
             SkipWarmup = data.GetValue<bool>(nameof(SkipWarmup));
             DiscoverArguments = data.GetValue<bool>(nameof(DiscoverArguments));
             base.Deserialize(data);

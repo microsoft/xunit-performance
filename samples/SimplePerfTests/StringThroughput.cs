@@ -242,7 +242,7 @@ public static class StringThroughput
     static string h8 = "a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a";
     static string h9 = "\u4e33\u4e65 Testing... \u4EE8";
 
-    [Benchmark]
+    [Benchmark, Allocates(false)]
     public static new void GetHashCode()
     {
         h1.GetHashCode(); h2.GetHashCode(); h3.GetHashCode(); h4.GetHashCode(); h5.GetHashCode(); h6.GetHashCode(); h7.GetHashCode(); h8.GetHashCode(); h9.GetHashCode();

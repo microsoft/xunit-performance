@@ -70,6 +70,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AllocatesAttribute.cs" />
     <Compile Include="BenchmarkAttribute.cs" />
     <Compile Include="BenchmarkDiscoverer.cs" />
     <Compile Include="BenchmarkEventSource.cs" />
