@@ -118,7 +118,7 @@ namespace Microsoft.Xunit.Performance
 
                 if (i == 0)
                 {
-                    totalMemoryAfterWarmup = GC.GetTotalMemory(true);
+                    totalMemoryAfterWarmup = GC.GetTotalMemory(forceFullCollection: !allocates.HasValue || allocates.Value);
                     gcCountAfterWarmup = GC.CollectionCount(0);
                     overallTimer.Start();
                 }
@@ -142,7 +142,12 @@ namespace Microsoft.Xunit.Performance
                         // and can stop now.
                         //
                         if (GC.CollectionCount(0) > gcCountAfterWarmup)
-                            break;
+                        {
+                            if (allocates.HasValue && !allocates.Value)
+                                throw new Exception("Allocated detected in a method that declares no allocation.");
+                            else
+                                break;
+                        }
 
                         //
                         // If the test has not stated whether it uses the GC, we need to guess.
@@ -168,6 +173,11 @@ namespace Microsoft.Xunit.Performance
                             //
                             if (overallTimer.Elapsed.TotalSeconds >= 1)
                                 break;
+                        }
+                        else if (!allocates.Value)
+                        {
+                            if (GC.GetTotalMemory(false) != totalMemoryAfterWarmup)
+                                throw new Exception("Allocated detected in a method that declares no allocation.");
                         }
                     }
                 }
