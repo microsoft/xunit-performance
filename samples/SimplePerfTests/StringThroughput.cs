@@ -184,7 +184,7 @@ public static class StringThroughput
     static string e8a = "a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a";
     static string e9a = "\u4e33\u4e65 Testing... \u4EE8";
 
-    [Benchmark]
+    [Benchmark, Allocates(false)]
     public static void Equality()
     {
         bool b;
@@ -251,7 +251,7 @@ public static class StringThroughput
     public static string i1 = "ddsz dszdsz \t  dszdsz  a\u0300\u00C0 \t Te st \u0400Te \u0400st\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\t Te\t \tst \t\r\n\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005";
     public static int counter;
 
-    [Benchmark]
+    [Benchmark, Allocates(false)]
     public static void BoundCheckHoist()
     {
         int strLength = i1.Length;
@@ -262,7 +262,7 @@ public static class StringThroughput
         }
     }
 
-    [Benchmark]
+    [Benchmark, Allocates(false)]
     public static void LengthHoisting()
     {
         for (int j = 0; j < i1.Length; j++)
@@ -271,7 +271,7 @@ public static class StringThroughput
         }
     }
 
-    [Benchmark]
+    [Benchmark, Allocates(false)]
     public static void PathLength()
     {
         for (int j = 0; j < i1.Length; j++)
@@ -298,7 +298,7 @@ public static class StringThroughput
         p1.PadLeft(2142);
     }
 
-    [Benchmark]
+    [Benchmark, Allocates(false)]
     public static void CompareCurrentCulture()
     {
         string.Compare("The quick brown fox", "The quick brown fox");
