@@ -306,6 +306,9 @@ namespace Microsoft.Xunit.Performance
 
         /// <summary>
         /// Computes whether we've executed enough iterations to have the desired margin of error, with the desired confidence.
+        /// 
+        /// Note that this relies on an assumption that the data is normally distributed, which is almost certainly not a valid
+        /// assumption.  We really need to come up with a better technique here.
         /// </summary>
         /// <param name="stats"></param>
         /// <param name="marginOfError"></param>
