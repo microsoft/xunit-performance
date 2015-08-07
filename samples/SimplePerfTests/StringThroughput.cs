@@ -111,15 +111,15 @@ public static class StringThroughput
     //    t7.Insert(3, t8); t8.Insert(3, t9); t9.Insert(3, tA); tA.Insert(3, tB); tB.Insert(4, tC); tC.Insert(5, t1);
     //}
 
-    static char c1 = ' ';
-    static char c2 = 'T';
-    static char c3 = 'd';
-    static char c4 = 'a';
-    static char c5 = (char)192;
-    static char c6 = (char)8197;
-    static char c7 = "\u0400"[0];
-    static char c8 = '\t';
-    static char c9 = (char)768;
+    //static char c1 = ' ';
+    //static char c2 = 'T';
+    //static char c3 = 'd';
+    //static char c4 = 'a';
+    //static char c5 = (char)192;
+    //static char c6 = (char)8197;
+    //static char c7 = "\u0400"[0];
+    //static char c8 = '\t';
+    //static char c9 = (char)768;
 
     //[Benchmark]
     //public static void ReplaceChar()
@@ -138,15 +138,15 @@ public static class StringThroughput
     //    tC.Replace(c1, c2); tC.Replace(c2, c3); tC.Replace(c3, c4); tC.Replace(c4, c5); tC.Replace(c5, c6); tC.Replace(c6, c7); tC.Replace(c7, c8); tC.Replace(c8, c9); tC.Replace(c9, c1);
     //}
 
-    static string sc1 = "  ";
-    static string sc2 = "T";
-    static string sc3 = "dd";
-    static string sc4 = "a";
-    static string sc5 = "\u00C0";
-    static string sc6 = "a\u0300";
-    static string sc7 = "\u0400";
-    static string sc8 = "\u0300";
-    static string sc9 = "\u00A0\u2000";
+    //static string sc1 = "  ";
+    //static string sc2 = "T";
+    //static string sc3 = "dd";
+    //static string sc4 = "a";
+    //static string sc5 = "\u00C0";
+    //static string sc6 = "a\u0300";
+    //static string sc7 = "\u0400";
+    //static string sc8 = "\u0300";
+    //static string sc9 = "\u00A0\u2000";
 
     //[Benchmark]
     //public static void ReplaceString()
