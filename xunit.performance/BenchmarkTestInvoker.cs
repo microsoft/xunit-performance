@@ -173,6 +173,54 @@ namespace Microsoft.Xunit.Performance
         }
 
 
+        /// <summary>
+        /// Make a delegate that invokes the test method with this case's arguments.  The idea is that invoking the delegate
+        /// will be faster than using MethodInfo.Invoke, which may matter if we're running a lot of small iterations of the method.
+        /// </summary>
+        /// <param name="testClassInstance"></param>
+        /// <returns></returns>
+        private Func<object> MakeInvokerDelegate(object testClassInstance)
+        {
+            object[] args;
+            Type[] types;
+            var testMethodParamTypes = TestMethod.GetParameters().Select(p => p.ParameterType).ToArray();
+
+            if (testClassInstance == null)
+            {
+                args = TestMethodArguments;
+                types = testMethodParamTypes;
+            }
+            else
+            {
+                args = new object[TestMethodArguments.Length + 1];
+                types = new Type[TestMethodArguments.Length + 1];
+                args[0] = testClassInstance;
+                types[0] = testClassInstance.GetType();
+                Array.Copy(TestMethodArguments, 0, args, 1, TestMethodArguments.Length);
+                Array.Copy(testMethodParamTypes, 0, types, 1, testMethodParamTypes.Length);
+            }
+
+            if (args.Length == 0)
+                return MakeInvoker0();
+
+            string invokerFactoryName;
+
+            switch (args.Length)
+            {
+                case 1: invokerFactoryName = nameof(MakeInvoker1); break;
+                case 2: invokerFactoryName = nameof(MakeInvoker2); break;
+                case 3: invokerFactoryName = nameof(MakeInvoker3); break;
+                case 4: invokerFactoryName = nameof(MakeInvoker4); break;
+
+                default: return () => TestMethod.Invoke(testClassInstance, TestMethodArguments);
+            }
+
+            var invokerFactory = typeof(BenchmarkTestInvoker).GetMethod(invokerFactoryName, BindingFlags.Instance | BindingFlags.NonPublic);
+            var invokerFactoryInstance = invokerFactory.MakeGenericMethod(types);
+
+            return (Func<object>)invokerFactoryInstance.Invoke(this, args);
+        }
+
         private Func<object> MakeInvoker0()
         {
             if (TestMethod.ReturnType == typeof(void))
@@ -240,48 +288,6 @@ namespace Microsoft.Xunit.Performance
                 var func = (Func<T1, T2, T3, T4, object>)TestMethod.CreateDelegate(typeof(Func<T1, T2, T3, T4, object>));
                 return () => func(arg1, arg2, arg3, arg4);
             }
-        }
-
-        private Func<object> MakeInvokerDelegate(object testClassInstance)
-        {
-            object[] args;
-            Type[] types;
-            var testMethodParamTypes = TestMethod.GetParameters().Select(p => p.ParameterType).ToArray();
-
-            if (testClassInstance == null)
-            {
-                args = TestMethodArguments;
-                types = testMethodParamTypes;
-            }
-            else
-            {
-                args = new object[TestMethodArguments.Length + 1];
-                types = new Type[TestMethodArguments.Length + 1];
-                args[0] = testClassInstance;
-                types[0] = testClassInstance.GetType();
-                Array.Copy(TestMethodArguments, 0, args, 1, TestMethodArguments.Length);
-                Array.Copy(testMethodParamTypes, 0, types, 1, testMethodParamTypes.Length);
-            }
-
-            if (args.Length == 0)
-                return MakeInvoker0();
-
-            string invokerFactoryName;
-
-            switch (args.Length)
-            {
-                case 1: invokerFactoryName = nameof(MakeInvoker1); break;
-                case 2: invokerFactoryName = nameof(MakeInvoker2); break;
-                case 3: invokerFactoryName = nameof(MakeInvoker3); break;
-                case 4: invokerFactoryName = nameof(MakeInvoker4); break;
-
-                default: return () => TestMethod.Invoke(testClassInstance, TestMethodArguments);
-            }
-
-            var invokerFactory = typeof(BenchmarkTestInvoker).GetMethod(invokerFactoryName, BindingFlags.Instance | BindingFlags.NonPublic);
-            var invokerFactoryInstance = invokerFactory.MakeGenericMethod(types);
-
-            return (Func<object>)invokerFactoryInstance.Invoke(this, args);
         }
 
 
