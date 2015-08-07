@@ -84,7 +84,7 @@ namespace Microsoft.Xunit.Performance
                 {
                     bool success = false;
                     BenchmarkEventSource.Log.BenchmarkExecutionStart(_runId, DisplayName, i);
-                    iterationTimer.Start();
+                    iterationTimer.Restart();
 
                     try
                     {
