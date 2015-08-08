@@ -13,7 +13,7 @@ namespace Microsoft.Xunit.Performance
 
         public static BenchmarkEventSource Log = new BenchmarkEventSource();
 
-        [Event(1, Opcode = EventOpcode.Start, Task = Tasks.BenchmarkExecution)]
+        [Event(1, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkExecution)]
         public unsafe void BenchmarkExecutionStart(string RunId, string BenchmarkName, int Iteration)
         {
             if (IsEnabled())
@@ -33,7 +33,7 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
-        [Event(2, Opcode = EventOpcode.Stop, Task = Tasks.BenchmarkExecution)]
+        [Event(2, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkExecution)]
         public unsafe void BenchmarkExecutionStop(string RunId, string BenchmarkName, int Iteration, bool Success)
         {
             if (IsEnabled())
