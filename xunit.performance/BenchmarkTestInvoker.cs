@@ -303,43 +303,5 @@ namespace Microsoft.Xunit.Performance
                 return () => func(arg1, arg2, arg3, arg4);
             }
         }
-
-
-        /// <summary>
-        /// Computes whether we've executed enough iterations to have the desired margin of error, with the desired confidence.
-        /// 
-        /// Note that this relies on an assumption that the data is normally distributed, which is almost certainly not a valid
-        /// assumption.  We really need to come up with a better technique here.
-        /// </summary>
-        /// <param name="stats"></param>
-        /// <param name="marginOfError"></param>
-        /// <param name="confidence"></param>
-        /// <returns></returns>
-        private bool HaveDesiredMarginOfError(RunningStatistics stats, double marginOfError, double confidence)
-        {
-            if (stats.Count < 2)
-                return false;
-
-            var stderr = stats.StandardDeviation / Math.Sqrt(stats.Count);
-            var t = TInv(1.0 - confidence, (int)stats.Count - 1);
-            var mean = stats.Mean;
-            var interval = t * stderr;
-
-            return (interval / mean) < marginOfError;
-        }
-
-        [ThreadStatic]
-        private static Dictionary<double, Dictionary<int, double>> _TInvCache = new Dictionary<double, Dictionary<int, double>>();
-
-        private static double TInv(double probability, int degreesOfFreedom)
-        {
-            Dictionary<int, double> dofCache;
-            if (!_TInvCache.TryGetValue(probability, out dofCache))
-                _TInvCache[probability] = dofCache = new Dictionary<int, double>();
-            double result;
-            if (!dofCache.TryGetValue(degreesOfFreedom, out result))
-                dofCache[degreesOfFreedom] = result = ExcelFunctions.TInv(probability, degreesOfFreedom);
-            return result;
-        }
     }
 }
