@@ -1,7 +1,4 @@
-﻿using MathNet.Numerics;
-using MathNet.Numerics.Statistics;
-using Microsoft.Xunit.Performance.Analysis;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -69,10 +66,6 @@ namespace Microsoft.Xunit.Performance
 
             Stopwatch iterationTimer = new Stopwatch();
             Stopwatch overallTimer = new Stopwatch();
-            RunningStatistics stats = new RunningStatistics();
-
-            long totalMemoryAfterWarmup = 0;
-            int gcCountAfterWarmup = 0;
 
             var allocatesAttribute = TestCase.TestMethod.Method.GetCustomAttributes(typeof(AllocatesAttribute)).FirstOrDefault();
             var allocates = (bool?)allocatesAttribute?.GetConstructorArguments().First();
@@ -83,6 +76,12 @@ namespace Microsoft.Xunit.Performance
 
                 if (i != 0 || !benchmarkTestCase.SkipWarmup)
                 {
+                    if (!allocates.HasValue || allocates.Value)
+                    {
+                        GC.Collect(2, GCCollectionMode.Optimized);
+                        GC.WaitForPendingFinalizers();
+                    }
+
                     bool success = false;
                     BenchmarkEventSource.Log.BenchmarkExecutionStart(_runId, DisplayName, i);
                     iterationTimer.Restart();
@@ -118,72 +117,10 @@ namespace Microsoft.Xunit.Performance
                 }
 
                 if (i == 0)
-                {
-                    totalMemoryAfterWarmup = GC.GetTotalMemory(forceFullCollection: !allocates.HasValue || allocates.Value);
-                    gcCountAfterWarmup = GC.CollectionCount(0);
                     overallTimer.Start();
-                }
-                else
-                {
-                    stats.Push(elapsedMilliseconds);
-
-                    //
-                    // Keep running iterations until we've reached the desired margin of error in the result.
-                    //
-                    if (stats.MarginOfError(benchmarkTestCase.Confidence) < benchmarkTestCase.MarginOfError)
-                    {
-                        //
-                        // If the test says it doesn't use the GC, we can stop now.
-                        //
-                        if (allocates.HasValue && !allocates.Value)
-                            break;
-
-                        //
-                        // If a GC ocurred during the iterations so far, then we've accounted for that in the result,
-                        // and can stop now.
-                        //
-                        if (GC.CollectionCount(0) > gcCountAfterWarmup)
-                        {
-                            if (allocates.HasValue && !allocates.Value)
-                                throw new Exception("Allocated detected in a method that declares no allocation.");
-                            else
-                                break;
-                        }
-
-                        //
-                        // If the test has not stated whether it uses the GC, we need to guess.
-                        //
-                        if (!allocates.HasValue)
-                        {
-                            //
-                            // Maybe the method allocates, but we haven't executed enough iterations for this to trigger
-                            // the GC.  If so, we're missing a large part of the cost of the method.  But, some methods will
-                            // never allocate, and so will never trigger a GC.  So we need to give up if it looks like nobody
-                            // is allocating anything.
-                            //
-                            // (We can't *just* check GC.GetTotalMemory, because it's only updated when each thread's 
-                            // "allocation context" is exhausted.  So we make sure to run for a while before trusting
-                            // GC.GetTotalMemory.)
-                            //
-                            if (i >= 1024 && GC.GetTotalMemory(false) == totalMemoryAfterWarmup)
-                                break;
-
-                            //
-                            // If the iterations so far have taken a significant amount of time, and yet a GC has not occurred,
-                            // we give up and assume that the GC isn't going to be a significant factor for this method.
-                            //
-                            if (overallTimer.Elapsed.TotalSeconds >= 1)
-                                break;
-                        }
-                        else if (!allocates.Value)
-                        {
-                            if (GC.GetTotalMemory(false) != totalMemoryAfterWarmup)
-                                throw new Exception("Allocated detected in a method that declares no allocation.");
-                        }
-                    }
-                }
+                else if (overallTimer.ElapsedMilliseconds >= 1000 || i >= 1000)
+                    break;
             }
-
         }
 
 

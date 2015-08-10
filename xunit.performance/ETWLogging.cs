@@ -54,6 +54,7 @@ namespace Microsoft.Xunit.Performance
             var sessionName = "xunit.performance/" + runId;
 
             var session = new TraceEventSession(sessionName, filename);
+            session.BufferSizeMB = 128;
                             
             session.EnableKernelProvider(KernelKeywords, KernelStackKeywords);
             session.EnableProvider(EventSource.GetGuid(typeof(BenchmarkEventSource)));

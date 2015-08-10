@@ -8,8 +8,6 @@ namespace Microsoft.Xunit.Performance
 {
     internal class BenchmarkTestCase : XunitTestCase
     {
-        public virtual double MarginOfError { get; protected set; }
-        public virtual double Confidence { get; protected set; }
         public bool SkipWarmup { get; protected set; }
         public bool DiscoverArguments { get; protected set; }
 
@@ -21,19 +19,6 @@ namespace Microsoft.Xunit.Performance
             : base(diagnosticMessageSink, defaultMethodDisplay, testMethod, testMethodArguments)
         {
             DiscoverArguments = testMethodArguments == null;
-
-            MarginOfError = attr.GetNamedArgument<double>(nameof(BenchmarkAttribute.MarginOfError));
-            if (MarginOfError == default(double))
-                MarginOfError = BenchmarkAttribute.DefaultMarginOfError;
-            if (MarginOfError <= 0.0 || MarginOfError >= 1.0)
-                throw new InvalidOperationException($"Invalid {nameof(MarginOfError)}.  Must be greater than 0.0, and less than 1.0.");
-
-            Confidence = attr.GetNamedArgument<double>(nameof(BenchmarkAttribute.Confidence));
-            if (Confidence == default(double))
-                Confidence = BenchmarkAttribute.DefaultConfidence;
-            if (Confidence <= 0.0 || Confidence >= 1.0)
-                throw new InvalidOperationException($"Invalid {nameof(Confidence)}.  Must be greater than 0.0, and less than 1.0.");
-
             SkipWarmup = attr.GetNamedArgument<bool>(nameof(BenchmarkAttribute.SkipWarmup));
         }
 
@@ -50,16 +35,12 @@ namespace Microsoft.Xunit.Performance
         public override void Serialize(IXunitSerializationInfo data)
         {
             base.Serialize(data);
-            data.AddValue(nameof(MarginOfError), MarginOfError);
-            data.AddValue(nameof(Confidence), Confidence);
             data.AddValue(nameof(SkipWarmup), SkipWarmup);
             data.AddValue(nameof(DiscoverArguments), DiscoverArguments);
         }
 
         public override void Deserialize(IXunitSerializationInfo data)
         {
-            MarginOfError = data.GetValue<double>(nameof(MarginOfError));
-            Confidence = data.GetValue<double>(nameof(Confidence));
             SkipWarmup = data.GetValue<bool>(nameof(SkipWarmup));
             DiscoverArguments = data.GetValue<bool>(nameof(DiscoverArguments));
             base.Deserialize(data);
