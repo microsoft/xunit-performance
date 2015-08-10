@@ -1,58 +1,59 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class BenchmarkDiscoverer : IXunitTestCaseDiscoverer
+    internal class BenchmarkDiscoverer : TheoryDiscoverer
     {
-        private readonly IMessageSink _diagnosticMessageSink;
+        IMessageSink _diagnosticMessageSink;
 
         public BenchmarkDiscoverer(IMessageSink diagnosticMessageSink)
+            : base(diagnosticMessageSink)
         {
             _diagnosticMessageSink = diagnosticMessageSink;
         }
 
-        public IEnumerable<IXunitTestCase> Discover(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo factAttribute)
+        public override IEnumerable<IXunitTestCase> Discover(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo benchmarkAttribute)
         {
             var defaultMethodDisplay = discoveryOptions.MethodDisplayOrDefault();
 
+            //
             // Special case Skip, because we want a single Skip (not one per data item), and a skipped test may
             // not actually have any data (which is quasi-legal, since it's skipped).
-            if (factAttribute.GetNamedArgument<string>("Skip") != null)
-                return new[] { new XunitTestCase(_diagnosticMessageSink, defaultMethodDisplay, testMethod) };
-
-            var dataAttributes = testMethod.Method.GetCustomAttributes(typeof(DataAttribute));
-
-            if (discoveryOptions.PreEnumerateTheoriesOrDefault())
+            //
+            if (benchmarkAttribute.GetNamedArgument<string>("Skip") != null)
             {
-                try
-                {
-                    var results = new List<XunitTestCase>();
-
-                    foreach (var dataAttribute in dataAttributes)
-                    {
-                        var discovererAttribute = dataAttribute.GetCustomAttributes(typeof(DataDiscovererAttribute)).First();
-                        var discoverer = ExtensibilityPointFactory.GetDataDiscoverer(_diagnosticMessageSink, discovererAttribute);
-                        if (discoverer.SupportsDiscoveryEnumeration(dataAttribute, testMethod.Method))
-                        {
-                            foreach (var dataRow in discoverer.GetData(dataAttribute, testMethod.Method))
-                            {
-                                var testCase = new BenchmarkTestCase(_diagnosticMessageSink, defaultMethodDisplay, testMethod, factAttribute, dataRow);
-                                results.Add(testCase);
-                            }
-                        }
-                    }
-
-                    if (results.Count > 0)
-                        return results;
-                }
-                catch { }  // If something goes wrong, fall through to return just the XunitTestCase
+                yield return new XunitTestCase(_diagnosticMessageSink, defaultMethodDisplay, testMethod);
+                yield break;
             }
 
-            return new XunitTestCase[] { new BenchmarkTestCase(_diagnosticMessageSink, defaultMethodDisplay, testMethod, factAttribute) };
+            //
+            // Use the TheoryDiscoverer to enumerate the cases.  We can't do this, because
+            // xUnit doesn't expose everything we need (for example, the ability to ask if an
+            // object is xUnit-serializable).
+            //
+            foreach (var theoryCase in base.Discover(discoveryOptions, testMethod, benchmarkAttribute))
+            {
+                if (theoryCase is XunitTheoryTestCase)
+                {
+                    //                
+                    // TheoryDiscoverer returns one of these if it cannot enumerate the cases now.
+                    // We'll return a BenchmarkTestCase with no data associated.
+                    //
+                    yield return new BenchmarkTestCase(_diagnosticMessageSink, defaultMethodDisplay, testMethod, benchmarkAttribute);
+                }
+                else
+                {
+                    //
+                    // This is a test case with data
+                    //
+                    yield return new BenchmarkTestCase(_diagnosticMessageSink, defaultMethodDisplay, testMethod, benchmarkAttribute, theoryCase.TestMethodArguments);
+                }
+            }
         }
     }
 }
