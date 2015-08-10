@@ -13,8 +13,6 @@ namespace Microsoft.Xunit.Performance
     internal class BenchmarkTestInvoker : XunitTestInvoker
     {
         static bool _initialized;
-        static bool _loggingFailed;
-        static string _runId;
         static IDisposable _etwLogger; // just to keep the logger rooted, so it doesn't get finalized during the run
 
         public BenchmarkTestInvoker(ITest test,
@@ -32,18 +30,8 @@ namespace Microsoft.Xunit.Performance
             {
                 if (!_initialized)
                 {
-                    _runId = Environment.GetEnvironmentVariable("XUNIT_PERFORMANCE_RUN_ID");
-                    if (string.IsNullOrEmpty(_runId))
-                        _runId = Environment.MachineName + ":" + DateTimeOffset.UtcNow.ToString("u");
-
-                    var etwLogPath = Environment.GetEnvironmentVariable("XUNIT_PERFORMANCE_ETL_PATH");
-                    if (etwLogPath == null)
-                        etwLogPath = "xunit.performance.etl";
-                    else if (!ETWLogging.CanLog)
-                        _loggingFailed = true;
-
                     if (ETWLogging.CanLog)
-                        _etwLogger = ETWLogging.Start(etwLogPath, _runId);
+                        _etwLogger = ETWLogging.Start(BenchmarkConfiguration.ETLPath, BenchmarkConfiguration.RunId);
 
                     _initialized = true;
                 }
@@ -52,9 +40,6 @@ namespace Microsoft.Xunit.Performance
 
         protected override object CallTestMethod(object testClassInstance)
         {
-            if (_loggingFailed)
-                throw new Exception("ETW logging was requested, but this process is not running with elevated permissions.");
-
             return IterateAsync(testClassInstance);
         }
 
@@ -83,7 +68,7 @@ namespace Microsoft.Xunit.Performance
                     }
 
                     bool success = false;
-                    BenchmarkEventSource.Log.BenchmarkExecutionStart(_runId, DisplayName, i);
+                    BenchmarkEventSource.Log.BenchmarkExecutionStart(BenchmarkConfiguration.RunId, DisplayName, i);
                     iterationTimer.Restart();
 
                     try
@@ -109,7 +94,7 @@ namespace Microsoft.Xunit.Performance
                     {
                         iterationTimer.Stop();
                         elapsedMilliseconds = iterationTimer.Elapsed.TotalMilliseconds;
-                        BenchmarkEventSource.Log.BenchmarkExecutionStop(_runId, DisplayName, i, success);
+                        BenchmarkEventSource.Log.BenchmarkExecutionStop(BenchmarkConfiguration.RunId, DisplayName, i, success);
                     }
 
                     if (!success)
@@ -118,7 +103,7 @@ namespace Microsoft.Xunit.Performance
 
                 if (i == 0)
                     overallTimer.Start();
-                else if (overallTimer.ElapsedMilliseconds >= 1000 || i >= 1000)
+                else if (overallTimer.ElapsedMilliseconds >= BenchmarkConfiguration.MaxTotalMilliseconds || i >= BenchmarkConfiguration.MaxIteration)
                     break;
             }
         }

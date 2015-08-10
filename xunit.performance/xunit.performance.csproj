@@ -68,6 +68,7 @@
   <ItemGroup>
     <Compile Include="AllocatesAttribute.cs" />
     <Compile Include="BenchmarkAttribute.cs" />
+    <Compile Include="BenchmarkConfiguration.cs" />
     <Compile Include="BenchmarkDiscoverer.cs" />
     <Compile Include="BenchmarkEventSource.cs" />
     <Compile Include="BenchmarkTestCase.cs" />
