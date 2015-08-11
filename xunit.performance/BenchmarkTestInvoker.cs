@@ -14,7 +14,8 @@ namespace Microsoft.Xunit.Performance
     {
         static bool _initialized;
         static IDisposable _etwLogger; // just to keep the logger rooted, so it doesn't get finalized during the run
-
+        static SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+        
         public BenchmarkTestInvoker(ITest test,
                                 IMessageBus messageBus,
                                 Type testClass,
@@ -45,14 +46,20 @@ namespace Microsoft.Xunit.Performance
 
         private async Task IterateAsync(object testClassInstance)
         {
-            var benchmarkTestCase = (BenchmarkTestCase)TestCase;
-            var invoker = MakeInvokerDelegate(testClassInstance);
             var asyncSyncContext = (AsyncTestSyncContext)SynchronizationContext.Current;
-
-            BenchmarkEventSource.Log.BenchmarkStart(BenchmarkConfiguration.RunId, DisplayName);
             string stopReason = "Unknown";
+
+            //
+            // Serialize all benchmarks
+            //
+            await _semaphore.WaitAsync();
             try
             {
+                BenchmarkEventSource.Log.BenchmarkStart(BenchmarkConfiguration.RunId, DisplayName);
+
+                var benchmarkTestCase = (BenchmarkTestCase)TestCase;
+                var invoker = MakeInvokerDelegate(testClassInstance);
+
                 Stopwatch iterationTimer = new Stopwatch();
                 Stopwatch overallTimer = new Stopwatch();
 
@@ -127,6 +134,7 @@ namespace Microsoft.Xunit.Performance
             finally
             {
                 BenchmarkEventSource.Log.BenchmarkStop(BenchmarkConfiguration.RunId, DisplayName, stopReason);
+                _semaphore.Release();
             }
         }
 
