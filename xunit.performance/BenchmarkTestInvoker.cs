@@ -39,6 +39,22 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
+        protected override async Task<decimal> InvokeTestMethodAsync(object testClassInstance)
+        {
+            //
+            // Serialize all benchmarks
+            //
+            await _semaphore.WaitAsync();
+            try
+            {
+                return await base.InvokeTestMethodAsync(testClassInstance);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
         protected override object CallTestMethod(object testClassInstance)
         {
             return IterateAsync(testClassInstance);
@@ -49,10 +65,6 @@ namespace Microsoft.Xunit.Performance
             var asyncSyncContext = (AsyncTestSyncContext)SynchronizationContext.Current;
             string stopReason = "Unknown";
 
-            //
-            // Serialize all benchmarks
-            //
-            await _semaphore.WaitAsync();
             try
             {
                 BenchmarkEventSource.Log.BenchmarkStart(BenchmarkConfiguration.RunId, DisplayName);
@@ -134,7 +146,6 @@ namespace Microsoft.Xunit.Performance
             finally
             {
                 BenchmarkEventSource.Log.BenchmarkStop(BenchmarkConfiguration.RunId, DisplayName, stopReason);
-                _semaphore.Release();
             }
         }
 
