@@ -297,7 +297,7 @@ namespace Microsoft.Xunit.Performance.Analysis
 
                 Dictionary<string, TestIterationResult> currentIterations = new Dictionary<string, TestIterationResult>();
 
-                benchmarkParser.BenchmarkExecutionStart += args =>
+                benchmarkParser.BenchmarkIterationStart += args =>
                 {
                     var currentIteration = new TestIterationResult();
                     currentIteration.EtlPath = path;
@@ -311,7 +311,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                     currentIterations[args.RunId] = currentIteration;
                 };
 
-                benchmarkParser.BenchmarkExecutionStop += args =>
+                benchmarkParser.BenchmarkIterationStop += args =>
                 {
                     TestIterationResult currentIteration = currentIterations[args.RunId];
                     currentIteration.RelativeStopMilliseconds = args.TimeStampRelativeMSec;

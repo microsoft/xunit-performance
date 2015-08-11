@@ -49,62 +49,84 @@ namespace Microsoft.Xunit.Performance
             var invoker = MakeInvokerDelegate(testClassInstance);
             var asyncSyncContext = (AsyncTestSyncContext)SynchronizationContext.Current;
 
-            Stopwatch iterationTimer = new Stopwatch();
-            Stopwatch overallTimer = new Stopwatch();
-
-            var allocatesAttribute = TestCase.TestMethod.Method.GetCustomAttributes(typeof(AllocatesAttribute)).FirstOrDefault();
-            var allocates = (bool?)allocatesAttribute?.GetConstructorArguments().First();
-
-            for (int i = 0; ; i++)
+            BenchmarkEventSource.Log.BenchmarkStart(BenchmarkConfiguration.RunId, DisplayName);
+            string stopReason = "Unknown";
+            try
             {
-                double elapsedMilliseconds = 0;
+                Stopwatch iterationTimer = new Stopwatch();
+                Stopwatch overallTimer = new Stopwatch();
 
-                if (i != 0 || !benchmarkTestCase.SkipWarmup)
+                var allocatesAttribute = TestCase.TestMethod.Method.GetCustomAttributes(typeof(AllocatesAttribute)).FirstOrDefault();
+                var allocates = (bool?)allocatesAttribute?.GetConstructorArguments().First();
+
+                for (int i = 0; ; i++)
                 {
-                    if (!allocates.HasValue || allocates.Value)
+                    double elapsedMilliseconds = 0;
+
+                    if (i != 0 || !benchmarkTestCase.SkipWarmup)
                     {
-                        GC.Collect(2, GCCollectionMode.Optimized);
-                        GC.WaitForPendingFinalizers();
-                    }
-
-                    bool success = false;
-                    BenchmarkEventSource.Log.BenchmarkExecutionStart(BenchmarkConfiguration.RunId, DisplayName, i);
-                    iterationTimer.Restart();
-
-                    try
-                    {
-                        object result = invoker();
-
-                        var task = result as Task;
-                        if (task != null)
+                        if (!allocates.HasValue || allocates.Value)
                         {
-                            await task;
-                            success = true;
+                            GC.Collect(2, GCCollectionMode.Optimized);
+                            GC.WaitForPendingFinalizers();
                         }
-                        else
+
+                        bool success = false;
+                        BenchmarkEventSource.Log.BenchmarkIterationStart(BenchmarkConfiguration.RunId, DisplayName, i);
+                        iterationTimer.Restart();
+
+                        try
                         {
-                            var ex = await asyncSyncContext.WaitForCompletionAsync();
-                            if (ex == null)
+                            object result = invoker();
+
+                            var task = result as Task;
+                            if (task != null)
+                            {
+                                await task;
                                 success = true;
+                            }
                             else
-                                Aggregator.Add(ex);
+                            {
+                                var ex = await asyncSyncContext.WaitForCompletionAsync();
+                                if (ex == null)
+                                    success = true;
+                                else
+                                    Aggregator.Add(ex);
+                            }
                         }
+                        finally
+                        {
+                            iterationTimer.Stop();
+                            elapsedMilliseconds = iterationTimer.Elapsed.TotalMilliseconds;
+                            BenchmarkEventSource.Log.BenchmarkIterationStop(BenchmarkConfiguration.RunId, DisplayName, i, success);
+
+                            if (!success)
+                                stopReason = "TestFailed";
+                        }
+
+                        if (!success)
+                            break;
                     }
-                    finally
+
+                    if (i == 0)
                     {
-                        iterationTimer.Stop();
-                        elapsedMilliseconds = iterationTimer.Elapsed.TotalMilliseconds;
-                        BenchmarkEventSource.Log.BenchmarkExecutionStop(BenchmarkConfiguration.RunId, DisplayName, i, success);
+                        overallTimer.Start();
                     }
-
-                    if (!success)
+                    else if (overallTimer.ElapsedMilliseconds >= BenchmarkConfiguration.MaxTotalMilliseconds)
+                    {
+                        stopReason = "MaxTime";
                         break;
+                    }
+                    else if (i >= BenchmarkConfiguration.MaxIteration)
+                    {
+                        stopReason = "MaxIterations";
+                        break;
+                    }
                 }
-
-                if (i == 0)
-                    overallTimer.Start();
-                else if (overallTimer.ElapsedMilliseconds >= BenchmarkConfiguration.MaxTotalMilliseconds || i >= BenchmarkConfiguration.MaxIteration)
-                    break;
+            }
+            finally
+            {
+                BenchmarkEventSource.Log.BenchmarkStop(BenchmarkConfiguration.RunId, DisplayName, stopReason);
             }
         }
 

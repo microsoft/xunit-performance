@@ -28,22 +28,44 @@ namespace Microsoft.Diagnostics.Tracing.Parsers
 
         public MicrosoftXunitBenchmarkTraceEventParser(TraceEventSource source) : base(source) { }
 
-        public event Action<BenchmarkExecutionStartArgs> BenchmarkExecutionStart
+        public event Action<BenchmarkIterationStartArgs> BenchmarkIterationStart
         {
             add
             {
-                source.RegisterEventTemplate(BenchmarkExecutionStartTemplate(value));
+                source.RegisterEventTemplate(BenchmarkIterationStartTemplate(value));
+            }
+            remove
+            {
+                source.UnregisterEventTemplate(value, 3, ProviderGuid);
+            }
+        }
+        public event Action<BenchmarkIterationStopArgs> BenchmarkIterationStop
+        {
+            add
+            {
+                source.RegisterEventTemplate(BenchmarkIterationStopTemplate(value));
+            }
+            remove
+            {
+                source.UnregisterEventTemplate(value, 4, ProviderGuid);
+            }
+        }
+        public event Action<BenchmarkStartArgs> BenchmarkStart
+        {
+            add
+            {
+                source.RegisterEventTemplate(BenchmarkStartTemplate(value));
             }
             remove
             {
                 source.UnregisterEventTemplate(value, 1, ProviderGuid);
             }
         }
-        public event Action<BenchmarkExecutionStopArgs> BenchmarkExecutionStop
+        public event Action<BenchmarkStopArgs> BenchmarkStop
         {
             add
             {
-                source.RegisterEventTemplate(BenchmarkExecutionStopTemplate(value));
+                source.RegisterEventTemplate(BenchmarkStopTemplate(value));
             }
             remove
             {
@@ -65,13 +87,21 @@ namespace Microsoft.Diagnostics.Tracing.Parsers
         #region private
         protected override string GetProviderName() { return ProviderName; }
 
-        static private BenchmarkExecutionStartArgs BenchmarkExecutionStartTemplate(Action<BenchmarkExecutionStartArgs> action)
+        static private BenchmarkIterationStartArgs BenchmarkIterationStartTemplate(Action<BenchmarkIterationStartArgs> action)
         {                  // action, eventid, taskid, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName
-            return new BenchmarkExecutionStartArgs(action, 1, 1, "BenchmarkExecution", Guid.Empty, 1, "Start", ProviderGuid, ProviderName);
+            return new BenchmarkIterationStartArgs(action, 3, 3, "BenchmarkIterationStart", Guid.Empty, 0, "", ProviderGuid, ProviderName);
         }
-        static private BenchmarkExecutionStopArgs BenchmarkExecutionStopTemplate(Action<BenchmarkExecutionStopArgs> action)
+        static private BenchmarkIterationStopArgs BenchmarkIterationStopTemplate(Action<BenchmarkIterationStopArgs> action)
         {                  // action, eventid, taskid, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName
-            return new BenchmarkExecutionStopArgs(action, 2, 1, "BenchmarkExecution", Guid.Empty, 2, "Stop", ProviderGuid, ProviderName);
+            return new BenchmarkIterationStopArgs(action, 4, 4, "BenchmarkIterationStop", Guid.Empty, 0, "", ProviderGuid, ProviderName);
+        }
+        static private BenchmarkStartArgs BenchmarkStartTemplate(Action<BenchmarkStartArgs> action)
+        {                  // action, eventid, taskid, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName
+            return new BenchmarkStartArgs(action, 1, 1, "BenchmarkStart", Guid.Empty, 0, "", ProviderGuid, ProviderName);
+        }
+        static private BenchmarkStopArgs BenchmarkStopTemplate(Action<BenchmarkStopArgs> action)
+        {                  // action, eventid, taskid, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName
+            return new BenchmarkStopArgs(action, 2, 2, "BenchmarkStop", Guid.Empty, 0, "", ProviderGuid, ProviderName);
         }
         static private EventSourceMessageArgs EventSourceMessageTemplate(Action<EventSourceMessageArgs> action)
         {                  // action, eventid, taskid, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName
@@ -83,10 +113,12 @@ namespace Microsoft.Diagnostics.Tracing.Parsers
         {
             if (s_templates == null)
             {
-                var templates = new TraceEvent[3];
+                var templates = new TraceEvent[5];
                 templates[0] = EventSourceMessageTemplate(null);
-                templates[1] = BenchmarkExecutionStartTemplate(null);
-                templates[2] = BenchmarkExecutionStopTemplate(null);
+                templates[1] = BenchmarkStartTemplate(null);
+                templates[2] = BenchmarkStopTemplate(null);
+                templates[3] = BenchmarkIterationStartTemplate(null);
+                templates[4] = BenchmarkIterationStopTemplate(null);
                 s_templates = templates;
             }
             foreach (var template in s_templates)
@@ -100,14 +132,14 @@ namespace Microsoft.Diagnostics.Tracing.Parsers
 
 namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
 {
-    public sealed class BenchmarkExecutionStartArgs : TraceEvent
+    public sealed class BenchmarkIterationStartArgs : TraceEvent
     {
         public string RunId { get { return GetUnicodeStringAt(0); } }
         public string BenchmarkName { get { return GetUnicodeStringAt(SkipUnicodeString(0)); } }
         public int Iteration { get { return GetInt32At(SkipUnicodeString(SkipUnicodeString(0))); } }
 
         #region Private
-        internal BenchmarkExecutionStartArgs(Action<BenchmarkExecutionStartArgs> target, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName)
+        internal BenchmarkIterationStartArgs(Action<BenchmarkIterationStartArgs> target, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName)
             : base(eventID, task, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName)
         {
             this.m_target = target;
@@ -124,7 +156,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
         protected override Delegate Target
         {
             get { return m_target; }
-            set { m_target = (Action<BenchmarkExecutionStartArgs>)value; }
+            set { m_target = (Action<BenchmarkIterationStartArgs>)value; }
         }
         public override StringBuilder ToXml(StringBuilder sb)
         {
@@ -162,10 +194,10 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
             }
         }
 
-        private event Action<BenchmarkExecutionStartArgs> m_target;
+        private event Action<BenchmarkIterationStartArgs> m_target;
         #endregion
     }
-    public sealed class BenchmarkExecutionStopArgs : TraceEvent
+    public sealed class BenchmarkIterationStopArgs : TraceEvent
     {
         public string RunId { get { return GetUnicodeStringAt(0); } }
         public string BenchmarkName { get { return GetUnicodeStringAt(SkipUnicodeString(0)); } }
@@ -173,7 +205,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
         public bool Success { get { return GetInt32At(SkipUnicodeString(SkipUnicodeString(0)) + 4) != 0; } }
 
         #region Private
-        internal BenchmarkExecutionStopArgs(Action<BenchmarkExecutionStopArgs> target, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName)
+        internal BenchmarkIterationStopArgs(Action<BenchmarkIterationStopArgs> target, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName)
             : base(eventID, task, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName)
         {
             this.m_target = target;
@@ -190,7 +222,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
         protected override Delegate Target
         {
             get { return m_target; }
-            set { m_target = (Action<BenchmarkExecutionStopArgs>)value; }
+            set { m_target = (Action<BenchmarkIterationStopArgs>)value; }
         }
         public override StringBuilder ToXml(StringBuilder sb)
         {
@@ -231,7 +263,133 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
             }
         }
 
-        private event Action<BenchmarkExecutionStopArgs> m_target;
+        private event Action<BenchmarkIterationStopArgs> m_target;
+        #endregion
+    }
+    public sealed class BenchmarkStartArgs : TraceEvent
+    {
+        public string RunId { get { return GetUnicodeStringAt(0); } }
+        public string BenchmarkName { get { return GetUnicodeStringAt(SkipUnicodeString(0)); } }
+
+        #region Private
+        internal BenchmarkStartArgs(Action<BenchmarkStartArgs> target, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName)
+            : base(eventID, task, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName)
+        {
+            this.m_target = target;
+        }
+        protected override void Dispatch()
+        {
+            m_target(this);
+        }
+        protected override void Validate()
+        {
+            Debug.Assert(!(Version == 0 && EventDataLength != SkipUnicodeString(SkipUnicodeString(0))));
+            Debug.Assert(!(Version > 0 && EventDataLength < SkipUnicodeString(SkipUnicodeString(0))));
+        }
+        protected override Delegate Target
+        {
+            get { return m_target; }
+            set { m_target = (Action<BenchmarkStartArgs>)value; }
+        }
+        public override StringBuilder ToXml(StringBuilder sb)
+        {
+            Prefix(sb);
+            XmlAttrib(sb, "RunId", RunId);
+            XmlAttrib(sb, "BenchmarkName", BenchmarkName);
+            sb.Append("/>");
+            return sb;
+        }
+
+        public override string[] PayloadNames
+        {
+            get
+            {
+                if (payloadNames == null)
+                    payloadNames = new string[] { "RunId", "BenchmarkName" };
+                return payloadNames;
+            }
+        }
+
+        public override object PayloadValue(int index)
+        {
+            switch (index)
+            {
+                case 0:
+                    return RunId;
+                case 1:
+                    return BenchmarkName;
+                default:
+                    Debug.Assert(false, "Bad field index");
+                    return null;
+            }
+        }
+
+        private event Action<BenchmarkStartArgs> m_target;
+        #endregion
+    }
+    public sealed class BenchmarkStopArgs : TraceEvent
+    {
+        public string RunId { get { return GetUnicodeStringAt(0); } }
+        public string BenchmarkName { get { return GetUnicodeStringAt(SkipUnicodeString(0)); } }
+        public string StopReason { get { return GetUnicodeStringAt(SkipUnicodeString(SkipUnicodeString(0))); } }
+
+        #region Private
+        internal BenchmarkStopArgs(Action<BenchmarkStopArgs> target, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName)
+            : base(eventID, task, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName)
+        {
+            this.m_target = target;
+        }
+        protected override void Dispatch()
+        {
+            m_target(this);
+        }
+        protected override void Validate()
+        {
+            Debug.Assert(!(Version == 0 && EventDataLength != SkipUnicodeString(SkipUnicodeString(SkipUnicodeString(0)))));
+            Debug.Assert(!(Version > 0 && EventDataLength < SkipUnicodeString(SkipUnicodeString(SkipUnicodeString(0)))));
+        }
+        protected override Delegate Target
+        {
+            get { return m_target; }
+            set { m_target = (Action<BenchmarkStopArgs>)value; }
+        }
+        public override StringBuilder ToXml(StringBuilder sb)
+        {
+            Prefix(sb);
+            XmlAttrib(sb, "RunId", RunId);
+            XmlAttrib(sb, "BenchmarkName", BenchmarkName);
+            XmlAttrib(sb, "StopReason", StopReason);
+            sb.Append("/>");
+            return sb;
+        }
+
+        public override string[] PayloadNames
+        {
+            get
+            {
+                if (payloadNames == null)
+                    payloadNames = new string[] { "RunId", "BenchmarkName", "StopReason" };
+                return payloadNames;
+            }
+        }
+
+        public override object PayloadValue(int index)
+        {
+            switch (index)
+            {
+                case 0:
+                    return RunId;
+                case 1:
+                    return BenchmarkName;
+                case 2:
+                    return StopReason;
+                default:
+                    Debug.Assert(false, "Bad field index");
+                    return null;
+            }
+        }
+
+        private event Action<BenchmarkStopArgs> m_target;
         #endregion
     }
     public sealed class EventSourceMessageArgs : TraceEvent

@@ -8,13 +8,55 @@ namespace Microsoft.Xunit.Performance
     {
         public class Tasks
         {
-            public const EventTask BenchmarkExecution = (EventTask)1;
+            public const EventTask BenchmarkStart = (EventTask)1;
+            public const EventTask BenchmarkStop = (EventTask)2;
+            public const EventTask BenchmarkIterationStart = (EventTask)3;
+            public const EventTask BenchmarkIterationStop = (EventTask)4;
         }
 
         public static BenchmarkEventSource Log = new BenchmarkEventSource();
 
-        [Event(1, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkExecution)]
-        public unsafe void BenchmarkExecutionStart(string RunId, string BenchmarkName, int Iteration)
+        [Event(1, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkStart)]
+        public unsafe void BenchmarkStart(string RunId, string BenchmarkName)
+        {
+            if (IsEnabled())
+            {
+                fixed (char* pRunId = RunId)
+                fixed (char* pBenchmarkName = BenchmarkName)
+                {
+                    EventData* data = stackalloc EventData[2];
+                    data[0].Size = (RunId.Length + 1) * sizeof(char);
+                    data[0].DataPointer = (IntPtr)pRunId;
+                    data[1].Size = (BenchmarkName.Length + 1) * 2;
+                    data[1].DataPointer = (IntPtr)pBenchmarkName;
+                    WriteEventCore(1, 2, data);
+                }
+            }
+        }
+
+        [Event(2, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkStop)]
+        public unsafe void BenchmarkStop(string RunId, string BenchmarkName, string StopReason)
+        {
+            if (IsEnabled())
+            {
+                fixed (char* pRunId = RunId)
+                fixed (char* pBenchmarkName = BenchmarkName)
+                fixed (char* pStopReason = StopReason)
+                {
+                    EventData* data = stackalloc EventData[3];
+                    data[0].Size = (RunId.Length + 1) * sizeof(char);
+                    data[0].DataPointer = (IntPtr)pRunId;
+                    data[1].Size = (BenchmarkName.Length + 1) * 2;
+                    data[1].DataPointer = (IntPtr)pBenchmarkName;
+                    data[2].Size = (StopReason.Length + 1) * 2;
+                    data[2].DataPointer = (IntPtr)pStopReason;
+                    WriteEventCore(2, 3, data);
+                }
+            }
+        }
+
+        [Event(3, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkIterationStart)]
+        public unsafe void BenchmarkIterationStart(string RunId, string BenchmarkName, int Iteration)
         {
             if (IsEnabled())
             {
@@ -28,13 +70,13 @@ namespace Microsoft.Xunit.Performance
                     data[1].DataPointer = (IntPtr)pBenchmarkName;
                     data[2].Size = sizeof(int);
                     data[2].DataPointer = (IntPtr)(&Iteration);
-                    WriteEventCore(1, 3, data);
+                    WriteEventCore(3, 3, data);
                 }
             }
         }
 
-        [Event(2, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkExecution)]
-        public unsafe void BenchmarkExecutionStop(string RunId, string BenchmarkName, int Iteration, bool Success)
+        [Event(4, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkIterationStop)]
+        public unsafe void BenchmarkIterationStop(string RunId, string BenchmarkName, int Iteration, bool Success)
         {
             if (IsEnabled())
             {
@@ -51,7 +93,7 @@ namespace Microsoft.Xunit.Performance
                     data[2].DataPointer = (IntPtr)(&Iteration);
                     data[3].Size = sizeof(int);
                     data[3].DataPointer = (IntPtr)(&successInt);
-                    WriteEventCore(2, 4, data);
+                    WriteEventCore(4, 4, data);
                 }
             }
         }
