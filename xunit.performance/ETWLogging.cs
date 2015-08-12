@@ -2,10 +2,12 @@
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Parsers.Clr;
 using Microsoft.Diagnostics.Tracing.Session;
+using Microsoft.ProcessDomain;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Microsoft.Xunit.Performance
 {
@@ -47,23 +49,31 @@ namespace Microsoft.Xunit.Performance
             ClrTraceEventParser.Keywords.Loader |
             ClrTraceEventParser.Keywords.StartEnumeration;
 
-        public static bool CanLog => TraceEventSession.IsElevated() ?? false;
+        public static ProcDomain _loggerDomain = ProcDomain.CreateDomain("Logger", ".\\xunit.performance.logger.exe", runElevated: true);
 
-        public static IDisposable Start(string filename, string runId)
+        private class Stopper : IDisposable
         {
-            var sessionName = "xunit.performance/" + runId;
+            private string _session;
+            public Stopper(string session) { _session = session; }
+            public void Dispose()
+            {
+                _loggerDomain.ExecuteAsync(() => Logger.Stop(_session));
+            }
+        }
 
-            var session = new TraceEventSession(sessionName, filename);
-            session.BufferSizeMB = 128;
-                            
-            session.EnableKernelProvider(KernelKeywords, KernelStackKeywords);
-            session.EnableProvider(EventSource.GetGuid(typeof(BenchmarkEventSource)));
-            session.EnableProvider(ClrTraceEventParser.ProviderGuid, TraceEventLevel.Informational, (ulong)ClrKeywords);
-            session.EnableProvider(ClrRundownTraceEventParser.ProviderGuid, TraceEventLevel.Informational, (ulong)ClrRundownKeywords);
+        public static async Task<IDisposable> StartAsync(string filename)
+        {
+            var providers = new ProviderInfo[]
+            {
+                new KernelProviderInfo() {Keywords = (ulong)KernelKeywords, StackKeywords = (ulong)KernelStackKeywords },
+                new UserProviderInfo() { ProviderGuid = EventSource.GetGuid(typeof(BenchmarkEventSource)) },
+                new UserProviderInfo() { ProviderGuid = ClrTraceEventParser.ProviderGuid, Keywords = (ulong)ClrKeywords, Level = TraceEventLevel.Informational},
+                new UserProviderInfo() {ProviderGuid =  ClrRundownTraceEventParser.ProviderGuid, Keywords = (ulong)ClrRundownKeywords, Level = TraceEventLevel.Informational},
+            };
 
-            //TODO: add CPU counters, see TraceEventProfileSources
+            var sessionName = await _loggerDomain.ExecuteAsync(() => Logger.Start(filename, providers, 128));
 
-            return session;
+            return new Stopper(sessionName);
         }
     }
 }

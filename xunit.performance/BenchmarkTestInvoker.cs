@@ -27,16 +27,6 @@ namespace Microsoft.Xunit.Performance
                                 CancellationTokenSource cancellationTokenSource)
             : base(test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, beforeAfterAttributes, aggregator, cancellationTokenSource)
         {
-            lock(typeof(BenchmarkTestInvoker))
-            {
-                if (!_initialized)
-                {
-                    if (ETWLogging.CanLog)
-                        _etwLogger = ETWLogging.Start(BenchmarkConfiguration.ETLPath, BenchmarkConfiguration.RunId);
-
-                    _initialized = true;
-                }
-            }
         }
 
         protected override async Task<decimal> InvokeTestMethodAsync(object testClassInstance)
@@ -47,6 +37,12 @@ namespace Microsoft.Xunit.Performance
             await _semaphore.WaitAsync();
             try
             {
+                if (!_initialized)
+                {
+                    _etwLogger = await ETWLogging.StartAsync(BenchmarkConfiguration.ETLPath);
+                    _initialized = true;
+                }
+
                 return await base.InvokeTestMethodAsync(testClassInstance);
             }
             finally

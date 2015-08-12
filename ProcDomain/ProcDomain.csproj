@@ -7,10 +7,11 @@
     <ProjectGuid>{905ABE0D-B057-4218-A56B-9C25A9DCA6E1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ProcDomain</RootNamespace>
+    <RootNamespace>Microsoft.ProcessDomain</RootNamespace>
     <AssemblyName>ProcDomain</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -42,8 +43,8 @@
   <ItemGroup>
     <Compile Include="CrossDomainInvokeRequest.cs" />
     <Compile Include="CrossDomainInvokeResponse.cs" />
-    <Compile Include="Imports.cs" />
     <Compile Include="ProcDomain.cs" />
+    <Compile Include="ProcDomainExportAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

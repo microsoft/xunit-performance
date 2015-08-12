@@ -7,7 +7,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ProcDomain
+namespace Microsoft.ProcessDomain
 {
     [Serializable]
     internal class CrossDomainInvokeRequest

@@ -4,15 +4,16 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
-namespace ProcDomain
+namespace Microsoft.ProcessDomain
 {
     public class ProcDomain
     {
-        private static Lazy<string> g_hProcStr = new Lazy<string>(GetProcessHandleString);
         private static ProcDomain g_currentDomain;
         private static readonly object g_currentDomainLock = new object();
 
@@ -27,12 +28,22 @@ namespace ProcDomain
 
         public string Name { get { return this._domName; } }
 
-        public static ProcDomain CreateDomain(string name)
+        public static void HostDomain(string pipeName)
+        {
+            ProcDomain.InitializeCurrentDomain(pipeName);
+
+            ManualResetEventSlim unloaded = new ManualResetEventSlim(false);
+
+            ProcDomain.GetCurrentProcDomain().Unloaded += p => unloaded.Set();
+
+            unloaded.Wait();
+        }
+
+        public static ProcDomain CreateDomain(string name, string executablePath, bool runElevated)
         {
             ProcDomain domain = new ProcDomain();
 
-            // TODO: does the pipe really need/want a name?
-            domain._pipeName = g_hProcStr.Value + "_" + name;
+            domain._pipeName = name + "_" + Guid.NewGuid().ToString();
 
             //create a named pipe
             //the child process will connect as a client but both sides act as a server and a client sending and waiting for messages
@@ -44,13 +55,14 @@ namespace ProcDomain
             Task clientConnected = pipeServer.WaitForConnectionAsync(); // new CancellationTokenSource(2000).Token);
 
             //create the process
-            domain.CreateDomainProcess();
+            var proc = domain.CreateDomainProcess(executablePath, runElevated);
 
             //this will unwind any exception comming from WaitForConnection
             clientConnected.GetAwaiter().GetResult();
 
             //start listening for communications from the client
             Task throwaway = domain.ListenToChildDomainAsync();
+
 
             return domain;
         }
@@ -102,14 +114,7 @@ namespace ProcDomain
             //get the first _ in the pipename as this splits the parent proc handle and the domain name
             int splitIdx = this._pipeName.IndexOf('_');
 
-            string hProcStr = this._pipeName.Substring(0, splitIdx);
-
-            this._domName = this._pipeName.Substring(splitIdx + 1);
-
-            //get the handle for the parent process from the pipename
-            IntPtr hParentProc = (IntPtr)ulong.Parse(hProcStr);
-
-            Task throwaway = this.UnloadOnProcessExitAsync(hParentProc);
+            this._domName = this._pipeName.Substring(0, splitIdx);
 
             //create a client for the named pipe of the parent
             //the child process will connect as a client but both sides act as a server and a client sending and waiting for messages
@@ -119,14 +124,7 @@ namespace ProcDomain
 
             pipeClient.Connect();
 
-            throwaway = ListenToParentDomainAsync();
-        }
-
-        private async Task UnloadOnProcessExitAsync(IntPtr hProc)
-        {
-            await Task.Run(() => Imports.WaitForSingleObject(hProc, 0xFFFFFFFF));
-
-            this.Unload();
+            var throwaway = ListenToParentDomainAsync();
         }
 
         private async Task ListenToParentDomainAsync()
@@ -138,6 +136,8 @@ namespace ProcDomain
             {
                 Task throwaway = HandleInvokeRequest(parentMessage);
             }
+
+            this.Unload();
         }
 
         private async Task HandleInvokeRequest(CrossDomainInvokeRequest request)
@@ -161,16 +161,34 @@ namespace ProcDomain
 
             await SendResponseAsync(response);
         }
-        public async Task ExecuteAsync(Action method)
+
+        public Task<TResult> ExecuteAsync<TResult>(Expression<Func<TResult>> methodCall)
         {
-            var methodInfo = method.GetMethodInfo();
+            return ExecuteAsync<TResult>((LambdaExpression)methodCall);
+        }
+
+        public Task ExecuteAsync(Expression<Action> methodCall)
+        {
+            return ExecuteAsync<object>(methodCall);
+        }
+
+        private async Task<TResult> ExecuteAsync<TResult>(LambdaExpression methodCall)
+        {
+            var body = (MethodCallExpression)methodCall.Body;
+            var methodInfo = body.Method;
+            var args = body.Arguments.Select(arg => Expression.Lambda(arg).Compile().DynamicInvoke()).ToArray();
 
             if (methodInfo.IsAbstract || methodInfo.IsPrivate || !methodInfo.IsStatic || methodInfo.DeclaringType.IsNotPublic)
             {
                 throw new ArgumentException();
             }
 
-            var request = new CrossDomainInvokeRequest() { Method = methodInfo, MessageId = Guid.NewGuid() };
+            if (methodInfo.GetCustomAttribute<ProcDomainExportAttribute>(inherit: false) == null)
+            {
+                throw new ArgumentException();
+            }
+
+            var request = new CrossDomainInvokeRequest() { Method = methodInfo, MessageId = Guid.NewGuid(), Arguments = args };
 
             var response = await SendRequestAndWaitAsync(request);
 
@@ -178,6 +196,8 @@ namespace ProcDomain
             {
                 throw response.Exception;
             }
+
+            return (TResult)response.Result;
         }
 
         private async Task SendResponseAsync(CrossDomainInvokeResponse message)
@@ -230,7 +250,8 @@ namespace ProcDomain
             do
             {
                 int bytesRead = await this._pipe.ReadAsync(buff, 0, 1024);
-
+                if (bytesRead == 0)
+                    return null;
                 memStream.Write(buff, 0, bytesRead);
 
             } while (!this._pipe.IsMessageComplete);
@@ -248,7 +269,8 @@ namespace ProcDomain
             do
             {
                 int bytesRead = await this._pipe.ReadAsync(buff, 0, 1024);
-
+                if (bytesRead == 0)
+                    return null;
                 memStream.Write(buff, 0, bytesRead);
 
             } while (!this._pipe.IsMessageComplete);
@@ -256,28 +278,22 @@ namespace ProcDomain
             return CrossDomainInvokeRequest.FromByteArray(memStream.ToArray());
         }
 
-        private static string GetProcessHandleString()
-        {
-            IntPtr hProc;
-
-            IntPtr hCurrProc = Imports.GetCurrentProcess();
-
-            Imports.DuplicateHandle(hCurrProc, hCurrProc, hCurrProc, out hProc, 0, true, (uint)Imports.DuplicateOptions.DUPLICATE_SAME_ACCESS);
-
-            //get the handle for the current process
-            return hProc.ToString();
-        }
-
-        private Process CreateDomainProcess()
+        private Process CreateDomainProcess(string executablePath, bool runElevated)
         {
             ProcessStartInfo startInfo = new ProcessStartInfo();
 
-            startInfo.UseShellExecute = false;
-            startInfo.FileName = Path.Combine(Directory.GetCurrentDirectory(), "oops.exe");
+            startInfo.UseShellExecute = true;
+            startInfo.FileName = executablePath;
             startInfo.Arguments = this._pipeName;
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            if (runElevated)
+                startInfo.Verb = "runas";
 
-            return this._process = Process.Start(startInfo);
+            var proc = this._process = Process.Start(startInfo);
+
+            Console.WriteLine(proc.Handle);
+
+            return proc;
         }
-
     }
 }
