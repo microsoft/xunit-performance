@@ -66,13 +66,12 @@ namespace Microsoft.Xunit.Performance
 
                 var allocatesAttribute = TestCase.TestMethod.Method.GetCustomAttributes(typeof(AllocatesAttribute)).FirstOrDefault();
                 var allocates = (bool?)allocatesAttribute?.GetConstructorArguments().First();
-                bool skipWarmup = benchmarkTestCase.SkipWarmup || BenchmarkConfiguration.RunId == null;
 
                 for (int i = 0; ; i++)
                 {
                     double elapsedMilliseconds = 0;
 
-                    if (i != 0 || !skipWarmup)
+                    if (i != 0 || !benchmarkTestCase.SkipWarmup)
                     {
                         if (!allocates.HasValue || allocates.Value)
                         {
