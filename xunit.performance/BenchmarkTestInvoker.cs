@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xunit.Performance.Internal;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -12,8 +13,6 @@ namespace Microsoft.Xunit.Performance
 {
     internal class BenchmarkTestInvoker : XunitTestInvoker
     {
-        static bool _initialized;
-        static IDisposable _etwLogger; // just to keep the logger rooted, so it doesn't get finalized during the run
         static SemaphoreSlim _semaphore = new SemaphoreSlim(1);
         
         public BenchmarkTestInvoker(ITest test,
@@ -37,12 +36,6 @@ namespace Microsoft.Xunit.Performance
             await _semaphore.WaitAsync();
             try
             {
-                if (!_initialized)
-                {
-                    _etwLogger = await ETWLogging.StartAsync(BenchmarkConfiguration.ETLPath);
-                    _initialized = true;
-                }
-
                 return await base.InvokeTestMethodAsync(testClassInstance);
             }
             finally

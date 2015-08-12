@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,13 +12,56 @@ namespace Microsoft.Xunit.Performance
 {
     class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             var project = ParseCommandLine(args);
 
-            foreach (var test in DiscoverTests(project.Assemblies, project.Filters))
+            //foreach (var test in DiscoverTests(project.Assemblies, project.Filters))
+            //{
+            //    Console.WriteLine(test.DisplayName);
+            //}
+
+            var runnerArgs = new StringBuilder();
+            foreach (var assembly in project.Assemblies)
             {
-                Console.WriteLine(test.DisplayName);
+                runnerArgs.Append(assembly.AssemblyFilename);
+                runnerArgs.Append(" ");
+            }
+
+            foreach (var trait in project.Filters.IncludedTraits)
+                foreach (var traitVal in trait.Value)
+                    runnerArgs.Append($"-trait \"{trait.Key}={traitVal}\" ");
+
+            foreach (var trait in project.Filters.ExcludedTraits)
+                foreach (var traitVal in trait.Value)
+                    runnerArgs.Append($"-notrait \"{trait.Key}={traitVal}\" ");
+
+            foreach (var method in project.Filters.IncludedMethods)
+                runnerArgs.Append($"-method \"{method}\" ");
+
+            foreach (var includeClass in project.Filters.IncludedClasses)
+                runnerArgs.Append($"-class \"{includeClass}\" ");
+
+            runnerArgs.Append("-nologo -verbose");
+
+            using (ETWLogging.StartAsync(Path.Combine(project.EtlDirectory, project.RunName + ".etl")).Result)
+            {
+                Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_RUN_ID", project.RunName);
+
+                ProcessStartInfo startInfo = new ProcessStartInfo()
+                {
+                    FileName = project.RunnerCommand,
+                    Arguments = runnerArgs.ToString(),
+                    CreateNoWindow = false,
+                    UseShellExecute = false,
+                };
+
+                using (var proc = Process.Start(startInfo))
+                {
+                    proc.EnableRaisingEvents = true;
+                    proc.WaitForExit();
+                    return proc.ExitCode;
+                }
             }
         }
 
@@ -162,6 +206,15 @@ namespace Microsoft.Xunit.Performance
                 {
                     if (option.Value == null)
                         throw new ArgumentException("missing argument for -runName");
+                }
+                else if (optionName == "etldir")
+                {
+                    if (option.Value == null)
+                        throw new ArgumentException("missing argument for -etlDir");
+                    if (!Directory.Exists(option.Value))
+                        throw new ArgumentException($"directory not found: {option.Value}");
+
+                    project.EtlDirectory = option.Value;
                 }
                 else
                 {

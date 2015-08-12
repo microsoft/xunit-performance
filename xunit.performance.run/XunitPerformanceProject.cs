@@ -26,6 +26,6 @@ namespace Microsoft.Xunit.Performance
 
         public string RunName { get; set; } = Environment.MachineName + "-" + DateTimeOffset.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss");
 
-        public string EtlDirectory { get; set; }
+        public string EtlDirectory { get; set; } = ".";
     }
 }

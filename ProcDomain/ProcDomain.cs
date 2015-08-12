@@ -291,8 +291,6 @@ namespace Microsoft.ProcessDomain
 
             var proc = this._process = Process.Start(startInfo);
 
-            Console.WriteLine(proc.Handle);
-
             return proc;
         }
     }
