@@ -1,13 +1,10 @@
 ﻿using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Parsers.Clr;
-using Microsoft.Diagnostics.Tracing.Session;
 using Microsoft.ProcessDomain;
 using Microsoft.Xunit.Performance.Internal;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.Tracing;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace Microsoft.Xunit.Performance
