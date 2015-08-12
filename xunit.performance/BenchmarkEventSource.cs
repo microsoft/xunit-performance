@@ -21,6 +21,9 @@ namespace Microsoft.Xunit.Performance.Internal
         {
             if (IsEnabled())
             {
+                if (RunId == null)
+                    RunId = "";
+
                 fixed (char* pRunId = RunId)
                 fixed (char* pBenchmarkName = BenchmarkName)
                 {
@@ -39,6 +42,9 @@ namespace Microsoft.Xunit.Performance.Internal
         {
             if (IsEnabled())
             {
+                if (RunId == null)
+                    RunId = "";
+
                 fixed (char* pRunId = RunId)
                 fixed (char* pBenchmarkName = BenchmarkName)
                 fixed (char* pStopReason = StopReason)
@@ -60,6 +66,9 @@ namespace Microsoft.Xunit.Performance.Internal
         {
             if (IsEnabled())
             {
+                if (RunId == null)
+                    RunId = "";
+
                 fixed (char* pRunId = RunId)
                 fixed (char* pBenchmarkName = BenchmarkName)
                 {
@@ -80,6 +89,9 @@ namespace Microsoft.Xunit.Performance.Internal
         {
             if (IsEnabled())
             {
+                if (RunId == null)
+                    RunId = "";
+
                 int successInt = Success ? 1 : 0;
                 fixed (char* pRunId = RunId)
                 fixed (char* pBenchmarkName = BenchmarkName)
