@@ -46,6 +46,8 @@ namespace Microsoft.Xunit.Performance
             using (ETWLogging.StartAsync(Path.Combine(project.EtlDirectory, project.RunName + ".etl")).Result)
             {
                 Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_RUN_ID", project.RunName);
+                Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_ITERATION", 1000.ToString());
+                Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS", 1000.ToString());
 
                 ProcessStartInfo startInfo = new ProcessStartInfo()
                 {
