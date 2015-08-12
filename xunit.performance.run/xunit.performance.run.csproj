@@ -66,8 +66,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsoleDiagnosticsMessageVisitor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestCaseDisoveryVisitor.cs" />
     <Compile Include="XunitPerformanceProject.cs" />
   </ItemGroup>
   <ItemGroup>

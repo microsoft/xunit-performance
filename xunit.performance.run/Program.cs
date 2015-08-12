@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
@@ -14,7 +15,36 @@ namespace Microsoft.Xunit.Performance
         {
             var project = ParseCommandLine(args);
 
+            foreach (var test in DiscoverTests(project))
+            {
+                Console.WriteLine(test.DisplayName);
+            }
+        }
 
+
+        private static IEnumerable<ITestCase> DiscoverTests(XunitPerformanceProject project)
+        {
+            List<ITestCase> tests = new List<ITestCase>();
+
+            foreach (var assembly in project.Assemblies)
+            {
+                // Note: We do not use shadowCopy because that creates a new AppDomain which can cause
+                // assembly load failures with delay-signed or "fake signed" assemblies.
+                using (var controller = new XunitFrontController(
+                    assemblyFileName: assembly.AssemblyFilename,
+                    shadowCopy: false,
+                    useAppDomain: false,
+                    diagnosticMessageSink: new ConsoleDiagnosticsMessageVisitor())
+                    )
+                using (var discoveryVisitor = new TestCaseDisoveryVisitor())
+                {
+                    controller.Find(includeSourceInformation: false, messageSink: discoveryVisitor, discoveryOptions: TestFrameworkOptions.ForDiscovery());
+                    discoveryVisitor.Finished.WaitOne();
+                    tests.AddRange(discoveryVisitor.Tests.Where(testCase => string.IsNullOrEmpty(testCase.SkipReason) && project.Filters.Filter(testCase)));
+                }
+            }
+
+            return tests;
         }
 
         private static XunitPerformanceProject ParseCommandLine(string[] args)
@@ -127,6 +157,11 @@ namespace Microsoft.Xunit.Performance
                         throw new ArgumentException("missing argument for -baseline");
 
                     AddBaseline(project, option.Value);
+                }
+                else if (optionName == "runname")
+                {
+                    if (option.Value == null)
+                        throw new ArgumentException("missing argument for -runName");
                 }
                 else
                 {
