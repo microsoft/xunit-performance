@@ -10,20 +10,17 @@ Provides extensions over xUnit to author performance tests.
 
 ## Running benchmarks
 
-The normal xUnit runners will run Benchmarks.  The difference between a Benchmark and a Fact is that a Benchmark will be run multiple times, until the test framework decides it's got enough data to make an accurate assessment of the performance of the method.  The test execution times reported in the normal xUnit test results are an aggregate of all iterations, and so do not tell you much about the time taken by each individual iteration.
+The normal xUnit runners will run Benchmarks as normal unit tests.  The test execution times reported in the normal xUnit test results are for a single iteration, and so do not tell you much about the methods' performance.
 
-To collect more detailed data, set some environment variables prior to running the tests:
+To collect more detailed data, use xunit.performance.run.exe:
 
-> set XUNIT_PERFORMANCE_RUN_ID=myRunId
+> xunit.performance.run MyTests.dll -runner xunit.console.exe -runName MyRun1234
 
-> set XUNIT_PERFORMANCE_ETL_PATH=c:\someDir\myRun.etl
-
-The first variable specifies a name to identify this particular test run.  This will be useful later when analyzing the test results.  The second gives the path to a .etl file to receive ETW data from the run.  This is where all the detailed test metrics will be stored.
-
-(Note: the use of environment variables for this purpose is a temporary situation; we're working on a better workflow.)
-
+This will produce a file named MyRun1234.etl in the current directory.
 
 ## Analyzing test results
 
-Use xunit.performance.analysis.exe.  Currently this is *very* basic; you give it a list of .etl files, and it prints some raw data about each test iteration to the console.  This is a work in progress.
+Use xunit.performance.analysis.exe:
+
+> xunit.performance.analysis MyRun1234
 
