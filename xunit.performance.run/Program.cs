@@ -13,9 +13,11 @@ namespace Microsoft.Xunit.Performance
         static void Main(string[] args)
         {
             var project = ParseCommandLine(args);
+
+
         }
 
-        private static XunitProject ParseCommandLine(string[] args)
+        private static XunitPerformanceProject ParseCommandLine(string[] args)
         {
             var arguments = new Stack<string>();
             for (var i = args.Length - 1; i >= 0; i--)
@@ -105,6 +107,27 @@ namespace Microsoft.Xunit.Performance
 
                     project.Filters.IncludedMethods.Add(option.Value);
                 }
+                else if (optionName == "runner")
+                {
+                    if (option.Value == null)
+                        throw new ArgumentException("missing argument for -runner");
+
+                    project.RunnerCommand = option.Value;
+                }
+                else if (optionName == "baselinerunner")
+                {
+                    if (option.Value == null)
+                        throw new ArgumentException("missing argument for -baselineRunner");
+
+                    project.BaselineRunnerCommand = option.Value;
+                }
+                else if (optionName == "baseline")
+                {
+                    if (option.Value == null)
+                        throw new ArgumentException("missing argument for -baseline");
+
+                    AddBaseline(project, option.Value);
+                }
                 else
                 {
                     if (option.Value == null)
@@ -123,9 +146,9 @@ namespace Microsoft.Xunit.Performance
                 || fileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase);
         }
 
-        static XunitProject GetProjectFile(List<Tuple<string, string>> assemblies)
+        static XunitPerformanceProject GetProjectFile(List<Tuple<string, string>> assemblies)
         {
-            var result = new XunitProject();
+            var result = new XunitPerformanceProject();
 
             foreach (var assembly in assemblies)
                 result.Add(new XunitProjectAssembly
@@ -136,6 +159,15 @@ namespace Microsoft.Xunit.Performance
                 });
 
             return result;
+        }
+
+        static void AddBaseline(XunitPerformanceProject project, string assembly)
+        {
+            project.AddBaseline(new XunitProjectAssembly
+            {
+                AssemblyFilename = Path.GetFullPath(assembly),
+                ShadowCopy = true,
+            });
         }
 
         private static KeyValuePair<string, string> PopOption(Stack<string> arguments)
