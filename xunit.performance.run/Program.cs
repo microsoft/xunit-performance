@@ -15,18 +15,18 @@ namespace Microsoft.Xunit.Performance
         {
             var project = ParseCommandLine(args);
 
-            foreach (var test in DiscoverTests(project))
+            foreach (var test in DiscoverTests(project.Assemblies, project.Filters))
             {
                 Console.WriteLine(test.DisplayName);
             }
         }
 
 
-        private static IEnumerable<ITestCase> DiscoverTests(XunitPerformanceProject project)
+        private static IEnumerable<ITestCase> DiscoverTests(IEnumerable<XunitProjectAssembly> assemblies, XunitFilters filters)
         {
             List<ITestCase> tests = new List<ITestCase>();
 
-            foreach (var assembly in project.Assemblies)
+            foreach (var assembly in assemblies)
             {
                 // Note: We do not use shadowCopy because that creates a new AppDomain which can cause
                 // assembly load failures with delay-signed or "fake signed" assemblies.
@@ -40,7 +40,7 @@ namespace Microsoft.Xunit.Performance
                 {
                     controller.Find(includeSourceInformation: false, messageSink: discoveryVisitor, discoveryOptions: TestFrameworkOptions.ForDiscovery());
                     discoveryVisitor.Finished.WaitOne();
-                    tests.AddRange(discoveryVisitor.Tests.Where(testCase => string.IsNullOrEmpty(testCase.SkipReason) && project.Filters.Filter(testCase)));
+                    tests.AddRange(discoveryVisitor.Tests.Where(testCase => string.IsNullOrEmpty(testCase.SkipReason) && filters.Filter(testCase)));
                 }
             }
 
