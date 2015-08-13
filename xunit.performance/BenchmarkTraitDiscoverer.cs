@@ -9,8 +9,7 @@ namespace Microsoft.Xunit.Performance
     {
         public IEnumerable<KeyValuePair<string, string>> GetTraits(IAttributeInfo traitAttribute)
         {
-            return Enumerable.Empty<KeyValuePair<string, string>>();
-            //return new[] { new KeyValuePair<string, string>("Benchmark", null) };
+            return new[] { new KeyValuePair<string, string>("Benchmark", "true") };
         } 
     }
 }

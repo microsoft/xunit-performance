@@ -14,62 +14,96 @@ namespace Microsoft.Xunit.Performance
         static int Main(string[] args)
         {
             var project = ParseCommandLine(args);
-
-            //foreach (var test in DiscoverTests(project.Assemblies, project.Filters))
-            //{
-            //    Console.WriteLine(test.DisplayName);
-            //}
-
-            var runnerArgs = new StringBuilder();
-            foreach (var assembly in project.Assemblies)
-            {
-                runnerArgs.Append(assembly.AssemblyFilename);
-                runnerArgs.Append(" ");
-            }
-
-            foreach (var trait in project.Filters.IncludedTraits)
-                foreach (var traitVal in trait.Value)
-                    runnerArgs.Append($"-trait \"{trait.Key}={traitVal}\" ");
-
-            foreach (var trait in project.Filters.ExcludedTraits)
-                foreach (var traitVal in trait.Value)
-                    runnerArgs.Append($"-notrait \"{trait.Key}={traitVal}\" ");
-
-            foreach (var method in project.Filters.IncludedMethods)
-                runnerArgs.Append($"-method \"{method}\" ");
-
-            foreach (var includeClass in project.Filters.IncludedClasses)
-                runnerArgs.Append($"-class \"{includeClass}\" ");
-
-            runnerArgs.Append("-nologo -verbose");
+            var tests = DiscoverTests(project.Assemblies, project.Filters);
 
             using (ETWLogging.StartAsync(Path.Combine(project.EtlDirectory, project.RunName + ".etl")).Result)
             {
-                Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_RUN_ID", project.RunName);
-                Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_ITERATION", 1000.ToString());
-                Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS", 1000.ToString());
+                RunTests(tests, project.RunnerCommand, project.RunName);
+            }
 
-                ProcessStartInfo startInfo = new ProcessStartInfo()
-                {
-                    FileName = project.RunnerCommand,
-                    Arguments = runnerArgs.ToString(),
-                    CreateNoWindow = false,
-                    UseShellExecute = false,
-                };
+            return 0;
+        }
 
-                using (var proc = Process.Start(startInfo))
+        const string RunnerOptions = "-nologo -parallel none -noshadow -noappdomain -verbose";
+
+        private static void RunTests(IEnumerable<BenchmarkTestInfo> tests, string runnerCommand, string runId)
+        {
+#if DEBUG
+            const int maxCommandLineLength = 160;
+#else
+            const int maxCommandLineLength = 32767;
+#endif
+
+            var allMethods = new HashSet<string>();
+
+            var assemblyFileBatch = new HashSet<string>();
+            var methodBatch = new HashSet<string>();
+            var commandLineLength = runnerCommand.Length + " ".Length + RunnerOptions.Length;
+
+            foreach (var currentTestInfo in tests)
+            {
+                var methodName = currentTestInfo.TestCase.TestMethod.TestClass.Class.Name + "." + currentTestInfo.TestCase.TestMethod.Method.Name;
+                if (allMethods.Add(methodName))
                 {
-                    proc.EnableRaisingEvents = true;
-                    proc.WaitForExit();
-                    return proc.ExitCode;
+                    var currentTestInfoCommandLineLength = "-method ".Length + methodName.Length + " ".Length;
+                    if (!assemblyFileBatch.Contains(currentTestInfo.Assembly.AssemblyFilename))
+                        currentTestInfoCommandLineLength += "\"".Length + currentTestInfo.Assembly.AssemblyFilename.Length + "\" ".Length;
+
+                    if (commandLineLength + currentTestInfoCommandLineLength > maxCommandLineLength)
+                    {
+                        RunTestBatch(methodBatch, assemblyFileBatch, runnerCommand, runId);
+                        methodBatch.Clear();
+                        assemblyFileBatch.Clear();
+                    }
+
+                    methodBatch.Add(methodName);
+                    assemblyFileBatch.Add(currentTestInfo.Assembly.AssemblyFilename);
                 }
+            }
+
+            if (methodBatch.Count > 0)
+                RunTestBatch(methodBatch, assemblyFileBatch, runnerCommand, runId);
+        }
+
+        private static void RunTestBatch(IEnumerable<string> methods, IEnumerable<string> assemblyFiles, string runnerCommand, string runId)
+        {
+            var commandLineArgs = new StringBuilder();
+            foreach (var assemblyFile in assemblyFiles)
+            {
+                commandLineArgs.Append(assemblyFile);
+                commandLineArgs.Append(" ");
+            }
+            foreach (var method in methods)
+            {
+                commandLineArgs.Append("-method ");
+                commandLineArgs.Append(method);
+                commandLineArgs.Append(" ");
+            }
+            commandLineArgs.Append(RunnerOptions);
+
+            Console.WriteLine(commandLineArgs);
+
+            Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_RUN_ID", runId);
+            Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_ITERATION", 1000.ToString());
+            Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS", 1000.ToString());
+
+            ProcessStartInfo startInfo = new ProcessStartInfo()
+            {
+                FileName = runnerCommand,
+                Arguments = commandLineArgs.ToString(),
+                UseShellExecute = false,
+            };
+
+            using (var proc = Process.Start(startInfo))
+            {
+                proc.EnableRaisingEvents = true;
+                proc.WaitForExit();
             }
         }
 
-
-        private static IEnumerable<ITestCase> DiscoverTests(IEnumerable<XunitProjectAssembly> assemblies, XunitFilters filters)
+        private static IEnumerable<BenchmarkTestInfo> DiscoverTests(IEnumerable<XunitProjectAssembly> assemblies, XunitFilters filters)
         {
-            List<ITestCase> tests = new List<ITestCase>();
+            var tests = new List<BenchmarkTestInfo>();
 
             foreach (var assembly in assemblies)
             {
@@ -81,11 +115,11 @@ namespace Microsoft.Xunit.Performance
                     useAppDomain: false,
                     diagnosticMessageSink: new ConsoleDiagnosticsMessageVisitor())
                     )
-                using (var discoveryVisitor = new TestCaseDisoveryVisitor())
+                using (var discoveryVisitor = new BenchmarkTestCaseDiscoveryVisitor(assembly, filters))
                 {
                     controller.Find(includeSourceInformation: false, messageSink: discoveryVisitor, discoveryOptions: TestFrameworkOptions.ForDiscovery());
                     discoveryVisitor.Finished.WaitOne();
-                    tests.AddRange(discoveryVisitor.Tests.Where(testCase => string.IsNullOrEmpty(testCase.SkipReason) && filters.Filter(testCase)));
+                    tests.AddRange(discoveryVisitor.Tests);
                 }
             }
 
@@ -311,6 +345,14 @@ namespace Microsoft.Xunit.Performance
             }
 
             return result;
+        }
+
+        public static TValue GetOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue = default(TValue))
+        {
+            TValue value;
+            if (!dictionary.TryGetValue(key, out value))
+                return defaultValue;
+            return value;
         }
     }
 }
