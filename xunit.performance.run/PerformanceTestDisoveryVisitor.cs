@@ -4,13 +4,13 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class BenchmarkTestCaseDiscoveryVisitor : TestMessageVisitor<IDiscoveryCompleteMessage>
+    internal class PerformanceTestDiscoveryVisitor : TestMessageVisitor<IDiscoveryCompleteMessage>
     {
         public readonly List<PerformanceTestInfo> Tests = new List<PerformanceTestInfo>();
         private XunitProjectAssembly _assembly;
         private XunitFilters _filters;
 
-        public BenchmarkTestCaseDiscoveryVisitor(XunitProjectAssembly assembly, XunitFilters filters)
+        public PerformanceTestDiscoveryVisitor(XunitProjectAssembly assembly, XunitFilters filters)
         {
             _assembly = assembly;
             _filters = filters;

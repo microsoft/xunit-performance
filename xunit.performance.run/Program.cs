@@ -111,7 +111,7 @@ namespace Microsoft.Xunit.Performance
                     useAppDomain: false,
                     diagnosticMessageSink: new ConsoleDiagnosticsMessageVisitor())
                     )
-                using (var discoveryVisitor = new BenchmarkTestCaseDiscoveryVisitor(assembly, filters))
+                using (var discoveryVisitor = new PerformanceTestDiscoveryVisitor(assembly, filters))
                 {
                     controller.Find(includeSourceInformation: false, messageSink: discoveryVisitor, discoveryOptions: TestFrameworkOptions.ForDiscovery());
                     discoveryVisitor.Finished.WaitOne();

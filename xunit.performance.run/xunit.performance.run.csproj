@@ -72,7 +72,7 @@
     <Compile Include="ETWLogging.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="BenchmarkTestCaseDisoveryVisitor.cs" />
+    <Compile Include="PerformanceTestDisoveryVisitor.cs" />
     <Compile Include="XunitPerformanceProject.cs" />
   </ItemGroup>
   <ItemGroup>
