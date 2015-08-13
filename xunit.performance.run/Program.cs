@@ -28,11 +28,7 @@ namespace Microsoft.Xunit.Performance
 
         private static void RunTests(IEnumerable<BenchmarkTestInfo> tests, string runnerCommand, string runId)
         {
-#if DEBUG
-            const int maxCommandLineLength = 160;
-#else
             const int maxCommandLineLength = 32767;
-#endif
 
             var allMethods = new HashSet<string>();
 
