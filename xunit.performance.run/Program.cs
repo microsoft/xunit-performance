@@ -26,7 +26,7 @@ namespace Microsoft.Xunit.Performance
 
         const string RunnerOptions = "-nologo -parallel none -noshadow -noappdomain -verbose";
 
-        private static void RunTests(IEnumerable<BenchmarkTestInfo> tests, string runnerCommand, string runId)
+        private static void RunTests(IEnumerable<PerformanceTestInfo> tests, string runnerCommand, string runId)
         {
             const int maxCommandLineLength = 32767;
 
@@ -97,9 +97,9 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
-        private static IEnumerable<BenchmarkTestInfo> DiscoverTests(IEnumerable<XunitProjectAssembly> assemblies, XunitFilters filters)
+        private static IEnumerable<PerformanceTestInfo> DiscoverTests(IEnumerable<XunitProjectAssembly> assemblies, XunitFilters filters)
         {
-            var tests = new List<BenchmarkTestInfo>();
+            var tests = new List<PerformanceTestInfo>();
 
             foreach (var assembly in assemblies)
             {

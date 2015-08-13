@@ -6,7 +6,7 @@ namespace Microsoft.Xunit.Performance
 {
     internal class BenchmarkTestCaseDiscoveryVisitor : TestMessageVisitor<IDiscoveryCompleteMessage>
     {
-        public readonly List<BenchmarkTestInfo> Tests = new List<BenchmarkTestInfo>();
+        public readonly List<PerformanceTestInfo> Tests = new List<PerformanceTestInfo>();
         private XunitProjectAssembly _assembly;
         private XunitFilters _filters;
 
@@ -24,7 +24,7 @@ namespace Microsoft.Xunit.Performance
                 string.IsNullOrEmpty(testCase.SkipReason) &&
                 _filters.Filter(testCase))
             {
-                Tests.Add(new BenchmarkTestInfo { Assembly = _assembly, TestCase = testCaseDiscovered.TestCase });
+                Tests.Add(new PerformanceTestInfo { Assembly = _assembly, TestCase = testCaseDiscovered.TestCase });
             }
 
             return true;

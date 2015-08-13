@@ -67,7 +67,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BenchmarkTestInfo.cs" />
+    <Compile Include="PerformanceTestInfo.cs" />
     <Compile Include="ConsoleDiagnosticsMessageVisitor.cs" />
     <Compile Include="ETWLogging.cs" />
     <Compile Include="Program.cs" />

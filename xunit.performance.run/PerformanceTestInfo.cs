@@ -3,7 +3,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
-    class BenchmarkTestInfo
+    class PerformanceTestInfo
     {
         public XunitProjectAssembly Assembly;
         public ITestCase TestCase;
