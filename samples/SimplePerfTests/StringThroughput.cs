@@ -7,6 +7,7 @@ using Xunit;
 
 public static class StringThroughput
 {
+    #region helpers
     static IEnumerable<object[]> MakeArgs(params object[] args)
     {
         return args.Select(arg => new object[] { arg });
@@ -18,6 +19,7 @@ public static class StringThroughput
             foreach (var arg2 in args2)
                 yield return new[] { arg1[0], arg2[0] };
     }
+    #endregion
 
     public static IEnumerable<object[]> CaseStrings => MakeArgs(
         String.Empty,
@@ -104,6 +106,7 @@ public static class StringThroughput
         s.TrimEnd(c);
     }
 
+    #region more tests
     //[Benchmark]
     //public static void Insert()
     //{
@@ -378,4 +381,5 @@ public static class StringThroughput
         t1.Split(c7, StringSplitOptions.RemoveEmptyEntries); t2.Split(c7, StringSplitOptions.RemoveEmptyEntries); t3.Split(c7, StringSplitOptions.RemoveEmptyEntries); t4.Split(c7, StringSplitOptions.RemoveEmptyEntries); t5.Split(c7, StringSplitOptions.RemoveEmptyEntries); t6.Split(c7, StringSplitOptions.RemoveEmptyEntries); t7.Split(c7, StringSplitOptions.RemoveEmptyEntries); t8.Split(c7, StringSplitOptions.RemoveEmptyEntries); t9.Split(c7, StringSplitOptions.RemoveEmptyEntries); tA.Split(c7, StringSplitOptions.RemoveEmptyEntries); tB.Split(c7, StringSplitOptions.RemoveEmptyEntries); tC.Split(c7, StringSplitOptions.RemoveEmptyEntries);
         t1.Split(c8, StringSplitOptions.RemoveEmptyEntries); t2.Split(c8, StringSplitOptions.RemoveEmptyEntries); t3.Split(c8, StringSplitOptions.RemoveEmptyEntries); t4.Split(c8, StringSplitOptions.RemoveEmptyEntries); t5.Split(c8, StringSplitOptions.RemoveEmptyEntries); t6.Split(c8, StringSplitOptions.RemoveEmptyEntries); t7.Split(c8, StringSplitOptions.RemoveEmptyEntries); t8.Split(c8, StringSplitOptions.RemoveEmptyEntries); t9.Split(c8, StringSplitOptions.RemoveEmptyEntries); tA.Split(c8, StringSplitOptions.RemoveEmptyEntries); tB.Split(c8, StringSplitOptions.RemoveEmptyEntries); tC.Split(c8, StringSplitOptions.RemoveEmptyEntries);
     }
+    #endregion
 }
