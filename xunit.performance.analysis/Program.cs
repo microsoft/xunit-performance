@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml.Linq;
 
 namespace Microsoft.Xunit.Performance.Analysis
@@ -16,7 +17,7 @@ namespace Microsoft.Xunit.Performance.Analysis
         static int Usage()
         {
             Console.Error.WriteLine(
-                "usage: xunit.performance.analysis <etlPaths> [-compare \"baselineRunId\" \"comparisonRunId\"]  -xml <output.xml>");
+                "usage: xunit.performance.analysis <etlPaths> [-compare \"baselineRunId\" \"comparisonRunId\"]  [-xml <output.xml>] [-html <output.html>]");
             return 1;
         }
 
@@ -25,6 +26,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             var etlPaths = new List<string>();
             var allComparisonIds = new List<Tuple<string, string>>();
             var xmlOutputPath = (string)null;
+            var htmlOutputPath = (string)null;
 
             for (int i = 0; i < args.Length; i++)
             {
@@ -44,7 +46,15 @@ namespace Microsoft.Xunit.Performance.Analysis
                             break;
 
                         case "xml":
+                            if (++i >= args.Length)
+                                return Usage();
                             xmlOutputPath = args[i];
+                            break;
+
+                        case "html":
+                            if (++i >= args.Length)
+                                return Usage();
+                            htmlOutputPath = args[i];
                             break;
 
                         default:
@@ -84,12 +94,11 @@ namespace Microsoft.Xunit.Performance.Analysis
 
             var comparisonResults = DoComparisons(allComparisonIds, testResults);
 
-            var xmlDoc = WriteTestResultsXml(testResults, comparisonResults);
+            if (xmlOutputPath != null)
+                WriteTestResultsXml(testResults, comparisonResults).Save(xmlOutputPath);
 
-            if (xmlOutputPath == null)
-                Console.WriteLine(xmlDoc);
-            else
-                xmlDoc.Save(xmlOutputPath);
+            if (htmlOutputPath != null)
+                WriteTestResultsHtml(testResults, comparisonResults, htmlOutputPath);
 
             return 0;
         }
@@ -208,7 +217,7 @@ namespace Microsoft.Xunit.Performance.Analysis
 
             foreach (var comparison in comparisonResults)
             {
-                var comparisonElem = new XElement("comparison", new XAttribute("baselineId", comparison.BaselineResult.RunId), new XAttribute("comparisonId", comparison.ComparisonResult.RunId));
+                var comparisonElem = new XElement("comparison", new XAttribute("test", comparison.TestName), new XAttribute("baselineId", comparison.BaselineResult.RunId), new XAttribute("comparisonId", comparison.ComparisonResult.RunId));
                 resultElem.Add(comparisonElem);
 
                 comparisonElem.Add(
@@ -219,6 +228,43 @@ namespace Microsoft.Xunit.Performance.Analysis
 
             return xmlDoc;
         }
+
+        private static void WriteTestResultsHtml(Dictionary<string, Dictionary<string, TestResult>> testResults, List<TestResultComparison> comparisonResults, string htmlOutputPath)
+        {
+            using (var writer = new StreamWriter(htmlOutputPath, false, Encoding.UTF8))
+            {
+                writer.WriteLine("<html><body>");
+
+                foreach (var comparison in comparisonResults.GroupBy(r => r.BaselineResult + "/" + r.ComparisonResult))
+                {
+                    writer.WriteLine($"<h1>Comparison: {comparison.Key}</h1>");
+                    writer.WriteLine("<table>");
+                    foreach (var test in from c in comparison orderby c.MinPercentChange select c)
+                    {
+                        writer.WriteLine($"<tr><td>{test.TestName}</td><td>{test.PercentChange.ToString("G3")}</td><td>+/-{test.PercentChangeError.ToString("G3")}</td></tr>");
+                    }
+                    writer.WriteLine("</table>");
+                }
+
+                writer.WriteLine("<hr>");
+
+                foreach (var run in testResults)
+                {
+                    writer.WriteLine($"<h1>Indivdual results: {run.Key}</h1>");
+
+                    writer.WriteLine($"<table>");
+                    writer.WriteLine($"<tr><th>Test</th><th>Unit</th><th>Min</th><th>Mean</th><th>Max</th><th>Margin</th><th>StdDev</th></tr>");
+                    foreach (var test in run.Value)
+                    {
+                        writer.WriteLine($"<tr><td>{test.Value.TestName}</td><td>ms</td><td>{test.Value.DurationStats.Minimum.ToString("G3")}</td><td>{test.Value.DurationStats.Mean.ToString("G3")}</td><td>{test.Value.DurationStats.Maximum.ToString("G3")}</td><td>{test.Value.DurationStats.MarginOfError(ErrorConfidence).ToString("G3")}</td><td>{test.Value.DurationStats.StandardDeviation.ToString("G3")}</td></tr>");
+                    }
+                    writer.WriteLine($"</table>");
+                }
+
+                writer.WriteLine("</html></body>");
+            }
+        }
+
 
         static IEnumerable<string> ExpandFilePath(string path)
         {
