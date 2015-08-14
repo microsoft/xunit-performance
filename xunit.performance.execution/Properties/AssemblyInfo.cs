@@ -1,17 +1,21 @@
 ﻿using System.Resources;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+
+[assembly: Xunit.Sdk.PlatformSpecificAssembly]
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("xunit.performance.execution.DotNetCore")]
+#if DOTNETCORE
+[assembly: AssemblyTitle("xunit.performance Execution (.Net Core)")]
+#else
+[assembly: AssemblyTitle("xunit.performance Execution (Desktop)")]
+#endif
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("xunit.performance.execution.DotNetCore")]
-[assembly: AssemblyCopyright("Copyright ©  2015")]
+[assembly: AssemblyCompany("Microsoft")]
+[assembly: AssemblyProduct("Xunit Performance")]
+[assembly: AssemblyCopyright("Copyright © Microsoft Corporation 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: NeutralResourcesLanguage("en")]

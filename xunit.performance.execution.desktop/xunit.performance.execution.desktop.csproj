@@ -46,30 +46,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\xunit.performance.execution.DotNetCore\BenchmarkConfiguration.cs">
-      <Link>BenchmarkConfiguration.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.performance.execution.DotNetCore\BenchmarkDiscoverer.cs">
-      <Link>BenchmarkDiscoverer.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.performance.execution.DotNetCore\BenchmarkTestCase.cs">
-      <Link>BenchmarkTestCase.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.performance.execution.DotNetCore\BenchmarkTestCaseRunner.cs">
-      <Link>BenchmarkTestCaseRunner.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.performance.execution.DotNetCore\BenchmarkTestInvoker.cs">
-      <Link>BenchmarkTestInvoker.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.performance.execution.DotNetCore\BenchmarkTestRunner.cs">
-      <Link>BenchmarkTestRunner.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.performance.execution.DotNetCore\BenchmarkTraitDiscoverer.cs">
-      <Link>BenchmarkTraitDiscoverer.cs</Link>
-    </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -77,6 +53,32 @@
       <Project>{d8820889-cc47-42b6-bac1-01d16d241ece}</Project>
       <Name>xunit.performance.core</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\xunit.performance.execution\BenchmarkConfiguration.cs">
+      <Link>BenchmarkConfiguration.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.performance.execution\BenchmarkDiscoverer.cs">
+      <Link>BenchmarkDiscoverer.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.performance.execution\BenchmarkTestCase.cs">
+      <Link>BenchmarkTestCase.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.performance.execution\BenchmarkTestCaseRunner.cs">
+      <Link>BenchmarkTestCaseRunner.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.performance.execution\BenchmarkTestInvoker.cs">
+      <Link>BenchmarkTestInvoker.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.performance.execution\BenchmarkTestRunner.cs">
+      <Link>BenchmarkTestRunner.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.performance.execution\BenchmarkTraitDiscoverer.cs">
+      <Link>BenchmarkTraitDiscoverer.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.performance.execution\Properties\AssemblyInfo.cs">
+      <Link>Properties\AssemblyInfo.cs</Link>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
