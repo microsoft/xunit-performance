@@ -85,13 +85,13 @@
       <Project>{905abe0d-b057-4218-a56b-9c25a9dca6e1}</Project>
       <Name>ProcDomain</Name>
     </ProjectReference>
+    <ProjectReference Include="..\xunit.performance.core\xunit.performance.core.csproj">
+      <Project>{d8820889-cc47-42b6-bac1-01d16d241ece}</Project>
+      <Name>xunit.performance.core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\xunit.performance.logger\xunit.performance.logger.csproj">
       <Project>{b7b0a4d7-ef9d-4ced-954a-f6e69e30ce27}</Project>
       <Name>xunit.performance.logger</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\xunit.performance\xunit.performance.csproj">
-      <Project>{67071a0f-fe22-4eea-86e5-419e9eb4c1bd}</Project>
-      <Name>xunit.performance</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
