@@ -32,11 +32,13 @@ namespace Microsoft.Xunit.Performance
             {
                 const int maxCommandLineLength = 32767;
 
+                var outputOption = "-xml " + Path.Combine(outDir, runId + ".xml");
+
                 var allMethods = new HashSet<string>();
 
                 var assemblyFileBatch = new HashSet<string>();
                 var methodBatch = new HashSet<string>();
-                var commandLineLength = runnerCommand.Length + " ".Length + RunnerOptions.Length;
+                var commandLineLength = runnerCommand.Length + " ".Length + RunnerOptions.Length + " ".Length + outputOption.Length;
 
                 foreach (var currentTestInfo in tests)
                 {
@@ -49,7 +51,7 @@ namespace Microsoft.Xunit.Performance
 
                         if (commandLineLength + currentTestInfoCommandLineLength > maxCommandLineLength)
                         {
-                            RunTestBatch(methodBatch, assemblyFileBatch, runnerCommand, runId);
+                            RunTestBatch(methodBatch, assemblyFileBatch, runnerCommand, runId, outputOption);
                             methodBatch.Clear();
                             assemblyFileBatch.Clear();
                         }
@@ -60,11 +62,11 @@ namespace Microsoft.Xunit.Performance
                 }
 
                 if (methodBatch.Count > 0)
-                    RunTestBatch(methodBatch, assemblyFileBatch, runnerCommand, runId);
+                    RunTestBatch(methodBatch, assemblyFileBatch, runnerCommand, runId, outputOption);
             }
         }
 
-        private static void RunTestBatch(IEnumerable<string> methods, IEnumerable<string> assemblyFiles, string runnerCommand, string runId)
+        private static void RunTestBatch(IEnumerable<string> methods, IEnumerable<string> assemblyFiles, string runnerCommand, string runId, string outputOption)
         {
             var commandLineArgs = new StringBuilder();
             foreach (var assemblyFile in assemblyFiles)
@@ -79,6 +81,8 @@ namespace Microsoft.Xunit.Performance
                 commandLineArgs.Append(" ");
             }
             commandLineArgs.Append(RunnerOptions);
+            commandLineArgs.Append(" ");
+            commandLineArgs.Append(outputOption);
 
             Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_RUN_ID", runId);
             Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_ITERATION", 1000.ToString());
