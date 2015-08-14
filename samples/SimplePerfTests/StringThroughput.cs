@@ -21,6 +21,44 @@ public static class StringThroughput
     }
     #endregion
 
+    public static string i1 = "ddsz dszdsz \t  dszdsz  a\u0300\u00C0 \t Te st \u0400Te \u0400st\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\t Te\t \tst \t\r\n\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005";
+    public static int counter;
+
+    [Benchmark, Allocates(false)]
+    public static void BoundCheckHoist()
+    {
+        int strLength = i1.Length;
+
+        for (int j = 0; j < strLength; j++)
+        {
+            counter += i1[j];
+        }
+    }
+
+    [Benchmark, Allocates(false)]
+    public static void LengthHoisting()
+    {
+        for (int j = 0; j < i1.Length; j++)
+        {
+            counter += i1[j];
+        }
+    }
+
+    [Benchmark, Allocates(false)]
+    public static void PathLength()
+    {
+        for (int j = 0; j < i1.Length; j++)
+        {
+            counter += GetStringCharNoInline(i1, j);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static char GetStringCharNoInline(string str, int index)
+    {
+        return str[index];
+    }
+
     public static IEnumerable<object[]> CaseStrings => MakeArgs(
         String.Empty,
         " ",
@@ -249,44 +287,6 @@ public static class StringThroughput
     public static new void GetHashCode()
     {
         h1.GetHashCode(); h2.GetHashCode(); h3.GetHashCode(); h4.GetHashCode(); h5.GetHashCode(); h6.GetHashCode(); h7.GetHashCode(); h8.GetHashCode(); h9.GetHashCode();
-    }
-
-    public static string i1 = "ddsz dszdsz \t  dszdsz  a\u0300\u00C0 \t Te st \u0400Te \u0400st\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\t Te\t \tst \t\r\n\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005";
-    public static int counter;
-
-    [Benchmark, Allocates(false)]
-    public static void BoundCheckHoist()
-    {
-        int strLength = i1.Length;
-
-        for (int j = 0; j < strLength; j++)
-        {
-            counter += i1[j];
-        }
-    }
-
-    [Benchmark, Allocates(false)]
-    public static void LengthHoisting()
-    {
-        for (int j = 0; j < i1.Length; j++)
-        {
-            counter += i1[j];
-        }
-    }
-
-    [Benchmark, Allocates(false)]
-    public static void PathLength()
-    {
-        for (int j = 0; j < i1.Length; j++)
-        {
-            counter += GetStringCharNoInline(i1, j);
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static char GetStringCharNoInline(string str, int index)
-    {
-        return str[index];
     }
 
     static string p1 = "a";
