@@ -19,49 +19,49 @@ namespace Microsoft.Xunit.Performance
             if (!Directory.Exists(project.OutputDir))
                 Directory.CreateDirectory(project.OutputDir);
 
-            using (ETWLogging.StartAsync(Path.Combine(project.OutputDir, project.RunName + ".etl")).Result)
-            {
-                RunTests(tests, project.RunnerCommand, project.RunName);
-            }
+            RunTests(tests, project.RunnerCommand, project.RunName, project.OutputDir);
 
             return 0;
         }
 
         const string RunnerOptions = "-nologo -parallel none -noshadow -noappdomain -verbose";
 
-        private static void RunTests(IEnumerable<PerformanceTestInfo> tests, string runnerCommand, string runId)
+        private static void RunTests(IEnumerable<PerformanceTestInfo> tests, string runnerCommand, string runId, string outDir)
         {
-            const int maxCommandLineLength = 32767;
-
-            var allMethods = new HashSet<string>();
-
-            var assemblyFileBatch = new HashSet<string>();
-            var methodBatch = new HashSet<string>();
-            var commandLineLength = runnerCommand.Length + " ".Length + RunnerOptions.Length;
-
-            foreach (var currentTestInfo in tests)
+            using (ETWLogging.StartAsync(Path.Combine(outDir, runId + ".etl")).Result)
             {
-                var methodName = currentTestInfo.TestCase.TestMethod.TestClass.Class.Name + "." + currentTestInfo.TestCase.TestMethod.Method.Name;
-                if (allMethods.Add(methodName))
+                const int maxCommandLineLength = 32767;
+
+                var allMethods = new HashSet<string>();
+
+                var assemblyFileBatch = new HashSet<string>();
+                var methodBatch = new HashSet<string>();
+                var commandLineLength = runnerCommand.Length + " ".Length + RunnerOptions.Length;
+
+                foreach (var currentTestInfo in tests)
                 {
-                    var currentTestInfoCommandLineLength = "-method ".Length + methodName.Length + " ".Length;
-                    if (!assemblyFileBatch.Contains(currentTestInfo.Assembly.AssemblyFilename))
-                        currentTestInfoCommandLineLength += "\"".Length + currentTestInfo.Assembly.AssemblyFilename.Length + "\" ".Length;
-
-                    if (commandLineLength + currentTestInfoCommandLineLength > maxCommandLineLength)
+                    var methodName = currentTestInfo.TestCase.TestMethod.TestClass.Class.Name + "." + currentTestInfo.TestCase.TestMethod.Method.Name;
+                    if (allMethods.Add(methodName))
                     {
-                        RunTestBatch(methodBatch, assemblyFileBatch, runnerCommand, runId);
-                        methodBatch.Clear();
-                        assemblyFileBatch.Clear();
+                        var currentTestInfoCommandLineLength = "-method ".Length + methodName.Length + " ".Length;
+                        if (!assemblyFileBatch.Contains(currentTestInfo.Assembly.AssemblyFilename))
+                            currentTestInfoCommandLineLength += "\"".Length + currentTestInfo.Assembly.AssemblyFilename.Length + "\" ".Length;
+
+                        if (commandLineLength + currentTestInfoCommandLineLength > maxCommandLineLength)
+                        {
+                            RunTestBatch(methodBatch, assemblyFileBatch, runnerCommand, runId);
+                            methodBatch.Clear();
+                            assemblyFileBatch.Clear();
+                        }
+
+                        methodBatch.Add(methodName);
+                        assemblyFileBatch.Add(currentTestInfo.Assembly.AssemblyFilename);
                     }
-
-                    methodBatch.Add(methodName);
-                    assemblyFileBatch.Add(currentTestInfo.Assembly.AssemblyFilename);
                 }
-            }
 
-            if (methodBatch.Count > 0)
-                RunTestBatch(methodBatch, assemblyFileBatch, runnerCommand, runId);
+                if (methodBatch.Count > 0)
+                    RunTestBatch(methodBatch, assemblyFileBatch, runnerCommand, runId);
+            }
         }
 
         private static void RunTestBatch(IEnumerable<string> methods, IEnumerable<string> assemblyFiles, string runnerCommand, string runId)
