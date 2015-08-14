@@ -16,7 +16,10 @@ namespace Microsoft.Xunit.Performance
             var project = ParseCommandLine(args);
             var tests = DiscoverTests(project.Assemblies, project.Filters);
 
-            using (ETWLogging.StartAsync(Path.Combine(project.EtlDirectory, project.RunName + ".etl")).Result)
+            if (!Directory.Exists(project.OutputDir))
+                Directory.CreateDirectory(project.OutputDir);
+
+            using (ETWLogging.StartAsync(Path.Combine(project.OutputDir, project.RunName + ".etl")).Result)
             {
                 RunTests(tests, project.RunnerCommand, project.RunName);
             }
@@ -76,8 +79,6 @@ namespace Microsoft.Xunit.Performance
                 commandLineArgs.Append(" ");
             }
             commandLineArgs.Append(RunnerOptions);
-
-            Console.WriteLine(commandLineArgs);
 
             Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_RUN_ID", runId);
             Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_ITERATION", 1000.ToString());
@@ -238,14 +239,12 @@ namespace Microsoft.Xunit.Performance
                     if (option.Value == null)
                         throw new ArgumentException("missing argument for -runName");
                 }
-                else if (optionName == "etldir")
+                else if (optionName == "outdir")
                 {
                     if (option.Value == null)
-                        throw new ArgumentException("missing argument for -etlDir");
-                    if (!Directory.Exists(option.Value))
-                        throw new ArgumentException($"directory not found: {option.Value}");
+                        throw new ArgumentException("missing argument for -outDir");
 
-                    project.EtlDirectory = option.Value;
+                    project.OutputDir = option.Value;
                 }
                 else
                 {
