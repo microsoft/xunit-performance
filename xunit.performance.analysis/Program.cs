@@ -136,6 +136,8 @@ namespace Microsoft.Xunit.Performance.Analysis
                     comparisonResult.TestName = comparisonTest.TestName;
                     comparisonResult.PercentChange = (comparisonTest.DurationStats.Mean - baselineTest.DurationStats.Mean) / baselineTest.DurationStats.Mean;
                     comparisonResult.PercentChangeError = interval / baselineTest.DurationStats.Mean;
+
+                    comparisonResults.Add(comparisonResult);
                 }
             }
 
@@ -235,13 +237,21 @@ namespace Microsoft.Xunit.Performance.Analysis
             {
                 writer.WriteLine("<html><body>");
 
-                foreach (var comparison in comparisonResults.GroupBy(r => r.BaselineResult + "/" + r.ComparisonResult))
+                foreach (var comparison in comparisonResults.GroupBy(r => $"Comparison: {r.ComparisonResult.RunId} | Baseline: {r.BaselineResult.RunId}"))
                 {
-                    writer.WriteLine($"<h1>Comparison: {comparison.Key}</h1>");
+                    writer.WriteLine($"<h1>{comparison.Key}</h1>");
                     writer.WriteLine("<table>");
-                    foreach (var test in from c in comparison orderby c.MinPercentChange select c)
+                    foreach (var test in from c in comparison orderby c.SortChange descending select c)
                     {
-                        writer.WriteLine($"<tr><td>{test.TestName}</td><td>{test.PercentChange.ToString("G3")}</td><td>+/-{test.PercentChangeError.ToString("G3")}</td></tr>");
+                        var passed = test.Passed;
+                        string color;
+                        if (!passed.HasValue)
+                            color = "black";
+                        else if (passed.Value)
+                            color = "green";
+                        else
+                            color = "red";
+                        writer.WriteLine($"<tr><td>{test.TestName}</td><td><font  color={color}>{test.PercentChange.ToString("+##.#%;-##.#%")}</font></td><td>+/-{test.PercentChangeError.ToString("P1")}</td></tr>");
                     }
                     writer.WriteLine("</table>");
                 }
@@ -256,7 +266,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                     writer.WriteLine($"<tr><th>Test</th><th>Unit</th><th>Min</th><th>Mean</th><th>Max</th><th>Margin</th><th>StdDev</th></tr>");
                     foreach (var test in run.Value)
                     {
-                        writer.WriteLine($"<tr><td>{test.Value.TestName}</td><td>ms</td><td>{test.Value.DurationStats.Minimum.ToString("G3")}</td><td>{test.Value.DurationStats.Mean.ToString("G3")}</td><td>{test.Value.DurationStats.Maximum.ToString("G3")}</td><td>{test.Value.DurationStats.MarginOfError(ErrorConfidence).ToString("G3")}</td><td>{test.Value.DurationStats.StandardDeviation.ToString("G3")}</td></tr>");
+                        writer.WriteLine($"<tr><td>{test.Value.TestName}</td><td>ms</td><td>{test.Value.DurationStats.Minimum.ToString("G3")}</td><td>{test.Value.DurationStats.Mean.ToString("G3")}</td><td>{test.Value.DurationStats.Maximum.ToString("G3")}</td><td>{test.Value.DurationStats.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{test.Value.DurationStats.StandardDeviation.ToString("G3")}</td></tr>");
                     }
                     writer.WriteLine($"</table>");
                 }
@@ -315,8 +325,19 @@ namespace Microsoft.Xunit.Performance.Analysis
             public TestResult ComparisonResult;
             public double PercentChange;
             public double PercentChangeError;
-            public double MinPercentChange => PercentChange - PercentChangeError;
-            public double MaxPercentChange => PercentChange + PercentChangeError;
+            public double SortChange => (PercentChange > 0) ? Math.Max(PercentChange - PercentChangeError, 0) : Math.Min(PercentChange + PercentChangeError, 0);
+            public bool? Passed
+            {
+                get
+                {
+                    if (PercentChange > 0 && PercentChange > PercentChangeError)
+                        return false;
+                    if (PercentChange < 0 && PercentChange < -PercentChangeError)
+                        return true;
+                    else
+                        return null;
+                }
+            }
         }
 
         static IEnumerable<TestIterationResult> ParseEtlFiles(IEnumerable<string> etlPaths)

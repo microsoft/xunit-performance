@@ -242,6 +242,8 @@ namespace Microsoft.Xunit.Performance
                 {
                     if (option.Value == null)
                         throw new ArgumentException("missing argument for -runName");
+
+                    project.RunName = option.Value;
                 }
                 else if (optionName == "outdir")
                 {
