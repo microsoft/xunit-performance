@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.logger", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.run", "xunit.performance.run\xunit.performance.run.csproj", "{F188C16F-C268-4674-88FE-04F9D608024F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.execution.desktop", "xunit.performance.execution.desktop\xunit.performance.execution.desktop.csproj", "{E8ABD75E-4F88-434F-B400-30AB32FDB0ED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{F188C16F-C268-4674-88FE-04F9D608024F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F188C16F-C268-4674-88FE-04F9D608024F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F188C16F-C268-4674-88FE-04F9D608024F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8ABD75E-4F88-434F-B400-30AB32FDB0ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8ABD75E-4F88-434F-B400-30AB32FDB0ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8ABD75E-4F88-434F-B400-30AB32FDB0ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8ABD75E-4F88-434F-B400-30AB32FDB0ED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
