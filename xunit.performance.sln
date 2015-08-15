@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance", "xunit.performance\xunit.performance.csproj", "{67071A0F-FE22-4EEA-86E5-419E9EB4C1BD}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.analysis", "xunit.performance.analysis\xunit.performance.analysis.csproj", "{E114F722-0353-4BCE-A1BE-A6D729FDEACD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplePerfTests", "samples\SimplePerfTests\SimplePerfTests.csproj", "{F92BE283-3DC0-49E5-8FD1-E1F5FADD4ADC}"
@@ -15,16 +13,22 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.logger", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.run", "xunit.performance.run\xunit.performance.run.csproj", "{F188C16F-C268-4674-88FE-04F9D608024F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.execution.desktop", "xunit.performance.execution.desktop\xunit.performance.execution.desktop.csproj", "{E8ABD75E-4F88-434F-B400-30AB32FDB0ED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.core", "xunit.performance.core\xunit.performance.core.csproj", "{D8820889-CC47-42B6-BAC1-01D16D241ECE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.execution.DotNetCore", "xunit.performance.execution.DotNetCore\xunit.performance.execution.DotNetCore.csproj", "{B67EB81A-F0DE-495A-96FA-C5482E8FB58F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "execution", "execution", "{6D71B976-46EE-42E0-877E-69080B49F903}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "core", "core", "{AB946B1D-E607-4EE9-B863-668EDB20F071}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{67071A0F-FE22-4EEA-86E5-419E9EB4C1BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{67071A0F-FE22-4EEA-86E5-419E9EB4C1BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{67071A0F-FE22-4EEA-86E5-419E9EB4C1BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{67071A0F-FE22-4EEA-86E5-419E9EB4C1BD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E114F722-0353-4BCE-A1BE-A6D729FDEACD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E114F722-0353-4BCE-A1BE-A6D729FDEACD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E114F722-0353-4BCE-A1BE-A6D729FDEACD}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -45,8 +49,25 @@ Global
 		{F188C16F-C268-4674-88FE-04F9D608024F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F188C16F-C268-4674-88FE-04F9D608024F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F188C16F-C268-4674-88FE-04F9D608024F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8ABD75E-4F88-434F-B400-30AB32FDB0ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8ABD75E-4F88-434F-B400-30AB32FDB0ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8ABD75E-4F88-434F-B400-30AB32FDB0ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8ABD75E-4F88-434F-B400-30AB32FDB0ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8820889-CC47-42B6-BAC1-01D16D241ECE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8820889-CC47-42B6-BAC1-01D16D241ECE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8820889-CC47-42B6-BAC1-01D16D241ECE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8820889-CC47-42B6-BAC1-01D16D241ECE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B67EB81A-F0DE-495A-96FA-C5482E8FB58F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B67EB81A-F0DE-495A-96FA-C5482E8FB58F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B67EB81A-F0DE-495A-96FA-C5482E8FB58F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B67EB81A-F0DE-495A-96FA-C5482E8FB58F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E8ABD75E-4F88-434F-B400-30AB32FDB0ED} = {6D71B976-46EE-42E0-877E-69080B49F903}
+		{D8820889-CC47-42B6-BAC1-01D16D241ECE} = {AB946B1D-E607-4EE9-B863-668EDB20F071}
+		{B67EB81A-F0DE-495A-96FA-C5482E8FB58F} = {6D71B976-46EE-42E0-877E-69080B49F903}
 	EndGlobalSection
 EndGlobal
