@@ -4,6 +4,10 @@ using Xunit.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
+    /// <summary>
+    /// Attribute that is applied to a method to indicate that it is a performance test that
+    /// should be run and measured by the performance test runner.
+    /// </summary>
     [XunitTestCaseDiscoverer("Microsoft.Xunit.Performance.BenchmarkDiscoverer", "xunit.performance.execution.{Platform}")]
     [TraitDiscoverer("Microsoft.Xunit.Performance.BenchmarkTraitDiscoverer", "xunit.performance.execution.{Platform}")]
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
