@@ -23,6 +23,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "execution", "execution", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "core", "core", "{AB946B1D-E607-4EE9-B863-668EDB20F071}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "packages", "packages", "{610A3A79-0EC2-4527-B79A-672AA1325461}"
+	ProjectSection(SolutionItems) = preProject
+		xunit.performance.core.nuspec = xunit.performance.core.nuspec
+		xunit.performance.execution.nuspec = xunit.performance.execution.nuspec
+		xunit.performance.nuspec = xunit.performance.nuspec
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
