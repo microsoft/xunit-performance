@@ -23,7 +23,9 @@ namespace Microsoft.Xunit.Performance
         private static void Logger_Unloading(ProcDomain obj)
         {
             foreach (var session in _sessions)
-                session.Value.Stop(noThrow: true);
+            {
+                session.Value.Dispose();
+            }
         }
 
         [ProcDomainExport]
