@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <package>
   <metadata minClientVersion="2.8.5">
     <id>xunit.performance.core</id>
@@ -21,10 +21,10 @@ Supported platforms:
         <dependency id="xunit.core" version="2.1.0-beta4-build3109" />
       </group>
       <group targetFramework="dotnet">
-        <dependency id="System.Diagnostics.Tracing" version="4.0.0" />
-        <dependency id="System.Runtime" version="4.0.0" />
+        <dependency id="System.Diagnostics.Tracing" version="4.0.20" />
         <dependency id="System.Resources.ResourceManager" version="4.0.0" />
-        <dependency id="xunit.core" version="2.1.0-beta4-build3109" />
+        <dependency id="System.Runtime" version="4.0.20" />
+        <dependency id="xunit.extensibility.core" version="2.1.0-beta4-build3109" />
       </group>
     </dependencies>
   </metadata>

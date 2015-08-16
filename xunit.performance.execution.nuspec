@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <package>
   <metadata minClientVersion="2.8.5">
     <id>xunit.performance.execution</id>
@@ -18,21 +18,26 @@ Supported platforms:
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <dependencies>
       <group targetFramework="net46">
-        <dependency id="xunit.core" version="2.1.0-beta4-build3109" />
+        <dependency id="xunit.abstractions" version="2.0.0" />
+        <dependency id="xunit.extensibility.core" version="2.1.0-beta4-build3109" />
         <dependency id="xunit.extensibility.execution" version="2.1.0-beta4-build3109" />
         <dependency id="xunit.performance.core" version="[99.99.99-dev]" />
       </group>
       <group targetFramework="dotnet">
-        <dependency id="System.Collections" version="4.0.0" />
+        <dependency id="xunit.performance.core" version="[99.99.99-dev]" />
+        <dependency id="System.Collections" version="4.0.10" />
         <dependency id="System.Diagnostics.Debug" version="4.0.10" />
         <dependency id="System.Linq" version="4.0.0" />
-        <dependency id="System.Reflection" version="4.0.0" />
+        <dependency id="System.Reflection" version="4.0.10" />
         <dependency id="System.Reflection.TypeExtensions" version="4.0.0" />
+        <dependency id="System.Resources.ResourceManager" version="4.0.0" />
         <dependency id="System.Runtime" version="4.0.20" />
-        <dependency id="System.Threading.Tasks" version="4.0.0" />
-        <dependency id="xunit.core" version="2.1.0-beta4-build3109" />
+        <dependency id="System.Runtime.Extensions" version="4.0.10" />
+        <dependency id="System.Threading" version="4.0.10" />
+        <dependency id="System.Threading.Tasks" version="4.0.10" />
+        <dependency id="xunit.abstractions" version="2.0.0" />
+        <dependency id="xunit.extensibility.core" version="2.1.0-beta4-build3109" />
         <dependency id="xunit.extensibility.execution" version="2.1.0-beta4-build3109" />
-        <dependency id="xunit.performance.core" version="[99.99.99-dev]" />
       </group>
     </dependencies>
   </metadata>
