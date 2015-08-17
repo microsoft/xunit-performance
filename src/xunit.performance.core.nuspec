@@ -1,10 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package>
   <metadata minClientVersion="2.8.5">
-    <id>xunit.performance.core</id>
+    <id>Microsoft.DotNet.xunit.performance.core</id>
     <version>99.99.99-dev</version>
     <title>xUnit Performance (Core design time)</title>
-    <authors>Microsoft</authors>
+    <authors>ericeil@microsoft.com;pharring@microsoft.com</authors>
+    <owners>Microsoft</owners>
     <description>
 Contains the design time assembly for xunit.performance. It contains the BenchmarkAttribute and others for authoring xunit performance tests, but it does not include the test discoverers and runners for running performance tests.
 

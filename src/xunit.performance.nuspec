@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package>
   <metadata minClientVersion="2.8.5">
-    <id>xunit.performance</id>
+    <id>Microsoft.DotNet.xunit.performance</id>
     <version>99.99.99-dev</version>
     <title>xUnit Performance</title>
-    <authors>Microsoft</authors>
+    <authors>ericeil@microsoft.com;pharring@microsoft.com</authors>
+    <owners>Microsoft</owners>
     <description>
-xunit.performance contains extensions for conducting performance tests in xUnit.
+Contains extensions for conducting performance tests in xUnit.
 
-Installing this package installs xunit.performance.core and xunit.performance.execution
+Installing this package installs Microsoft.DotNet.xunit.performance.core and Microsoft.DotNet.xunit.performance.execution
     </description>
     <language>en-US</language>
     <projectUrl>https://github.com/Microsoft/xunit-performance</projectUrl>
     <licenseUrl>https://github.com/Microsoft/xunit-performance/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <dependencies>
-      <dependency id="xunit.performance.core" version="[99.99.99-dev]" />
-      <dependency id="xunit.performance.execution" version="[99.99.99-dev]" />
+      <dependency id="Microsoft.DotNet.xunit.performance.core" version="[99.99.99-dev]" />
+      <dependency id="Microsoft.DotNet.xunit.performance.execution" version="[99.99.99-dev]" />
     </dependencies>
   </metadata>
   <files />
