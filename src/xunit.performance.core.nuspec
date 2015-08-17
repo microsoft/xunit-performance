@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata minClientVersion="2.8.5">
+    <id>xunit.performance.core</id>
+    <version>99.99.99-dev</version>
+    <title>xUnit Performance (Core design time)</title>
+    <authors>Microsoft</authors>
+    <description>
+Contains the design time assembly for xunit.performance. It contains the BenchmarkAttribute and others for authoring xunit performance tests, but it does not include the test discoverers and runners for running performance tests.
+
+Supported platforms:
+- Desktop .NET 4.6
+- .NET Core (Universal Windows Apps 10+, DNX Core 5+)
+    </description>
+    <language>en-US</language>
+    <projectUrl>https://github.com/Microsoft/xunit-performance</projectUrl>
+    <licenseUrl>https://github.com/Microsoft/xunit-performance/blob/master/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <dependencies>
+      <group targetFramework="net46">
+        <dependency id="xunit.core" version="2.1.0-beta4-build3109" />
+      </group>
+      <group targetFramework="dotnet">
+        <dependency id="System.Diagnostics.Tracing" version="4.0.20" />
+        <dependency id="System.Resources.ResourceManager" version="4.0.0" />
+        <dependency id="System.Runtime" version="4.0.20" />
+        <dependency id="xunit.extensibility.core" version="2.1.0-beta4-build3109" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="xunit.performance.core\bin\Release\xunit.performance.core.dll" target="lib\net46\" />
+    <file src="xunit.performance.core\bin\Release\xunit.performance.core.pdb" target="lib\net46\" />
+    <file src="xunit.performance.core\bin\Release\xunit.performance.core.xml" target="lib\net46\" />
+    <file src="xunit.performance.core\bin\Release\xunit.performance.core.dll" target="lib\dotnet\" />
+    <file src="xunit.performance.core\bin\Release\xunit.performance.core.pdb" target="lib\dotnet\" />
+    <file src="xunit.performance.core\bin\Release\xunit.performance.core.xml" target="lib\dotnet\" />
+  </files>
+</package>
