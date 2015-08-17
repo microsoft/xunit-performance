@@ -210,3 +210,8 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
+
+# xunit.performance specific ignores
+nuget.exe
+*.nuget.props
+*.nuget.targets

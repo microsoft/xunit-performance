@@ -24,6 +24,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "core", "core", "{AB946B1D-E607-4EE9-B863-668EDB20F071}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{62661607-5106-4B93-A108-A088992095B9}"
+	ProjectSection(SolutionItems) = preProject
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packages", "Packages", "{21A168B8-03A9-48A7-81FF-81D938F8F4DD}"
 	ProjectSection(SolutionItems) = preProject
@@ -33,6 +37,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packages", "Packages", "{21
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Targets", "Targets", "{965D5BF3-DE6C-4E73-B82F-9B27FDE3213C}"
+	ProjectSection(SolutionItems) = preProject
+		xunit.performance.msbuild = xunit.performance.msbuild
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{694DAB50-E5DA-4ADC-AD63-591F2FC8EB35}"
 EndProject
