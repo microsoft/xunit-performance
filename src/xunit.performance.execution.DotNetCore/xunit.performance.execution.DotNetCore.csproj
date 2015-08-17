@@ -71,7 +71,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <NuSpecFile Include="$(SolutionDir)\xunit.performance.execution.nuspec">
+    <NuSpecFile Include="..\xunit.performance.execution.nuspec">
       <InProject>false</InProject>
     </NuSpecFile>
   </ItemGroup>
