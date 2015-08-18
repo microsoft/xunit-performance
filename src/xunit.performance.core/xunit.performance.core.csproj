@@ -45,6 +45,7 @@
     </Compile>
     <Compile Include="AllocatesAttribute.cs" />
     <Compile Include="BenchmarkAttribute.cs" />
+    <Compile Include="IPerformanceMetric.cs" />
     <Compile Include="IPerformanceMetricAttribute.cs" />
     <Compile Include="IPerformanceMetricDiscoverer.cs" />
     <Compile Include="PerformanceMetricDiscovererAttribute.cs" />
