@@ -45,13 +45,7 @@
     </Compile>
     <Compile Include="AllocatesAttribute.cs" />
     <Compile Include="BenchmarkAttribute.cs" />
-    <Compile Include="ETWKernelProviderInfo.cs" />
-    <Compile Include="ETWProviderInfo.cs" />
-    <Compile Include="ETWUserProviderInfo.cs" />
-    <Compile Include="GlobalLogProviderInfo.cs" />
-    <Compile Include="IPerformanceMetric.cs" />
     <Compile Include="IPerformanceMetricAttribute.cs" />
-    <Compile Include="IPerformanceMetricDiscoverer.cs" />
     <Compile Include="PerformanceMetricDiscovererAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -51,6 +51,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "runner", "runner", "{F5C85B
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "analysis", "analysis", "{FFA0DF6D-DF10-4E29-97B3-B78F66990325}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.metrics", "src\xunit.performance.metrics\xunit.performance.metrics.csproj", "{517B6982-4F98-417F-9987-9C6B64EE6E1C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -89,6 +91,10 @@ Global
 		{B67EB81A-F0DE-495A-96FA-C5482E8FB58F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B67EB81A-F0DE-495A-96FA-C5482E8FB58F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B67EB81A-F0DE-495A-96FA-C5482E8FB58F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{517B6982-4F98-417F-9987-9C6B64EE6E1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{517B6982-4F98-417F-9987-9C6B64EE6E1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{517B6982-4F98-417F-9987-9C6B64EE6E1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{517B6982-4F98-417F-9987-9C6B64EE6E1C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -108,5 +114,6 @@ Global
 		{965D5BF3-DE6C-4E73-B82F-9B27FDE3213C} = {62661607-5106-4B93-A108-A088992095B9}
 		{F5C85B5B-B786-454C-BB24-822826881735} = {694DAB50-E5DA-4ADC-AD63-591F2FC8EB35}
 		{FFA0DF6D-DF10-4E29-97B3-B78F66990325} = {694DAB50-E5DA-4ADC-AD63-591F2FC8EB35}
+		{517B6982-4F98-417F-9987-9C6B64EE6E1C} = {F5C85B5B-B786-454C-BB24-822826881735}
 	EndGlobalSection
 EndGlobal

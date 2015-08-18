@@ -23,11 +23,11 @@ Supported platforms:
       </group>
       <group targetFramework="dotnet">
         <dependency id="System.Diagnostics.Tracing" version="4.0.20" />
-        <dependency id="System.Diagnostics.Debug" version="4.0.10" />
         <dependency id="System.Linq" version="4.0.0" />
+        <dependency id="xunit.abstractions" version="2.0.0" />
+        <dependency id="System.Diagnostics.Debug" version="4.0.10" />
         <dependency id="System.Resources.ResourceManager" version="4.0.0" />
         <dependency id="System.Runtime" version="4.0.20" />
-        <dependency id="xunit.abstractions" version="2.0.0" />
         <dependency id="xunit.extensibility.core" version="2.1.0-beta4-build3109" />
       </group>
     </dependencies>
