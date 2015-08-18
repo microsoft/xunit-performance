@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
@@ -12,6 +13,6 @@ namespace Microsoft.Xunit.Performance
         /// </summary>
         /// <param name="metricAttribute"></param>
         /// <returns></returns>
-        IEnumerable<IPerformanceMetric> GetMetrics(IPerformanceMetricAttribute metricAttribute);
+        IEnumerable<IPerformanceMetric> GetMetrics(IAttributeInfo metricAttribute);
     }
 }

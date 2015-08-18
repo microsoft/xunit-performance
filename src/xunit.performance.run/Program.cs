@@ -11,10 +11,19 @@ namespace Microsoft.Xunit.Performance
 {
     class Program
     {
+        class ConsoleReporter : IMessageSink
+        {
+            public bool OnMessage(IMessageSinkMessage message)
+            {
+                Console.WriteLine(message.ToString());
+                return true;
+            }
+        }
+
         static int Main(string[] args)
         {
             var project = ParseCommandLine(args);
-            var tests = DiscoverTests(project.Assemblies, project.Filters);
+            var tests = DiscoverTests(project.Assemblies, project.Filters, new ConsoleReporter());
 
             if (!Directory.Exists(project.OutputDir))
                 Directory.CreateDirectory(project.OutputDir);
@@ -102,7 +111,7 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
-        private static IEnumerable<PerformanceTestInfo> DiscoverTests(IEnumerable<XunitProjectAssembly> assemblies, XunitFilters filters)
+        private static IEnumerable<PerformanceTestInfo> DiscoverTests(IEnumerable<XunitProjectAssembly> assemblies, XunitFilters filters, IMessageSink diagnosticMessageSink)
         {
             var tests = new List<PerformanceTestInfo>();
 
@@ -116,7 +125,7 @@ namespace Microsoft.Xunit.Performance
                     useAppDomain: false,
                     diagnosticMessageSink: new ConsoleDiagnosticsMessageVisitor())
                     )
-                using (var discoveryVisitor = new PerformanceTestDiscoveryVisitor(assembly, filters))
+                using (var discoveryVisitor = new PerformanceTestDiscoveryVisitor(assembly, filters, diagnosticMessageSink))
                 {
                     controller.Find(includeSourceInformation: false, messageSink: discoveryVisitor, discoveryOptions: TestFrameworkOptions.ForDiscovery());
                     discoveryVisitor.Finished.WaitOne();
