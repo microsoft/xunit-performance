@@ -5,14 +5,9 @@ using Microsoft.Diagnostics.Tracing.Session;
 namespace Microsoft.Xunit.Performance
 {
     [Serializable]
-    public class UserProviderInfo : ProviderInfo
+    public sealed class UserProviderInfo : ProviderInfo
     {
         public Guid ProviderGuid { get; set; }
         public TraceEventLevel Level { get; set; } = TraceEventLevel.Verbose;
-
-        internal override void Enable(TraceEventSession session)
-        {
-            session.EnableProvider(ProviderGuid, Level, Keywords);
-        }
     }
 }

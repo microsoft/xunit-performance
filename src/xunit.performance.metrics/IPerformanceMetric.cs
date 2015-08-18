@@ -12,6 +12,6 @@ namespace Microsoft.Xunit.Performance.Sdk
 
         public string DisplayName { get; private set; }
 
-        public virtual IEnumerable<GlobalLogProviderInfo> GlobalLogProviderInfo => Enumerable.Empty<GlobalLogProviderInfo>();
+        public virtual IEnumerable<ProviderInfo> ProviderInfo => Enumerable.Empty<ProviderInfo>();
     }
 }

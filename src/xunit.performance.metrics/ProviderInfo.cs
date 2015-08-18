@@ -3,11 +3,10 @@ using System;
 
 namespace Microsoft.Xunit.Performance
 {
-    [Serializable]
     public abstract class ProviderInfo
     {
-        public ulong Keywords { get; set; } = unchecked((ulong)-1);
+        internal ProviderInfo() { } // Only allow subclassing from this assembly
 
-        internal abstract void Enable(TraceEventSession session);
+        public ulong Keywords { get; set; } = unchecked((ulong)-1);
     }
 }

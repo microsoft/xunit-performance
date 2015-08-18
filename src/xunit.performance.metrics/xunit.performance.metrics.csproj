@@ -33,6 +33,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Diagnostics.Tracing.TraceEvent, Version=1.0.35.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.35\lib\net40\Microsoft.Diagnostics.Tracing.TraceEvent.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -55,13 +59,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ETWKernelProviderInfo.cs" />
-    <Compile Include="ETWProviderInfo.cs" />
-    <Compile Include="ETWUserProviderInfo.cs" />
-    <Compile Include="GlobalLogProviderInfo.cs" />
     <Compile Include="IPerformanceMetric.cs" />
     <Compile Include="IPerformanceMetricDiscoverer.cs" />
+    <Compile Include="KernelProviderInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ProviderInfo.cs" />
+    <Compile Include="UserProviderInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -72,7 +75,9 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\..\packages\xunit.core.2.1.0-beta4-build3109\build\portable-net45+netcore45+wp8+wpa81\xunit.core.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\xunit.core.2.1.0-beta4-build3109\build\portable-net45+netcore45+wp8+wpa81\xunit.core.props'))" />
+    <Error Condition="!Exists('..\..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.35\build\Microsoft.Diagnostics.Tracing.TraceEvent.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.35\build\Microsoft.Diagnostics.Tracing.TraceEvent.targets'))" />
   </Target>
+  <Import Project="..\..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.35\build\Microsoft.Diagnostics.Tracing.TraceEvent.targets" Condition="Exists('..\..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.35\build\Microsoft.Diagnostics.Tracing.TraceEvent.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
