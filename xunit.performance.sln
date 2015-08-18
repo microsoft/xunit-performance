@@ -35,6 +35,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packages", "Packages", "{21
 		src\xunit.performance.core.nuspec = src\xunit.performance.core.nuspec
 		src\xunit.performance.execution.nuspec = src\xunit.performance.execution.nuspec
 		src\xunit.performance.nuspec = src\xunit.performance.nuspec
+		src\xunit.performance.runner.Windows.nuspec = src\xunit.performance.runner.Windows.nuspec
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Targets", "Targets", "{965D5BF3-DE6C-4E73-B82F-9B27FDE3213C}"
