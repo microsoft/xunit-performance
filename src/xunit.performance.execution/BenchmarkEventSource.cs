@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics.Tracing;
 
-namespace Microsoft.Xunit.Performance.Internal
+namespace Microsoft.Xunit.Performance
 {
     [EventSource(Name = "Microsoft-Xunit-Benchmark", Guid = "A3B447A8-6549-4158-9BAD-76D442A47061")]
     public sealed class BenchmarkEventSource : EventSource

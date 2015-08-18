@@ -2,7 +2,6 @@
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Parsers.Clr;
 using Microsoft.ProcessDomain;
-using Microsoft.Xunit.Performance.Internal;
 using System;
 using System.Diagnostics.Tracing;
 using System.Threading.Tasks;
@@ -47,6 +46,8 @@ namespace Microsoft.Xunit.Performance
             ClrTraceEventParser.Keywords.Loader |
             ClrTraceEventParser.Keywords.StartEnumeration;
 
+        static readonly Guid BenchmarkEventSourceGuid = Guid.Parse("A3B447A8-6549-4158-9BAD-76D442A47061");
+
         public static ProcDomain _loggerDomain = ProcDomain.CreateDomain("Logger", ".\\xunit.performance.logger.exe", runElevated: true);
 
         private class Stopper : IDisposable
@@ -64,7 +65,7 @@ namespace Microsoft.Xunit.Performance
             var providers = new ProviderInfo[]
             {
                 new KernelProviderInfo() {Keywords = (ulong)KernelKeywords, StackKeywords = (ulong)KernelStackKeywords },
-                new UserProviderInfo() { ProviderGuid = EventSource.GetGuid(typeof(BenchmarkEventSource)) },
+                new UserProviderInfo() { ProviderGuid = BenchmarkEventSourceGuid },
                 new UserProviderInfo() { ProviderGuid = ClrTraceEventParser.ProviderGuid, Keywords = (ulong)ClrKeywords, Level = TraceEventLevel.Informational},
                 new UserProviderInfo() {ProviderGuid =  ClrRundownTraceEventParser.ProviderGuid, Keywords = (ulong)ClrRundownKeywords, Level = TraceEventLevel.Informational},
             };
