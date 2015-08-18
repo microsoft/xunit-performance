@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Microsoft.Xunit.Performance
+﻿namespace Microsoft.Xunit.Performance
 {
     /// <summary>
     /// An attribute used to decorate classes which implement <see cref="IPerformanceMetricAttribute"/>, to indicate
