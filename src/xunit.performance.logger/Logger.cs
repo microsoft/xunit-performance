@@ -40,7 +40,7 @@ namespace Microsoft.Xunit.Performance
             {
                 session.BufferSizeMB = bufferSizeMB;
 
-                foreach (var info in providerInfo)
+                foreach (var info in ProviderInfo.Merge(providerInfo))
                 {
                     var kernelInfo = info as KernelProviderInfo;
                     if (kernelInfo != null)
