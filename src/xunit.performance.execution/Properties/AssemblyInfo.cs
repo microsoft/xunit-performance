@@ -1,5 +1,4 @@
-﻿using System.Resources;
-using System.Reflection;
+﻿using System.Reflection;
 
 [assembly: Xunit.Sdk.PlatformSpecificAssembly]
 
@@ -13,4 +12,3 @@ using System.Reflection;
 #endif
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyCulture("")]
-[assembly: NeutralResourcesLanguage("en")]
