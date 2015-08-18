@@ -3,7 +3,7 @@
 namespace Microsoft.Xunit.Performance
 {
     /// <summary>
-    /// Allows specification of whether a [Benchmark] method allocates new objects from the GC heap.  
+    /// Allows specification of whether a <see cref="BenchmarkAttribute"/> method allocates new objects from the GC heap.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
     public class AllocatesAttribute : Attribute

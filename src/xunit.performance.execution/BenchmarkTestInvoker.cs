@@ -181,7 +181,7 @@ namespace Microsoft.Xunit.Performance
                 default: return () => TestMethod.Invoke(testClassInstance, TestMethodArguments);
             }
 
-            var invokerFactory = typeof(BenchmarkTestInvoker).GetMethod(invokerFactoryName, BindingFlags.Instance | BindingFlags.NonPublic);
+            var invokerFactory = typeof(BenchmarkTestInvoker).GetTypeInfo().GetDeclaredMethod(invokerFactoryName);
             var invokerFactoryInstance = invokerFactory.MakeGenericMethod(types);
 
             return (Func<object>)invokerFactoryInstance.Invoke(this, args);
