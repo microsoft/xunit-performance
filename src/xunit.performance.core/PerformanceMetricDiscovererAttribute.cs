@@ -1,4 +1,4 @@
-﻿namespace Microsoft.Xunit.Performance
+﻿namespace Microsoft.Xunit.Performance.Sdk
 {
     /// <summary>
     /// An attribute used to decorate classes which implement <see cref="IPerformanceMetricAttribute"/>, to indicate

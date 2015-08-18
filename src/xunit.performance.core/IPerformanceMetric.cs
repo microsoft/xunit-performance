@@ -1,10 +1,17 @@
-﻿namespace Microsoft.Xunit.Performance
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace Microsoft.Xunit.Performance.Sdk
 {
     /// <summary>
-    /// Implemented by types which provide metrics for performance tests.
+    /// Base type for types which provide metrics for performance tests.
     /// </summary>
-    public interface IPerformanceMetric
+    public abstract class PerformanceMetric
     {
-        string DisplayName { get; }
+        public PerformanceMetric(string displayName) { DisplayName = displayName; }
+
+        public string DisplayName { get; private set; }
+
+        public virtual IEnumerable<GlobalLogProviderInfo> GlobalLogProviderInfo => Enumerable.Empty<GlobalLogProviderInfo>();
     }
 }

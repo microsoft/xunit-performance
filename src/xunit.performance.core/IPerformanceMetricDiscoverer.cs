@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Xunit.Abstractions;
 
-namespace Microsoft.Xunit.Performance
+namespace Microsoft.Xunit.Performance.Sdk
 {
     /// <summary>
     /// Implemented by discoverers that provide metrics to performance tests.
@@ -13,6 +13,6 @@ namespace Microsoft.Xunit.Performance
         /// </summary>
         /// <param name="metricAttribute"></param>
         /// <returns></returns>
-        IEnumerable<IPerformanceMetric> GetMetrics(IAttributeInfo metricAttribute);
+        IEnumerable<PerformanceMetric> GetMetrics(IAttributeInfo metricAttribute);
     }
 }

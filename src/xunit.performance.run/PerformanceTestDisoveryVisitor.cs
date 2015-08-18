@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xunit.Performance.Sdk;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -34,7 +35,7 @@ namespace Microsoft.Xunit.Performance
                 // Get the performance metrics for this method
                 //
                 var testMethod = testCaseDiscovered.TestMethod;
-                List<IPerformanceMetric> metrics = new List<IPerformanceMetric>();
+                List<PerformanceMetric> metrics = new List<PerformanceMetric>();
                 foreach (var metricAttr in GetMetricAttributes(testMethod))
                 {
                     var discovererAttr = metricAttr.GetCustomAttributes(typeof(PerformanceMetricDiscovererAttribute)).First();
