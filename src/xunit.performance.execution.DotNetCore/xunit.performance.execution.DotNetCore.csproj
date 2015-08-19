@@ -71,9 +71,6 @@
     <Compile Include="..\xunit.performance.execution\BenchmarkTestRunner.cs">
       <Link>BenchmarkTestRunner.cs</Link>
     </Compile>
-    <Compile Include="..\xunit.performance.execution\BenchmarkTraitDiscoverer.cs">
-      <Link>BenchmarkTraitDiscoverer.cs</Link>
-    </Compile>
     <Compile Include="..\xunit.performance.execution\Properties\AssemblyInfo.cs">
       <Link>Properties\AssemblyInfo.cs</Link>
     </Compile>

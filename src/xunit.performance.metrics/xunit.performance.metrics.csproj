@@ -59,6 +59,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BenchmarkDurationMetric.cs" />
+    <Compile Include="BenchmarkMetricDiscoverer.cs" />
+    <Compile Include="BenchmarkMetricEvaluator.cs" />
     <Compile Include="PerformanceMetric.cs" />
     <Compile Include="IPerformanceMetricDiscoverer.cs" />
     <Compile Include="KernelProviderInfo.cs" />

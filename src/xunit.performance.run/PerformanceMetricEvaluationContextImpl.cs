@@ -58,7 +58,7 @@ namespace Microsoft.Xunit.Performance
             _currentProcesses.Add(args.ProcessID);
 
             foreach (var evaluator in _evaluators[_currentTestCase])
-                evaluator.BeginIteration();
+                evaluator.BeginIteration(args);
         }
 
         private void BenchmarkIterationStop(BenchmarkIterationStopArgs args)
@@ -68,7 +68,7 @@ namespace Microsoft.Xunit.Performance
 
             foreach (var evaluator in _evaluators[_currentTestCase])
             {
-                var values = evaluator.EndIteration();
+                var values = evaluator.EndIteration(args);
                 var allValues = _metricValues.GetOrAdd(_currentTestCase);
 
                 while (allValues.Count <= args.Iteration)
