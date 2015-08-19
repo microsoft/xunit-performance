@@ -11,6 +11,6 @@ namespace Microsoft.Xunit.Performance.Sdk
     {
         public virtual IEnumerable<ProviderInfo> ProviderInfo => Enumerable.Empty<ProviderInfo>();
 
-        public virtual PerformanceMetricEvaluator CreateEvaluator(TraceEventSource traceSource) => null;
+        public virtual PerformanceMetricEvaluator CreateEvaluator(PerformanceMetricEvaluationContext context) => null;
     }
 }

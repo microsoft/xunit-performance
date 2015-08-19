@@ -62,6 +62,7 @@
     <Compile Include="PerformanceMetric.cs" />
     <Compile Include="IPerformanceMetricDiscoverer.cs" />
     <Compile Include="KernelProviderInfo.cs" />
+    <Compile Include="PerformanceMetricEvaluationContext.cs" />
     <Compile Include="PerformanceMetricEvaluator.cs" />
     <Compile Include="PerformanceMetricValue.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
