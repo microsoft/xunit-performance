@@ -116,7 +116,11 @@ namespace Microsoft.Xunit.Performance
 
                                     foreach (var value in iteration)
                                     {
-                                        iterationElem.Add(new XElement("value", new XAttribute("name", value.Name), new XAttribute("unit", value.Unit), value));
+                                        iterationElem.Add(
+                                            new XElement("value", 
+                                                new XAttribute("name", value.Name), 
+                                                new XAttribute("unit", value.Unit), 
+                                                value.Value));
                                     }
                                 }
                             }
