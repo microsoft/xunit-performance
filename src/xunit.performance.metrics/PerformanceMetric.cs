@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Diagnostics.Tracing;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Microsoft.Xunit.Performance.Sdk
@@ -8,10 +9,8 @@ namespace Microsoft.Xunit.Performance.Sdk
     /// </summary>
     public abstract class PerformanceMetric
     {
-        public PerformanceMetric(string displayName) { DisplayName = displayName; }
-
-        public string DisplayName { get; private set; }
-
         public virtual IEnumerable<ProviderInfo> ProviderInfo => Enumerable.Empty<ProviderInfo>();
+
+        public virtual PerformanceMetricEvaluator CreateEvaluator(TraceEventSource traceSource) => null;
     }
 }

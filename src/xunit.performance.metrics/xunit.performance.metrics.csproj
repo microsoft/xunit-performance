@@ -59,9 +59,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IPerformanceMetric.cs" />
+    <Compile Include="PerformanceMetric.cs" />
     <Compile Include="IPerformanceMetricDiscoverer.cs" />
     <Compile Include="KernelProviderInfo.cs" />
+    <Compile Include="PerformanceMetricEvaluator.cs" />
+    <Compile Include="PerformanceMetricValue.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProviderInfo.cs" />
     <Compile Include="UserProviderInfo.cs" />
