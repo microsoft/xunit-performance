@@ -120,7 +120,7 @@ namespace Microsoft.Xunit.Performance
                                             new XElement("value", 
                                                 new XAttribute("name", value.Name), 
                                                 new XAttribute("unit", value.Unit), 
-                                                value.Value));
+                                                value.Value.ToString("R")));
                                     }
                                 }
                             }
