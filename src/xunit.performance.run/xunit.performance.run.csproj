@@ -94,6 +94,10 @@
       <Project>{d8820889-cc47-42b6-bac1-01d16d241ece}</Project>
       <Name>xunit.performance.core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\xunit.performance.execution.desktop\xunit.performance.execution.desktop.csproj">
+      <Project>{e8abd75e-4f88-434f-b400-30ab32fdb0ed}</Project>
+      <Name>xunit.performance.execution.desktop</Name>
+    </ProjectReference>
     <ProjectReference Include="..\xunit.performance.logger\xunit.performance.logger.csproj">
       <Project>{b7b0a4d7-ef9d-4ced-954a-f6e69e30ce27}</Project>
       <Name>xunit.performance.logger</Name>

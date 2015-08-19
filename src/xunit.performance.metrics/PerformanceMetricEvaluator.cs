@@ -8,7 +8,7 @@ namespace Microsoft.Xunit.Performance.Sdk
     {
         public abstract void BeginIteration(TraceEvent beginEvent);
 
-        public abstract IEnumerable<PerformanceMetricValue> EndIteration(TraceEvent endEvent);
+        public abstract double EndIteration(TraceEvent endEvent);
 
         public void Dispose()
         {

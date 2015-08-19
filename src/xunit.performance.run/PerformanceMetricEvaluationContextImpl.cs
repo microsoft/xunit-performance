@@ -14,14 +14,20 @@ namespace Microsoft.Xunit.Performance
 {
     class PerformanceMetricEvaluationContextImpl : PerformanceMetricEvaluationContext, IDisposable
     {
-        private readonly Dictionary<string, List<PerformanceMetricEvaluator>> _evaluators = new Dictionary<string, List<PerformanceMetricEvaluator>>();
-        private readonly Dictionary<string, List<List<PerformanceMetricValue>>> _metricValues = new Dictionary<string, List<List<PerformanceMetricValue>>>();
+        private readonly Dictionary<string, List<KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>>> _evaluators = new Dictionary<string, List<KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>>>();
+        private readonly Dictionary<string, List<Dictionary<string, double>>> _metricValues = new Dictionary<string, List<Dictionary<string, double>>>();
         private readonly TraceEventSource _traceEventSource;
         private readonly HashSet<int> _currentProcesses = new HashSet<int>();
+        private readonly string _runid;
         private string _currentTestCase;
         private int _currentIteration;
 
-        internal List<List<PerformanceMetricValue>> GetValues(string testCase)
+        internal IEnumerable<PerformanceMetric> GetMetrics(string testCase)
+        {
+            return _evaluators.GetOrDefault(testCase)?.Select(kvp => kvp.Key);
+        }
+
+        internal List<Dictionary<string, double>> GetValues(string testCase)
         {
             return _metricValues.GetOrDefault(testCase);
         }
@@ -30,9 +36,10 @@ namespace Microsoft.Xunit.Performance
 
         public override bool IsTestEvent(TraceEvent traceEvent) => _currentProcesses.Contains(traceEvent.ProcessID);
 
-        internal PerformanceMetricEvaluationContextImpl(TraceEventSource traceEventSource, IEnumerable<PerformanceTestInfo> testInfo)
+        internal PerformanceMetricEvaluationContextImpl(TraceEventSource traceEventSource, IEnumerable<PerformanceTestInfo> testInfo, string runid)
         {
             _traceEventSource = traceEventSource;
+            _runid = runid;
 
             var benchmarkParser = new MicrosoftXunitBenchmarkTraceEventParser(traceEventSource);
             benchmarkParser.BenchmarkIterationStart += BenchmarkIterationStart;
@@ -43,38 +50,52 @@ namespace Microsoft.Xunit.Performance
 
             foreach (var info in testInfo)
             {
-                var evaluators = info.Metrics.Select(m => m.CreateEvaluator(this)).ToList();
+                var evaluators = info.Metrics.Select(m => new KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>(m, m.CreateEvaluator(this))).ToList();
                 _evaluators[info.TestCase.DisplayName] = evaluators;
             }
         }
 
         private void BenchmarkIterationStart(BenchmarkIterationStartArgs args)
         {
+            if (args.RunId != _runid)
+                return;
+
             if (_currentTestCase != null)
-                throw new InvalidOperationException();
+                return;
+//                throw new InvalidOperationException();
 
             _currentTestCase = args.BenchmarkName;
             _currentIteration = args.Iteration;
             _currentProcesses.Add(args.ProcessID);
 
-            foreach (var evaluator in _evaluators[_currentTestCase])
-                evaluator.BeginIteration(args);
+            var evaluators = _evaluators.GetOrDefault(_currentTestCase);
+            if (evaluators != null)
+            {
+                foreach (var evaluator in _evaluators[_currentTestCase])
+                    evaluator.Value.BeginIteration(args);
+            }
         }
 
         private void BenchmarkIterationStop(BenchmarkIterationStopArgs args)
         {
+            if (args.RunId != _runid)
+                return;
+
             if (_currentTestCase != args.BenchmarkName)
                 throw new InvalidOperationException();
 
-            foreach (var evaluator in _evaluators[_currentTestCase])
+            var evaluators = _evaluators.GetOrDefault(_currentTestCase);
+            if (evaluators != null)
             {
-                var values = evaluator.EndIteration(args);
                 var allValues = _metricValues.GetOrAdd(_currentTestCase);
-
-                while (allValues.Count <= args.Iteration)
+                while (allValues.Count < args.Iteration)
                     allValues.Add(null);
 
-                allValues[args.Iteration] = values.ToList();
+                var values = new Dictionary<string, double>();
+                allValues.Add(values);
+
+                foreach (var evaluator in _evaluators[_currentTestCase])
+                    values[evaluator.Key.Name] = evaluator.Value.EndIteration(args);
             }
 
             _currentTestCase = null;
@@ -96,7 +117,7 @@ namespace Microsoft.Xunit.Performance
         {
             foreach (var evaluators in _evaluators.Values)
                 foreach (var evaluator in evaluators)
-                    evaluator.Dispose();
+                    evaluator.Value.Dispose();
         }
     }
 }

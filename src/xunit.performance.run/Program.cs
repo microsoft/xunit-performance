@@ -92,15 +92,26 @@ namespace Microsoft.Xunit.Performance
                 if (source.EventsLost > 0)
                     throw new Exception($"Events were lost in trace '{etlPath}'");
 
-                using (var evaluationContext = new PerformanceMetricEvaluationContextImpl(source, tests))
+                using (var evaluationContext = new PerformanceMetricEvaluationContextImpl(source, tests, runId))
                 {
                     source.Process();
-
 
                     var xmlDoc = XDocument.Load(xmlPath);
                     foreach (var testElem in xmlDoc.Descendants("test"))
                     {
-                        var iterations = evaluationContext.GetValues(testElem.Attribute("name").Value);
+                        var testName = testElem.Attribute("name").Value;
+
+                        var metrics = evaluationContext.GetMetrics(testName);
+                        if (metrics != null)
+                        {
+                            var metricsElem = new XElement("metrics");
+                            testElem.Add(metricsElem);
+
+                            foreach (var metric in metrics)
+                                metricsElem.Add(new XElement(metric.Name, new XAttribute("unit", metric.Unit), new XAttribute("interpretation", metric.Interpretation)));
+                        }
+
+                        var iterations = evaluationContext.GetValues(testName);
                         if (iterations != null)
                         {
                             var iterationsElem = new XElement("iterations");
@@ -115,17 +126,12 @@ namespace Microsoft.Xunit.Performance
                                     iterationsElem.Add(iterationElem);
 
                                     foreach (var value in iteration)
-                                    {
-                                        iterationElem.Add(
-                                            new XElement("value", 
-                                                new XAttribute("name", value.Name), 
-                                                new XAttribute("unit", value.Unit), 
-                                                value.Value.ToString("R")));
-                                    }
+                                        iterationElem.Add(new XAttribute(value.Key, value.Value.ToString("R")));
                                 }
                             }
                         }
                     }
+                    xmlDoc.Save(xmlPath);
                 }
             }
         }
