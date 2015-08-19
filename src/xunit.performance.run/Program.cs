@@ -1,9 +1,12 @@
-﻿using System;
+﻿using Microsoft.Diagnostics.Tracing;
+using Microsoft.Xunit.Performance.Sdk;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -37,11 +40,20 @@ namespace Microsoft.Xunit.Performance
 
         private static void RunTests(IEnumerable<PerformanceTestInfo> tests, string runnerCommand, string runId, string outDir)
         {
-            using (ETWLogging.StartAsync(Path.Combine(outDir, runId + ".etl")).Result)
+            string etlPath = Path.Combine(outDir, runId + ".etl");
+            string xmlPath = Path.Combine(outDir, runId + ".xml");
+
+            var providers =
+                from test in tests
+                from metric in test.Metrics
+                from provider in metric.ProviderInfo
+                select provider;
+
+            using (ETWLogging.StartAsync(etlPath, providers).Result)
             {
                 const int maxCommandLineLength = 32767;
 
-                var outputOption = "-xml " + Path.Combine(outDir, runId + ".xml");
+                var outputOption = "-xml " + xmlPath;
 
                 var allMethods = new HashSet<string>();
 
@@ -72,6 +84,45 @@ namespace Microsoft.Xunit.Performance
 
                 if (methodBatch.Count > 0)
                     RunTestBatch(methodBatch, assemblyFileBatch, runnerCommand, runId, outputOption);
+            }
+
+
+            using (var source = new ETWTraceEventSource(etlPath))
+            {
+                if (source.EventsLost > 0)
+                    throw new Exception($"Events were lost in trace '{etlPath}'");
+
+                using (var evaluationContext = new PerformanceMetricEvaluationContextImpl(source, tests))
+                {
+                    source.Process();
+
+
+                    var xmlDoc = XDocument.Load(xmlPath);
+                    foreach (var testElem in xmlDoc.Descendants("test"))
+                    {
+                        var iterations = evaluationContext.GetValues(testElem.Attribute("name").Value);
+                        if (iterations != null)
+                        {
+                            var iterationsElem = new XElement("iterations");
+                            testElem.Add(iterationsElem);
+
+                            for (int i = 0; i < iterations.Count; i++)
+                            {
+                                var iteration = iterations[i];
+                                if (iteration != null)
+                                {
+                                    var iterationElem = new XElement("iteration", new XAttribute("index", i));
+                                    iterationsElem.Add(iterationElem);
+
+                                    foreach (var value in iteration)
+                                    {
+                                        iterationElem.Add(new XElement("value", new XAttribute("name", value.Name), new XAttribute("unit", value.Unit), value));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 

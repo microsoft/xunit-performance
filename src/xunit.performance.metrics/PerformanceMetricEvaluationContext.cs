@@ -7,17 +7,10 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Xunit.Performance.Sdk
 {
-    public sealed class PerformanceMetricEvaluationContext
+    public abstract class PerformanceMetricEvaluationContext
     {
-        HashSet<int> _currentProcesses = new HashSet<int>();
+        public abstract TraceEventSource TraceEventSource { get; }
 
-        internal PerformanceMetricEvaluationContext(TraceEventSource traceEventSource)
-        {
-            TraceEventSource = traceEventSource;
-        }
-
-        public TraceEventSource TraceEventSource { get; private set; }
-
-        public bool IsTestEvent(TraceEvent traceEvent) => _currentProcesses.Contains(traceEvent.ProcessID);
+        public abstract bool IsTestEvent(TraceEvent traceEvent);
     }
 }
