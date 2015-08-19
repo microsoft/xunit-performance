@@ -8,7 +8,7 @@ namespace Microsoft.Xunit.Performance
     {
         internal ProviderInfo() { } // Only allow subclassing from this assembly
 
-        public ulong Keywords { get; set; } = unchecked((ulong)-1);
+        public ulong Keywords { get; set; }
 
         public static IEnumerable<ProviderInfo> Merge(IEnumerable<ProviderInfo> info)
         {
@@ -18,11 +18,11 @@ namespace Microsoft.Xunit.Performance
             foreach (var i in info)
                 i.MergeInto(userInfo, kernelInfo);
 
-            foreach (var i in userInfo.Values)
-                yield return i;
-
             if (kernelInfo.Keywords != 0)
                 yield return kernelInfo;
+
+            foreach (var i in userInfo.Values)
+                yield return i;
         }
 
         protected abstract void MergeInto(Dictionary<Guid, UserProviderInfo> userInfo, KernelProviderInfo kernelInfo);

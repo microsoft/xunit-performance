@@ -12,7 +12,7 @@ namespace Microsoft.Xunit.Performance
     [XunitTestCaseDiscoverer("Microsoft.Xunit.Performance.BenchmarkDiscoverer", "xunit.performance.execution.{Platform}")]
     [PerformanceMetricDiscoverer("Microsoft.Xunit.Performance.BenchmarkMetricDiscoverer", "xunit.performance.metrics")]
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class BenchmarkAttribute : FactAttribute, ITraitAttribute
+    public class BenchmarkAttribute : FactAttribute, IPerformanceMetricAttribute
     {
         /// <summary>
         /// If true, performance metrics will be computed for all iterations of the method.  If false (the default), the first

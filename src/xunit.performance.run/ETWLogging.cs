@@ -18,26 +18,26 @@ namespace Microsoft.Xunit.Performance
         {
             new KernelProviderInfo()
             {
-                Keywords = (ulong)(KernelTraceEventParser.Keywords.Process | KernelTraceEventParser.Keywords.Profile),
-                StackKeywords = (ulong)(KernelTraceEventParser.Keywords.Profile)
+                Keywords = (ulong)KernelTraceEventParser.Keywords.Process | (ulong)KernelTraceEventParser.Keywords.Profile,
+                StackKeywords = (ulong)KernelTraceEventParser.Keywords.Profile
             },
             new UserProviderInfo()
             {
                 ProviderGuid = BenchmarkEventSourceGuid,
                 Level = TraceEventLevel.Verbose,
-                Keywords = 0xffffffffffffffff,
+                Keywords = ulong.MaxValue,
             },
             new UserProviderInfo()
             {
                 ProviderGuid = ClrTraceEventParser.ProviderGuid,
                 Level = TraceEventLevel.Informational,
-                Keywords = (ulong)
+                Keywords = 
                 (
-                    ClrTraceEventParser.Keywords.Jit |
-                    ClrTraceEventParser.Keywords.JittedMethodILToNativeMap |
-                    ClrTraceEventParser.Keywords.Loader |
-                    ClrTraceEventParser.Keywords.Exception |
-                    ClrTraceEventParser.Keywords.GC
+                    (ulong)ClrTraceEventParser.Keywords.Jit |
+                    (ulong)ClrTraceEventParser.Keywords.JittedMethodILToNativeMap |
+                    (ulong)ClrTraceEventParser.Keywords.Loader |
+                    (ulong)ClrTraceEventParser.Keywords.Exception |
+                    (ulong)ClrTraceEventParser.Keywords.GC
                 ),
             }
         };

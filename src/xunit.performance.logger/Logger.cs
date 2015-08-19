@@ -41,12 +41,18 @@ namespace Microsoft.Xunit.Performance
             {
                 session.BufferSizeMB = bufferSizeMB;
 
-                var kernelInfo = (KernelProviderInfo)ProviderInfo.Merge(providerInfo.OfType<KernelProviderInfo>()).FirstOrDefault();
-                if (kernelInfo != null)
-                    session.EnableKernelProvider((KernelTraceEventParser.Keywords)kernelInfo.Keywords, (KernelTraceEventParser.Keywords)kernelInfo.StackKeywords);
+                var mergedProviderInfo = ProviderInfo.Merge(providerInfo);
 
-                foreach (var userInfo in ProviderInfo.Merge(providerInfo.OfType<UserProviderInfo>()).Cast<UserProviderInfo>())
-                    session.EnableProvider(userInfo.ProviderGuid, (TraceEventLevel)userInfo.Level, userInfo.Keywords);
+                var kernelInfo = mergedProviderInfo.OfType<KernelProviderInfo>().FirstOrDefault();
+                if (kernelInfo != null)
+                {
+                    var kernelKeywords = (KernelTraceEventParser.Keywords)kernelInfo.Keywords;
+                    var kernelStackKeywords = (KernelTraceEventParser.Keywords)kernelInfo.StackKeywords;
+                    session.EnableKernelProvider(kernelKeywords, kernelStackKeywords);
+                }
+
+                foreach (var userInfo in mergedProviderInfo.OfType<UserProviderInfo>())
+                    session.EnableProvider(userInfo.ProviderGuid, userInfo.Level, userInfo.Keywords);
             }
             catch
             {

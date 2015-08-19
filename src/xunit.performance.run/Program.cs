@@ -43,13 +43,13 @@ namespace Microsoft.Xunit.Performance
             string etlPath = Path.Combine(outDir, runId + ".etl");
             string xmlPath = Path.Combine(outDir, runId + ".xml");
 
-            var providers =
+            var etwProviders =
                 from test in tests
                 from metric in test.Metrics
                 from provider in metric.ProviderInfo
                 select provider;
 
-            using (ETWLogging.StartAsync(etlPath, providers).Result)
+            using (ETWLogging.StartAsync(etlPath, etwProviders).Result)
             {
                 const int maxCommandLineLength = 32767;
 
