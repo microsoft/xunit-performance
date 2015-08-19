@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using Microsoft.Diagnostics.Tracing.Session;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing;
+using System.Linq;
 
 namespace Microsoft.Xunit.Performance
 {
@@ -40,16 +41,12 @@ namespace Microsoft.Xunit.Performance
             {
                 session.BufferSizeMB = bufferSizeMB;
 
-                foreach (var info in ProviderInfo.Merge(providerInfo))
-                {
-                    var kernelInfo = info as KernelProviderInfo;
-                    if (kernelInfo != null)
-                        session.EnableKernelProvider((KernelTraceEventParser.Keywords)kernelInfo.Keywords, (KernelTraceEventParser.Keywords)kernelInfo.StackKeywords);
+                var kernelInfo = (KernelProviderInfo)ProviderInfo.Merge(providerInfo.OfType<KernelProviderInfo>()).FirstOrDefault();
+                if (kernelInfo != null)
+                    session.EnableKernelProvider((KernelTraceEventParser.Keywords)kernelInfo.Keywords, (KernelTraceEventParser.Keywords)kernelInfo.StackKeywords);
 
-                    var userInfo = info as UserProviderInfo;
-                    if (userInfo != null)
-                        session.EnableProvider(userInfo.ProviderGuid, (TraceEventLevel)userInfo.Level, userInfo.Keywords);
-                }
+                foreach (var userInfo in ProviderInfo.Merge(providerInfo.OfType<UserProviderInfo>()).Cast<UserProviderInfo>())
+                    session.EnableProvider(userInfo.ProviderGuid, (TraceEventLevel)userInfo.Level, userInfo.Keywords);
             }
             catch
             {
