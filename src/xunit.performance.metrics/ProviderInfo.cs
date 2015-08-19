@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.Xunit.Performance
 {
+    [Serializable]
     public abstract class ProviderInfo
     {
         internal ProviderInfo() { } // Only allow subclassing from this assembly
