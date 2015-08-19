@@ -4,8 +4,8 @@ namespace Microsoft.Xunit.Performance.Sdk
 {
     public abstract class PerformanceMetricEvaluator
     {
-        public abstract void TestIterationStarted();
+        public abstract void BeginIteration();
 
-        public abstract IEnumerable<PerformanceMetricValue> TestIterationFinished();
+        public abstract IEnumerable<PerformanceMetricValue> EndIteration();
     }
 }
