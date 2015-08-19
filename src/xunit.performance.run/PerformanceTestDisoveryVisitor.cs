@@ -27,8 +27,7 @@ namespace Microsoft.Xunit.Performance
         {
             var testCase = testCaseDiscovered.TestCase;
 
-            if (testCase.Traits.GetOrDefault("Benchmark")?.Contains("true") ?? false &&
-                string.IsNullOrEmpty(testCase.SkipReason) &&
+            if (string.IsNullOrEmpty(testCase.SkipReason) &&
                 _filters.Filter(testCase))
             {
                 //
@@ -43,7 +42,8 @@ namespace Microsoft.Xunit.Performance
                     metrics.AddRange(discoverer.GetMetrics(metricAttr));
                 }
 
-                Tests.Add(new PerformanceTestInfo { Assembly = _assembly, TestCase = testCaseDiscovered.TestCase, Metrics = metrics });
+                if (metrics.Count > 0)
+                    Tests.Add(new PerformanceTestInfo { Assembly = _assembly, TestCase = testCaseDiscovered.TestCase, Metrics = metrics });
             }
 
             return true;
