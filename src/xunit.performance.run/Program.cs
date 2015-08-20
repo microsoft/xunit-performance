@@ -1,5 +1,4 @@
 ﻿using Microsoft.Diagnostics.Tracing;
-using Microsoft.Xunit.Performance.Sdk;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
