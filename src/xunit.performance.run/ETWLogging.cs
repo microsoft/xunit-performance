@@ -18,8 +18,7 @@ namespace Microsoft.Xunit.Performance
         {
             new KernelProviderInfo()
             {
-                Keywords = (ulong)KernelTraceEventParser.Keywords.Process | (ulong)KernelTraceEventParser.Keywords.Profile,
-                StackKeywords = (ulong)KernelTraceEventParser.Keywords.Profile
+                Keywords = (ulong)KernelTraceEventParser.Keywords.Process
             },
             new UserProviderInfo()
             {
@@ -27,19 +26,6 @@ namespace Microsoft.Xunit.Performance
                 Level = TraceEventLevel.Verbose,
                 Keywords = ulong.MaxValue,
             },
-            new UserProviderInfo()
-            {
-                ProviderGuid = ClrTraceEventParser.ProviderGuid,
-                Level = TraceEventLevel.Informational,
-                Keywords = 
-                (
-                    (ulong)ClrTraceEventParser.Keywords.Jit |
-                    (ulong)ClrTraceEventParser.Keywords.JittedMethodILToNativeMap |
-                    (ulong)ClrTraceEventParser.Keywords.Loader |
-                    (ulong)ClrTraceEventParser.Keywords.Exception |
-                    (ulong)ClrTraceEventParser.Keywords.GC
-                ),
-            }
         };
 
         public static ProcDomain _loggerDomain = ProcDomain.CreateDomain("Logger", ".\\xunit.performance.logger.exe", runElevated: true);
