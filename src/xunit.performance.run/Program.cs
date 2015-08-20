@@ -152,7 +152,7 @@ namespace Microsoft.Xunit.Performance
                                     foreach (var value in iteration)
                                         iterationElem.Add(new XAttribute(value.Key, value.Value.ToString("R")));
                                 }
-        }
+                            }
                         }
                     }
                     xmlDoc.Save(xmlPath);
