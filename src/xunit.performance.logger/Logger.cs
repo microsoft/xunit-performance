@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Microsoft.ProcessDomain;
 using System.Collections.Concurrent;
 using Microsoft.Diagnostics.Tracing.Session;
+using Microsoft.Diagnostics.Tracing.Parsers;
+using System.Linq;
 
 namespace Microsoft.Xunit.Performance
 {
@@ -38,8 +40,18 @@ namespace Microsoft.Xunit.Performance
             {
                 session.BufferSizeMB = bufferSizeMB;
 
-                foreach (var info in providerInfo)
-                    info.Enable(session);
+                var mergedProviderInfo = ProviderInfo.Merge(providerInfo);
+
+                var kernelInfo = mergedProviderInfo.OfType<KernelProviderInfo>().FirstOrDefault();
+                if (kernelInfo != null)
+                {
+                    var kernelKeywords = (KernelTraceEventParser.Keywords)kernelInfo.Keywords;
+                    var kernelStackKeywords = (KernelTraceEventParser.Keywords)kernelInfo.StackKeywords;
+                    session.EnableKernelProvider(kernelKeywords, kernelStackKeywords);
+                }
+
+                foreach (var userInfo in mergedProviderInfo.OfType<UserProviderInfo>())
+                    session.EnableProvider(userInfo.ProviderGuid, userInfo.Level, userInfo.Keywords);
             }
             catch
             {
@@ -57,6 +69,7 @@ namespace Microsoft.Xunit.Performance
             if (_sessions.TryRemove(sessionName, out session))
             {
                 session.Stop(noThrow: true);
+                session.Flush();
                 session.Dispose();
             }
         }
