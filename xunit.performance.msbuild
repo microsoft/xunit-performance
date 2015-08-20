@@ -60,15 +60,15 @@
         Files='src\common\GlobalAssemblyInfo.cs'
         Condition=" '$(BuildAssemblyVersion)' != '' "/>
     <RegexReplace
-        Pattern='99\.99\.99-dev'
-        Replacement='$(BuildSemanticVersion)'
-        Files='@(NuspecFiles)'
-        Condition=" '$(BuildSemanticVersion)' != '' "/>
+        Pattern='AssemblyInformationalVersion\("99\.99\.99-dev"\)'
+        Replacement='AssemblyInformationalVersion("$(BuildSemanticVersion)")'
+        Files='src\common\GlobalAssemblyInfo.cs'
+        Condition=" '$(BuildAssemblyVersion)' != '' "/>
   </Target>
 
   <Target Name='Packages'>
     <Message Text="Creating NuGet packages..." Importance="High" />
-    <Exec Command='"$(NuGetExePath)" pack %(NuspecFiles.Identity) -NoPackageAnalysis -NonInteractive -Verbosity quiet' />
+    <Exec Command='"$(NuGetExePath)" pack %(NuspecFiles.Identity) -Version $(BuildSemanticVersion) -NoPackageAnalysis -NonInteractive -Verbosity quiet' />
   </Target>
 
   <Target Name="_DownloadNuGet">
