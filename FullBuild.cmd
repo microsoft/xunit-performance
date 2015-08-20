@@ -21,11 +21,11 @@ bump the build number on BuildSemanticVersion below.
 setlocal
 
 set BuildAssemblyVersion=1.0.0.0
-set BuildSemanticVersion=1.0.0-alpha-build0003
+set BuildSemanticVersion=1.0.0-alpha-build0005
 
 echo Building version %BuildSemanticVersion% NuGet packages.
 echo WARNING: Some source files will be modified during this build.
-echo WARNING: Pleae be careful not to check in those modifications.
+echo WARNING: Please be careful not to check in those modifications.
 
 msbuild.exe /m /nologo /t:CI /v:m /fl xunit.performance.msbuild
 

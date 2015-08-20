@@ -15,7 +15,7 @@
   </PropertyGroup>
   <ItemGroup>
     <NuspecFiles Include="src\*.nuspec" />
-    <ProjectJsonFiles Include="src\*\project.json" />
+    <!--<ProjectJsonFiles Include="src\*\project.json" />-->
   </ItemGroup>
   <ItemGroup Condition=" '$(PackageSources)' == '' ">
     <PackageSource Include="https://nuget.org/api/v2/" />
@@ -62,7 +62,7 @@
     <RegexReplace
         Pattern='99\.99\.99-dev'
         Replacement='$(BuildSemanticVersion)'
-        Files='@(NuspecFiles);@(ProjectJsonFiles)'
+        Files='@(NuspecFiles)'
         Condition=" '$(BuildSemanticVersion)' != '' "/>
   </Target>
 
