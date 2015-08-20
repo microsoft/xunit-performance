@@ -1,10 +1,9 @@
-﻿using Microsoft.Diagnostics.Tracing;
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Parsers.Clr;
 using Microsoft.ProcessDomain;
-using System;
-using System.Diagnostics.Tracing;
-using System.Threading.Tasks;
 
 namespace Microsoft.Xunit.Performance
 {
@@ -48,7 +47,7 @@ namespace Microsoft.Xunit.Performance
 
         static readonly Guid BenchmarkEventSourceGuid = Guid.Parse("A3B447A8-6549-4158-9BAD-76D442A47061");
 
-        public static ProcDomain _loggerDomain = ProcDomain.CreateDomain("Logger", "xunit.performance.logger.exe", runElevated: true);
+        private static readonly ProcDomain _loggerDomain = ProcDomain.CreateDomain(nameof(Logger), typeof(Logger), runElevated: true);
 
         private class Stopper : IDisposable
         {
