@@ -37,7 +37,7 @@ namespace Microsoft.Xunit.Performance
 
             try
             {
-            var project = ParseCommandLine(args);
+                var project = ParseCommandLine(args);
                 if (!_nologo)
                 {
                     PrintHeader();
@@ -46,10 +46,10 @@ namespace Microsoft.Xunit.Performance
                 var tests = DiscoverTests(project.Assemblies, project.Filters, new ConsoleReporter());
 
                 PrintIfVerbose($"Creating output directory: {project.OutputDir}");
-            if (!Directory.Exists(project.OutputDir))
-                Directory.CreateDirectory(project.OutputDir);
+                if (!Directory.Exists(project.OutputDir))
+                    Directory.CreateDirectory(project.OutputDir);
 
-            RunTests(tests, project.RunnerCommand, project.RunName, project.OutputDir);
+                RunTests(tests, project.RunnerCommand, project.RunName, project.OutputDir);
             }
             catch (Exception ex)
             {
