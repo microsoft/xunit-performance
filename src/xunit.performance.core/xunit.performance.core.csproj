@@ -45,6 +45,9 @@
     </Compile>
     <Compile Include="AllocatesAttribute.cs" />
     <Compile Include="BenchmarkAttribute.cs" />
+    <Compile Include="IPerformanceMetricAttribute.cs" />
+    <Compile Include="MeasureGCCountsAttribute.cs" />
+    <Compile Include="PerformanceMetricDiscovererAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -1,6 +1,7 @@
 ﻿using System;
 using Xunit;
 using Xunit.Sdk;
+using Microsoft.Xunit.Performance.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
@@ -9,9 +10,9 @@ namespace Microsoft.Xunit.Performance
     /// should be run and measured by the performance test runner.
     /// </summary>
     [XunitTestCaseDiscoverer("Microsoft.Xunit.Performance.BenchmarkDiscoverer", "xunit.performance.execution.{Platform}")]
-    [TraitDiscoverer("Microsoft.Xunit.Performance.BenchmarkTraitDiscoverer", "xunit.performance.execution.{Platform}")]
+    [PerformanceMetricDiscoverer("Microsoft.Xunit.Performance.BenchmarkMetricDiscoverer", "xunit.performance.metrics")]
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class BenchmarkAttribute : FactAttribute, ITraitAttribute
+    public class BenchmarkAttribute : FactAttribute, IPerformanceMetricAttribute
     {
         /// <summary>
         /// If true, performance metrics will be computed for all iterations of the method.  If false (the default), the first
