@@ -2,11 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Text;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
@@ -32,14 +29,12 @@ namespace Microsoft.Xunit.Performance
                     PrintHeader();
                 }
 
-                if (_verbose) Console.WriteLine("Discovering tests...");
                 var tests = DiscoverTests(project.Assemblies, project.Filters);
 
-                if (_verbose) Console.WriteLine("Creating output directory...");
+                PrintIfVerbose($"Creating output directory: {project.OutputDir}");
                 if (!Directory.Exists(project.OutputDir))
                     Directory.CreateDirectory(project.OutputDir);
 
-                if (_verbose) Console.WriteLine("Running tests...");
                 RunTests(tests, project.RunnerCommand, project.RunName, project.OutputDir);
             }
             catch (Exception ex)
@@ -55,8 +50,9 @@ namespace Microsoft.Xunit.Performance
 
         private static void RunTests(IEnumerable<PerformanceTestInfo> tests, string runnerCommand, string runId, string outDir)
         {
-            if (_verbose) Console.WriteLine("Starting ETW tracing...");
-            using (ETWLogging.StartAsync(Path.Combine(outDir, runId + ".etl")).Result)
+            var etlFile = Path.Combine(outDir, runId + ".etl");
+            PrintIfVerbose($"Starting ETW tracing. Logging to {etlFile}");
+            using (ETWLogging.StartAsync(etlFile).Result)
             {
                 const int maxCommandLineLength = 32767;
 
@@ -123,12 +119,9 @@ namespace Microsoft.Xunit.Performance
                 UseShellExecute = false,
             };
 
-            if (_verbose)
-            {
-                Console.WriteLine("Launching runner:");
-                Console.WriteLine($"Runner: {startInfo.FileName}");
-                Console.WriteLine($"Arguments: {startInfo.Arguments}");
-            }
+            PrintIfVerbose($@"Launching runner:
+Runner:    {startInfo.FileName}
+Arguments: {startInfo.Arguments}");
 
             using (var proc = Process.Start(startInfo))
             {
@@ -143,6 +136,8 @@ namespace Microsoft.Xunit.Performance
 
             foreach (var assembly in assemblies)
             {
+                PrintIfVerbose($"Discovering tests for {assembly.AssemblyFilename}.");
+
                 // Note: We do not use shadowCopy because that creates a new AppDomain which can cause
                 // assembly load failures with delay-signed or "fake signed" assemblies.
                 using (var controller = new XunitFrontController(
@@ -159,6 +154,7 @@ namespace Microsoft.Xunit.Performance
                 }
             }
 
+            PrintIfVerbose($"Discovered a total of {tests.Count} tests.");
             return tests;
         }
 
@@ -384,6 +380,16 @@ namespace Microsoft.Xunit.Performance
             Console.WriteLine($"xunit.performance Console Runner ({IntPtr.Size * 8}-bit .NET {Environment.Version})");
             Console.WriteLine("Copyright (C) 2015 Microsoft Corporation.");
             Console.WriteLine();
+        }
+
+        static void PrintIfVerbose(string message)
+        {
+            if (_verbose)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.WriteLine(message);
+                Console.ResetColor();
+            }
         }
 
         static void PrintUsage()
