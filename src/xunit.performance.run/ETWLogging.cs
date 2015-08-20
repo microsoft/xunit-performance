@@ -36,7 +36,7 @@ namespace Microsoft.Xunit.Performance
             public Stopper(string session) { _session = session; }
             public void Dispose()
             {
-                _loggerDomain.ExecuteAsync(() => Logger.Stop(_session));
+                _loggerDomain.ExecuteAsync(() => Logger.Stop(_session)).Wait();
             }
         }
 

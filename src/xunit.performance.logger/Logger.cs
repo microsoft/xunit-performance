@@ -69,6 +69,7 @@ namespace Microsoft.Xunit.Performance
             if (_sessions.TryRemove(sessionName, out session))
             {
                 session.Stop(noThrow: true);
+                session.Flush();
                 session.Dispose();
             }
         }
