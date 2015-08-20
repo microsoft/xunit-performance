@@ -2,24 +2,46 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
     class Program
     {
+        static bool _nologo = false;
+        static bool _verbose = false;
+
         static int Main(string[] args)
         {
-            var project = ParseCommandLine(args);
-            var tests = DiscoverTests(project.Assemblies, project.Filters);
+            if (args.Length == 0 || args[0] == "-?")
+            {
+                PrintHeader();
+                PrintUsage();
+                return 1;
+            }
 
-            if (!Directory.Exists(project.OutputDir))
-                Directory.CreateDirectory(project.OutputDir);
+            try
+            {
+                var project = ParseCommandLine(args);
+                if (!_nologo)
+                {
+                    PrintHeader();
+                }
 
-            RunTests(tests, project.RunnerCommand, project.RunName, project.OutputDir);
+                var tests = DiscoverTests(project.Assemblies, project.Filters);
+
+                PrintIfVerbose($"Creating output directory: {project.OutputDir}");
+                if (!Directory.Exists(project.OutputDir))
+                    Directory.CreateDirectory(project.OutputDir);
+
+                RunTests(tests, project.RunnerCommand, project.RunName, project.OutputDir);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.Write("Error: ");
+                ReportExceptionToStderr(ex);
+            }
 
             return 0;
         }
@@ -28,7 +50,9 @@ namespace Microsoft.Xunit.Performance
 
         private static void RunTests(IEnumerable<PerformanceTestInfo> tests, string runnerCommand, string runId, string outDir)
         {
-            using (ETWLogging.StartAsync(Path.Combine(outDir, runId + ".etl")).Result)
+            var etlFile = Path.Combine(outDir, runId + ".etl");
+            PrintIfVerbose($"Starting ETW tracing. Logging to {etlFile}");
+            using (ETWLogging.StartAsync(etlFile).Result)
             {
                 const int maxCommandLineLength = 32767;
 
@@ -95,6 +119,10 @@ namespace Microsoft.Xunit.Performance
                 UseShellExecute = false,
             };
 
+            PrintIfVerbose($@"Launching runner:
+Runner:    {startInfo.FileName}
+Arguments: {startInfo.Arguments}");
+
             using (var proc = Process.Start(startInfo))
             {
                 proc.EnableRaisingEvents = true;
@@ -108,6 +136,8 @@ namespace Microsoft.Xunit.Performance
 
             foreach (var assembly in assemblies)
             {
+                PrintIfVerbose($"Discovering tests for {assembly.AssemblyFilename}.");
+
                 // Note: We do not use shadowCopy because that creates a new AppDomain which can cause
                 // assembly load failures with delay-signed or "fake signed" assemblies.
                 using (var controller = new XunitFrontController(
@@ -124,6 +154,7 @@ namespace Microsoft.Xunit.Performance
                 }
             }
 
+            PrintIfVerbose($"Discovered a total of {tests.Count} tests.");
             return tests;
         }
 
@@ -177,87 +208,107 @@ namespace Microsoft.Xunit.Performance
 
                 optionName = optionName.Substring(1);
 
-                if (optionName == "trait")
+                switch (optionName)
                 {
-                    if (option.Value == null)
-                        throw new ArgumentException("missing argument for -trait");
+                    case "nologo":
+                        _nologo = true;
+                        break;
 
-                    var pieces = option.Value.Split('=');
-                    if (pieces.Length != 2 || string.IsNullOrEmpty(pieces[0]) || string.IsNullOrEmpty(pieces[1]))
-                        throw new ArgumentException("incorrect argument format for -trait (should be \"name=value\")");
+                    case "verbose":
+                        _verbose = true;
+                        break;
 
-                    var name = pieces[0];
-                    var value = pieces[1];
-                    project.Filters.IncludedTraits.Add(name, value);
-                }
-                else if (optionName == "notrait")
-                {
-                    if (option.Value == null)
-                        throw new ArgumentException("missing argument for -notrait");
+                    case "trait":
+                        {
+                            if (option.Value == null)
+                                throw new ArgumentException("missing argument for -trait");
 
-                    var pieces = option.Value.Split('=');
-                    if (pieces.Length != 2 || string.IsNullOrEmpty(pieces[0]) || string.IsNullOrEmpty(pieces[1]))
-                        throw new ArgumentException("incorrect argument format for -notrait (should be \"name=value\")");
+                            var pieces = option.Value.Split('=');
+                            if (pieces.Length != 2 || string.IsNullOrEmpty(pieces[0]) || string.IsNullOrEmpty(pieces[1]))
+                                throw new ArgumentException("incorrect argument format for -trait (should be \"name=value\")");
 
-                    var name = pieces[0];
-                    var value = pieces[1];
-                    project.Filters.ExcludedTraits.Add(name, value);
-                }
-                else if (optionName == "class")
-                {
-                    if (option.Value == null)
-                        throw new ArgumentException("missing argument for -class");
+                            var name = pieces[0];
+                            var value = pieces[1];
+                            project.Filters.IncludedTraits.Add(name, value);
+                        }
+                        break;
 
-                    project.Filters.IncludedClasses.Add(option.Value);
-                }
-                else if (optionName == "method")
-                {
-                    if (option.Value == null)
-                        throw new ArgumentException("missing argument for -method");
+                    case "notrait":
+                        {
+                            if (option.Value == null)
+                                throw new ArgumentException("missing argument for -notrait");
 
-                    project.Filters.IncludedMethods.Add(option.Value);
-                }
-                else if (optionName == "runner")
-                {
-                    if (option.Value == null)
-                        throw new ArgumentException("missing argument for -runner");
+                            var pieces = option.Value.Split('=');
+                            if (pieces.Length != 2 || string.IsNullOrEmpty(pieces[0]) || string.IsNullOrEmpty(pieces[1]))
+                                throw new ArgumentException("incorrect argument format for -notrait (should be \"name=value\")");
 
-                    project.RunnerCommand = option.Value;
-                }
-                else if (optionName == "baselinerunner")
-                {
-                    if (option.Value == null)
-                        throw new ArgumentException("missing argument for -baselineRunner");
+                            var name = pieces[0];
+                            var value = pieces[1];
+                            project.Filters.ExcludedTraits.Add(name, value);
+                        }
+                        break;
 
-                    project.BaselineRunnerCommand = option.Value;
-                }
-                else if (optionName == "baseline")
-                {
-                    if (option.Value == null)
-                        throw new ArgumentException("missing argument for -baseline");
+                    case "class":
+                        if (option.Value == null)
+                            throw new ArgumentException("missing argument for -class");
 
-                    AddBaseline(project, option.Value);
-                }
-                else if (optionName == "runname")
-                {
-                    if (option.Value == null)
-                        throw new ArgumentException("missing argument for -runName");
+                        project.Filters.IncludedClasses.Add(option.Value);
+                        break;
 
-                    project.RunName = option.Value;
-                }
-                else if (optionName == "outdir")
-                {
-                    if (option.Value == null)
-                        throw new ArgumentException("missing argument for -outDir");
+                    case "method":
+                        if (option.Value == null)
+                            throw new ArgumentException("missing argument for -method");
 
-                    project.OutputDir = option.Value;
-                }
-                else
-                {
-                    if (option.Value == null)
-                        throw new ArgumentException($"missing filename for {option.Key}");
+                        project.Filters.IncludedMethods.Add(option.Value);
+                        break;
 
-                    project.Output.Add(optionName, option.Value);
+                    case "runner":
+                        if (option.Value == null)
+                            throw new ArgumentException("missing argument for -runner");
+
+                        project.RunnerCommand = option.Value;
+                        break;
+
+                    case "baselinerunner":
+                        if (option.Value == null)
+                            throw new ArgumentException("missing argument for -baselineRunner");
+
+                        project.BaselineRunnerCommand = option.Value;
+                        break;
+
+                    case "baseline":
+                        if (option.Value == null)
+                            throw new ArgumentException("missing argument for -baseline");
+
+                        AddBaseline(project, option.Value);
+                        break;
+
+                    case "runname":
+                        if (option.Value == null)
+                            throw new ArgumentException("missing argument for -runname");
+
+                        if (option.Value.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+                            throw new ArgumentException($"runname contains invalid characters.", optionName);
+
+                        project.RunName = option.Value;
+                        break;
+
+                    case "outdir":
+                        if (option.Value == null)
+                            throw new ArgumentException("missing argument for -outdir");
+
+                        if (option.Value.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
+                            throw new ArgumentException($"outdir contains invalid characters.", optionName);
+
+                        project.OutputDir = option.Value;
+                        break;
+
+                    default:
+                        if (option.Value == null)
+                            throw new ArgumentException($"missing filename for {option.Key}");
+
+                        project.Output.Add(optionName, option.Value);
+                        break;
                 }
             }
 
@@ -309,6 +360,59 @@ namespace Microsoft.Xunit.Performance
         {
             if (option.Value != null)
                 throw new ArgumentException($"error: unknown command line option: {option.Value}");
+        }
+
+        static void ReportException(Exception ex, TextWriter writer)
+        {
+            for (; ex != null; ex = ex.InnerException)
+            {
+                writer.WriteLine(ex.Message);
+            }
+        }
+
+        static void ReportExceptionToStderr(Exception ex)
+        {
+            ReportException(ex, Console.Error);
+        }
+
+        static void PrintHeader()
+        {
+            Console.WriteLine($"xunit.performance Console Runner ({IntPtr.Size * 8}-bit .NET {Environment.Version})");
+            Console.WriteLine("Copyright (C) 2015 Microsoft Corporation.");
+            Console.WriteLine();
+        }
+
+        static void PrintIfVerbose(string message)
+        {
+            if (_verbose)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.WriteLine(message);
+                Console.ResetColor();
+            }
+        }
+
+        static void PrintUsage()
+        {
+            Console.WriteLine(@"usage: xunit.performance.run <assemblyFile> [options]
+
+Valid options:
+  -nologo                : do not show the copyright message
+  -trait ""name = value""  : only run tests with matching name/value traits
+                         : if specified more than once, acts as an OR operation
+  -notrait ""name=value""  : do not run tests with matching name/value traits
+                         : if specified more than once, acts as an AND operation
+  -class ""name""          : run all methods in a given test class (should be fully
+                         : specified; i.e., 'MyNamespace.MyClass')
+                         : if specified more than once, acts as an OR operation
+  -method ""name""         : run a given test method (should be fully specified;
+                         : i.e., 'MyNamespace.MyClass.MyTestMethod')
+  -runner ""name""         : use the specified runner to excecute tests. Defaults
+                         : to xunit.console.exe
+  -runname ""name""        : a run identifier used to create unique output filenames.
+  -outdir  ""name""        : folder for output files.
+  -verbose               : verbose logging
+");
         }
     }
 }
