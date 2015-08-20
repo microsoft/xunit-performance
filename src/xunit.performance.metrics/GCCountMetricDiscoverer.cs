@@ -57,7 +57,8 @@ namespace Microsoft.Xunit.Performance
 
             private void GCStart(GCStartTraceData ev)
             {
-                _count++;
+                if (_context.IsTestEvent(ev))
+                    _count++;
             }
 
             public override void BeginIteration(TraceEvent beginEvent)
