@@ -66,6 +66,8 @@ namespace Microsoft.Xunit.Performance
             string etlPath = Path.Combine(outDir, runId + ".etl");
             string xmlPath = Path.Combine(outDir, runId + ".xml");
 
+            PrintIfVerbose($"Starting ETW tracing. Logging to {etlPath}");
+
             var etwProviders =
                 from test in tests
                 from metric in test.Metrics
