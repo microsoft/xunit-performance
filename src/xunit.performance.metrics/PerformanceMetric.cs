@@ -16,9 +16,9 @@ namespace Microsoft.Xunit.Performance.Sdk
             Interpretation = interpretation;
         }
 
-        public string Name { get; private set; }
-        public string Unit { get; private set; }
-        public PerformanceMetricInterpretation Interpretation { get; private set; }
+        public string Name { get; }
+        public string Unit { get; }
+        public PerformanceMetricInterpretation Interpretation { get; }
 
         public virtual IEnumerable<ProviderInfo> ProviderInfo => Enumerable.Empty<ProviderInfo>();
 
