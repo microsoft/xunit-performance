@@ -58,8 +58,7 @@ namespace Microsoft.Xunit.Performance
                 return;
 
             if (_currentTestCase != null)
-                return;
-//                throw new InvalidOperationException();
+                throw new InvalidOperationException(args.TimeStampRelativeMSec.ToString());
 
             _currentTestCase = args.BenchmarkName;
             _currentIteration = args.Iteration;
@@ -78,7 +77,7 @@ namespace Microsoft.Xunit.Performance
             if (args.RunId != _runid)
                 return;
 
-            if (_currentTestCase != args.BenchmarkName)
+            if (_currentTestCase != args.BenchmarkName || _currentIteration != args.Iteration)
                 throw new InvalidOperationException();
 
             var evaluators = _evaluators.GetOrDefault(_currentTestCase);
