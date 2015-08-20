@@ -1,14 +1,27 @@
-﻿using System;
+﻿using Microsoft.Diagnostics.Tracing;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
     class Program
     {
+        class ConsoleReporter : IMessageSink
+        {
+            public bool OnMessage(IMessageSinkMessage message)
+            {
+                Console.WriteLine(message.ToString());
+                return true;
+            }
+        }
+
         static bool _nologo = false;
         static bool _verbose = false;
 
@@ -29,7 +42,7 @@ namespace Microsoft.Xunit.Performance
                     PrintHeader();
                 }
 
-                var tests = DiscoverTests(project.Assemblies, project.Filters);
+                var tests = DiscoverTests(project.Assemblies, project.Filters, new ConsoleReporter());
 
                 PrintIfVerbose($"Creating output directory: {project.OutputDir}");
                 if (!Directory.Exists(project.OutputDir))
@@ -50,13 +63,22 @@ namespace Microsoft.Xunit.Performance
 
         private static void RunTests(IEnumerable<PerformanceTestInfo> tests, string runnerCommand, string runId, string outDir)
         {
-            var etlFile = Path.Combine(outDir, runId + ".etl");
-            PrintIfVerbose($"Starting ETW tracing. Logging to {etlFile}");
-            using (ETWLogging.StartAsync(etlFile).Result)
+            string etlPath = Path.Combine(outDir, runId + ".etl");
+            string xmlPath = Path.Combine(outDir, runId + ".xml");
+
+            PrintIfVerbose($"Starting ETW tracing. Logging to {etlPath}");
+
+            var etwProviders =
+                from test in tests
+                from metric in test.Metrics
+                from provider in metric.ProviderInfo
+                select provider;
+
+            using (ETWLogging.StartAsync(etlPath, etwProviders).Result)
             {
                 const int maxCommandLineLength = 32767;
 
-                var outputOption = "-xml " + Path.Combine(outDir, runId + ".xml");
+                var outputOption = "-xml " + xmlPath;
 
                 var allMethods = new HashSet<string>();
 
@@ -87,6 +109,55 @@ namespace Microsoft.Xunit.Performance
 
                 if (methodBatch.Count > 0)
                     RunTestBatch(methodBatch, assemblyFileBatch, runnerCommand, runId, outputOption);
+            }
+
+
+            using (var source = new ETWTraceEventSource(etlPath))
+            {
+                if (source.EventsLost > 0)
+                    throw new Exception($"Events were lost in trace '{etlPath}'");
+
+                using (var evaluationContext = new PerformanceMetricEvaluationContextImpl(source, tests, runId))
+                {
+                    source.Process();
+
+                    var xmlDoc = XDocument.Load(xmlPath);
+                    foreach (var testElem in xmlDoc.Descendants("test"))
+                    {
+                        var testName = testElem.Attribute("name").Value;
+
+                        var metrics = evaluationContext.GetMetrics(testName);
+                        if (metrics != null)
+                        {
+                            var metricsElem = new XElement("metrics");
+                            testElem.Add(metricsElem);
+
+                            foreach (var metric in metrics)
+                                metricsElem.Add(new XElement(metric.Name, new XAttribute("unit", metric.Unit), new XAttribute("interpretation", metric.Interpretation)));
+                        }
+
+                        var iterations = evaluationContext.GetValues(testName);
+                        if (iterations != null)
+                        {
+                            var iterationsElem = new XElement("iterations");
+                            testElem.Add(iterationsElem);
+
+                            for (int i = 0; i < iterations.Count; i++)
+                            {
+                                var iteration = iterations[i];
+                                if (iteration != null)
+                                {
+                                    var iterationElem = new XElement("iteration", new XAttribute("index", i));
+                                    iterationsElem.Add(iterationElem);
+
+                                    foreach (var value in iteration)
+                                        iterationElem.Add(new XAttribute(value.Key, value.Value.ToString("R")));
+                                }
+                            }
+                        }
+                    }
+                    xmlDoc.Save(xmlPath);
+                }
             }
         }
 
@@ -130,7 +201,7 @@ Arguments: {startInfo.Arguments}");
             }
         }
 
-        private static IEnumerable<PerformanceTestInfo> DiscoverTests(IEnumerable<XunitProjectAssembly> assemblies, XunitFilters filters)
+        private static IEnumerable<PerformanceTestInfo> DiscoverTests(IEnumerable<XunitProjectAssembly> assemblies, XunitFilters filters, IMessageSink diagnosticMessageSink)
         {
             var tests = new List<PerformanceTestInfo>();
 
@@ -146,7 +217,7 @@ Arguments: {startInfo.Arguments}");
                     useAppDomain: false,
                     diagnosticMessageSink: new ConsoleDiagnosticsMessageVisitor())
                     )
-                using (var discoveryVisitor = new PerformanceTestDiscoveryVisitor(assembly, filters))
+                using (var discoveryVisitor = new PerformanceTestDiscoveryVisitor(assembly, filters, diagnosticMessageSink))
                 {
                     controller.Find(includeSourceInformation: false, messageSink: discoveryVisitor, discoveryOptions: TestFrameworkOptions.ForDiscovery());
                     discoveryVisitor.Finished.WaitOne();
