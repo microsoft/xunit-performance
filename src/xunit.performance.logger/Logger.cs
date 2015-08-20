@@ -52,6 +52,8 @@ namespace Microsoft.Xunit.Performance
 
                 foreach (var userInfo in mergedProviderInfo.OfType<UserProviderInfo>())
                     session.EnableProvider(userInfo.ProviderGuid, userInfo.Level, userInfo.Keywords);
+
+                _sessions[sessionName] = session;
             }
             catch
             {
@@ -67,11 +69,7 @@ namespace Microsoft.Xunit.Performance
         {
             TraceEventSession session;
             if (_sessions.TryRemove(sessionName, out session))
-            {
-                session.Stop(noThrow: true);
-                session.Flush();
                 session.Dispose();
-            }
         }
 
         static void Main(string[] args)
