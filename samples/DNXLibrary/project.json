@@ -9,7 +9,7 @@
   "dependencies": {
     "xunit": "2.1.0-beta4-*",
     "xunit.runner.dnx": "2.1.0-beta4-*",
-    "Microsoft.DotNet.xunit.performance": "1.0.0-alpha-build0007"
+    "Microsoft.DotNet.xunit.performance": "99.99.99-dev"
   },
   "commands": {
     "test": "xunit.runner.dnx"
