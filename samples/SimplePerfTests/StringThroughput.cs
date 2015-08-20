@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Xunit;
 
+[MeasureGCCounts]
 public static class StringThroughput
 {
     #region helpers

@@ -1,4 +1,6 @@
-﻿using Xunit;
+﻿using Microsoft.Xunit.Performance.Sdk;
+using System.Collections.Generic;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
@@ -7,5 +9,6 @@ namespace Microsoft.Xunit.Performance
     {
         public XunitProjectAssembly Assembly;
         public ITestCase TestCase;
+        public IEnumerable<PerformanceMetric> Metrics;
     }
 }
