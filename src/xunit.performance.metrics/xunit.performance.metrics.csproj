@@ -62,6 +62,7 @@
     <Compile Include="BenchmarkDurationMetric.cs" />
     <Compile Include="BenchmarkMetricDiscoverer.cs" />
     <Compile Include="BenchmarkDurationEvaluator.cs" />
+    <Compile Include="GCCountMetricDiscoverer.cs" />
     <Compile Include="PerformanceMetric.cs" />
     <Compile Include="IPerformanceMetricDiscoverer.cs" />
     <Compile Include="KernelProviderInfo.cs" />
