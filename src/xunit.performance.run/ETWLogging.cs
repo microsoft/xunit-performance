@@ -40,7 +40,7 @@ namespace Microsoft.Xunit.Performance
             }
         };
 
-        public static ProcDomain _loggerDomain = ProcDomain.CreateDomain("Logger", ".\\xunit.performance.logger.exe", runElevated: true);
+        private static readonly ProcDomain _loggerDomain = ProcDomain.CreateDomain(nameof(Logger), typeof(Logger), runElevated: true);
 
         private class Stopper : IDisposable
         {

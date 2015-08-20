@@ -66,6 +66,11 @@ namespace Microsoft.ProcessDomain
             return domain;
         }
 
+        public static ProcDomain CreateDomain(string name, Type remotableType, bool runElevated)
+        {
+            return CreateDomain(name, remotableType.Assembly.Location, runElevated);
+        }
+
         public static ProcDomain GetCurrentProcDomain()
         {
             if (g_currentDomain == null)
