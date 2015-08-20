@@ -26,6 +26,8 @@
 
   <Target Name="CI" DependsOnTargets="Clean;PackageRestore;SetVersionNumber;Build;Packages" />
 
+  <Target Name="DevBuild" DependsOnTargets="Clean;PackageRestore;Build;Packages" />
+
   <!-- Individual targets -->
 
   <Target Name="Clean">
