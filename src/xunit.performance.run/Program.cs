@@ -290,94 +290,94 @@ Arguments: {startInfo.Arguments}");
 
                     case "trait":
                         {
-                    if (option.Value == null)
-                        throw new ArgumentException("missing argument for -trait");
+                            if (option.Value == null)
+                                throw new ArgumentException("missing argument for -trait");
 
-                    var pieces = option.Value.Split('=');
-                    if (pieces.Length != 2 || string.IsNullOrEmpty(pieces[0]) || string.IsNullOrEmpty(pieces[1]))
-                        throw new ArgumentException("incorrect argument format for -trait (should be \"name=value\")");
+                            var pieces = option.Value.Split('=');
+                            if (pieces.Length != 2 || string.IsNullOrEmpty(pieces[0]) || string.IsNullOrEmpty(pieces[1]))
+                                throw new ArgumentException("incorrect argument format for -trait (should be \"name=value\")");
 
-                    var name = pieces[0];
-                    var value = pieces[1];
-                    project.Filters.IncludedTraits.Add(name, value);
-                }
+                            var name = pieces[0];
+                            var value = pieces[1];
+                            project.Filters.IncludedTraits.Add(name, value);
+                        }
                         break;
 
                     case "notrait":
-                {
-                    if (option.Value == null)
-                        throw new ArgumentException("missing argument for -notrait");
+                        {
+                            if (option.Value == null)
+                                throw new ArgumentException("missing argument for -notrait");
 
-                    var pieces = option.Value.Split('=');
-                    if (pieces.Length != 2 || string.IsNullOrEmpty(pieces[0]) || string.IsNullOrEmpty(pieces[1]))
-                        throw new ArgumentException("incorrect argument format for -notrait (should be \"name=value\")");
+                            var pieces = option.Value.Split('=');
+                            if (pieces.Length != 2 || string.IsNullOrEmpty(pieces[0]) || string.IsNullOrEmpty(pieces[1]))
+                                throw new ArgumentException("incorrect argument format for -notrait (should be \"name=value\")");
 
-                    var name = pieces[0];
-                    var value = pieces[1];
-                    project.Filters.ExcludedTraits.Add(name, value);
-                }
+                            var name = pieces[0];
+                            var value = pieces[1];
+                            project.Filters.ExcludedTraits.Add(name, value);
+                        }
                         break;
 
                     case "class":
-                    if (option.Value == null)
-                        throw new ArgumentException("missing argument for -class");
+                        if (option.Value == null)
+                            throw new ArgumentException("missing argument for -class");
 
-                    project.Filters.IncludedClasses.Add(option.Value);
+                        project.Filters.IncludedClasses.Add(option.Value);
                         break;
 
                     case "method":
-                    if (option.Value == null)
-                        throw new ArgumentException("missing argument for -method");
+                        if (option.Value == null)
+                            throw new ArgumentException("missing argument for -method");
 
-                    project.Filters.IncludedMethods.Add(option.Value);
+                        project.Filters.IncludedMethods.Add(option.Value);
                         break;
 
                     case "runner":
-                    if (option.Value == null)
-                        throw new ArgumentException("missing argument for -runner");
+                        if (option.Value == null)
+                            throw new ArgumentException("missing argument for -runner");
 
-                    project.RunnerCommand = option.Value;
+                        project.RunnerCommand = option.Value;
                         break;
 
                     case "baselinerunner":
-                    if (option.Value == null)
-                        throw new ArgumentException("missing argument for -baselineRunner");
+                        if (option.Value == null)
+                            throw new ArgumentException("missing argument for -baselineRunner");
 
-                    project.BaselineRunnerCommand = option.Value;
+                        project.BaselineRunnerCommand = option.Value;
                         break;
 
                     case "baseline":
-                    if (option.Value == null)
-                        throw new ArgumentException("missing argument for -baseline");
+                        if (option.Value == null)
+                            throw new ArgumentException("missing argument for -baseline");
 
-                    AddBaseline(project, option.Value);
+                        AddBaseline(project, option.Value);
                         break;
 
                     case "runname":
-                    if (option.Value == null)
+                        if (option.Value == null)
                             throw new ArgumentException("missing argument for -runname");
 
                         if (option.Value.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
                             throw new ArgumentException($"runname contains invalid characters.", optionName);
 
-                    project.RunName = option.Value;
+                        project.RunName = option.Value;
                         break;
 
                     case "outdir":
-                    if (option.Value == null)
+                        if (option.Value == null)
                             throw new ArgumentException("missing argument for -outdir");
 
                         if (option.Value.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
                             throw new ArgumentException($"outdir contains invalid characters.", optionName);
 
-                    project.OutputDir = option.Value;
+                        project.OutputDir = option.Value;
                         break;
 
                     default:
-                    if (option.Value == null)
-                        throw new ArgumentException($"missing filename for {option.Key}");
+                        if (option.Value == null)
+                            throw new ArgumentException($"missing filename for {option.Key}");
 
-                    project.Output.Add(optionName, option.Value);
+                        project.Output.Add(optionName, option.Value);
                         break;
                 }
             }
