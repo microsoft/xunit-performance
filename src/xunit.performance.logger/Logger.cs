@@ -4,7 +4,6 @@ using Microsoft.ProcessDomain;
 using System.Collections.Concurrent;
 using Microsoft.Diagnostics.Tracing.Session;
 using Microsoft.Diagnostics.Tracing.Parsers;
-using Microsoft.Diagnostics.Tracing;
 using System.Linq;
 
 namespace Microsoft.Xunit.Performance
