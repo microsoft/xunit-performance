@@ -33,7 +33,7 @@
 
   <Target Name="Clean">
     <ItemGroup>
-      <CleanFileList Include="*.html;*.xml;*.nupkg;.nuget\NuGet.exe"/>
+      <CleanFileList Include="*.html;*.xml;$(NugetPackageOutputDirectory)\*.nupkg;.nuget\NuGet.exe"/>
     </ItemGroup>
     <MSBuild
         Projects="$(SolutionName)"

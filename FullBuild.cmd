@@ -6,8 +6,7 @@ Performs a clean build and create NuGet packages for this solution
 Note that this also modifies the following files, replacing
 placeholder version numbers with actual version numbers:
     src\common\GlobalAssemblyInfo.cs
-    src\*.nuspec
-    src\*\project.json
+
 (see the SetVersionNumber task in xunit.performance.msbuild)
 
 These files will, therefore, show up as modified after the build.
@@ -20,8 +19,8 @@ bump the build number on BuildSemanticVersion below.
 :main
 setlocal
 
-set BuildAssemblyVersion=1.0.0.*
-set BuildSemanticVersion=1.0.0-alpha-build0007
+set BuildAssemblyVersion=1.0.0.8
+set BuildSemanticVersion=1.0.0-alpha-build0008
 
 echo Building version %BuildSemanticVersion% NuGet packages.
 echo WARNING: Some source files will be modified during this build.
