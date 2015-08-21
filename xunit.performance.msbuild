@@ -12,6 +12,7 @@
     <SolutionDir Condition="'$(SolutionDir)' == '' Or '$(SolutionDir)' == '*Undefined*'">$(MSBuildProjectDirectory)</SolutionDir>
     <NuGetExePath Condition="'$(NuGetExePath)' == ''">$(SolutionDir)\.nuget\nuget.exe</NuGetExePath>
     <RequestedVerbosity Condition=" '$(RequestedVerbosity)' == '' ">normal</RequestedVerbosity>
+    <NugetPackageOutputDirectory Condition="'$(NugetPackageOutputDirectory)' == ''">LocalPackages</NugetPackageOutputDirectory>
   </PropertyGroup>
   <ItemGroup>
     <NuspecFiles Include="src\*.nuspec" />
@@ -25,6 +26,8 @@
   <!-- Build server targets -->
 
   <Target Name="CI" DependsOnTargets="Clean;PackageRestore;SetVersionNumber;Build;Packages" />
+
+  <Target Name="DevBuild" DependsOnTargets="Clean;PackageRestore;Build;Packages" />
 
   <!-- Individual targets -->
 
@@ -68,7 +71,9 @@
 
   <Target Name='Packages'>
     <Message Text="Creating NuGet packages..." Importance="High" />
-    <Exec Command='"$(NuGetExePath)" pack %(NuspecFiles.Identity) -Version $(BuildSemanticVersion) -NoPackageAnalysis -NonInteractive -Verbosity quiet' />
+    <MakeDir Directories="$(NugetPackageOutputDirectory)" />
+    <Exec Condition="'$(BuildSemanticVersion)' == ''" Command='"$(NuGetExePath)" pack %(NuspecFiles.Identity) -OutputDirectory $(NugetPackageOutputDirectory) -NoPackageAnalysis -NonInteractive -Verbosity quiet' />
+    <Exec Condition="'$(BuildSemanticVersion)' != ''" Command='"$(NuGetExePath)" pack %(NuspecFiles.Identity) -OutputDirectory $(NugetPackageOutputDirectory) -Version $(BuildSemanticVersion) -NoPackageAnalysis -NonInteractive -Verbosity quiet' />
   </Target>
 
   <Target Name="_DownloadNuGet">
