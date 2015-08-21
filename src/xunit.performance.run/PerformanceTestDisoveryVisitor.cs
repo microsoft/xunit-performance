@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -67,7 +70,6 @@ namespace Microsoft.Xunit.Performance
                 // Make sure we only use the short form
                 var an = new AssemblyName(assemblyName);
                 assembly = Assembly.Load(new AssemblyName { Name = an.Name, Version = an.Version });
-
             }
             catch { }
 

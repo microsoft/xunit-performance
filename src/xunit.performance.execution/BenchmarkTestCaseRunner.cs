@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -11,12 +14,12 @@ namespace Microsoft.Xunit.Performance
 {
     internal class BenchmarkTestCaseRunner : XunitTestCaseRunner
     {
-        readonly ExceptionAggregator cleanupAggregator = new ExceptionAggregator();
-        Exception dataDiscoveryException;
-        readonly IMessageSink diagnosticMessageSink;
-        readonly List<BenchmarkTestRunner> testRunners = new List<BenchmarkTestRunner>();
-        readonly List<IDisposable> toDispose = new List<IDisposable>();
-        readonly bool discoverArguments;
+        private readonly ExceptionAggregator _cleanupAggregator = new ExceptionAggregator();
+        private Exception _dataDiscoveryException;
+        private readonly IMessageSink _diagnosticMessageSink;
+        private readonly List<BenchmarkTestRunner> _testRunners = new List<BenchmarkTestRunner>();
+        private readonly List<IDisposable> _toDispose = new List<IDisposable>();
+        private readonly bool _discoverArguments;
 
 
         public BenchmarkTestCaseRunner(IXunitTestCase testCase,
@@ -30,15 +33,15 @@ namespace Microsoft.Xunit.Performance
                                          CancellationTokenSource cancellationTokenSource)
             : base(testCase, displayName, skipReason, constructorArguments, testMethodArguments, messageBus, aggregator, cancellationTokenSource)
         {
-            this.diagnosticMessageSink = diagnosticMessageSink;
-            this.discoverArguments = testMethodArguments == null;
+            _diagnosticMessageSink = diagnosticMessageSink;
+            _discoverArguments = testMethodArguments == null;
         }
 
         protected override async Task AfterTestCaseStartingAsync()
         {
             await base.AfterTestCaseStartingAsync();
 
-            if (discoverArguments)
+            if (_discoverArguments)
             {
                 try
                 {
@@ -48,11 +51,11 @@ namespace Microsoft.Xunit.Performance
                     {
                         var discovererAttribute = dataAttribute.GetCustomAttributes(typeof(DataDiscovererAttribute)).First();
                         var args = discovererAttribute.GetConstructorArguments().Cast<string>().ToList();
-                        var discoverer = ExtensibilityPointFactory.GetDataDiscoverer(diagnosticMessageSink, discovererAttribute);
+                        var discoverer = ExtensibilityPointFactory.GetDataDiscoverer(_diagnosticMessageSink, discovererAttribute);
 
                         foreach (var dataRow in discoverer.GetData(dataAttribute, TestCase.TestMethod.Method))
                         {
-                            toDispose.AddRange(dataRow.OfType<IDisposable>());
+                            _toDispose.AddRange(dataRow.OfType<IDisposable>());
 
                             ITypeInfo[] resolvedTypes = null;
                             var methodToRun = TestMethod;
@@ -68,60 +71,60 @@ namespace Microsoft.Xunit.Performance
                             var theoryDisplayName = TypeUtility.GetDisplayNameWithArguments(TestCase.TestMethod.Method, DisplayName, convertedDataRow, resolvedTypes);
                             var test = new XunitTest(TestCase, theoryDisplayName);
 
-                            testRunners.Add(new BenchmarkTestRunner(test, MessageBus, TestClass, ConstructorArguments, methodToRun, convertedDataRow, SkipReason, BeforeAfterAttributes, Aggregator, CancellationTokenSource));
+                            _testRunners.Add(new BenchmarkTestRunner(test, MessageBus, TestClass, ConstructorArguments, methodToRun, convertedDataRow, SkipReason, BeforeAfterAttributes, Aggregator, CancellationTokenSource));
                         }
                     }
                 }
                 catch (Exception ex)
                 {
                     // Stash the exception so we can surface it during RunTestAsync
-                    dataDiscoveryException = ex;
+                    _dataDiscoveryException = ex;
                 }
             }
 
-            if (testRunners.Count == 0)
+            if (_testRunners.Count == 0)
             {
                 var test = new XunitTest(TestCase, DisplayName);
-                testRunners.Add(new BenchmarkTestRunner(test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, SkipReason, BeforeAfterAttributes, Aggregator, CancellationTokenSource));
+                _testRunners.Add(new BenchmarkTestRunner(test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, SkipReason, BeforeAfterAttributes, Aggregator, CancellationTokenSource));
             }
         }
 
         protected override Task BeforeTestCaseFinishedAsync()
         {
-            Aggregator.Aggregate(cleanupAggregator);
+            Aggregator.Aggregate(_cleanupAggregator);
 
             return base.BeforeTestCaseFinishedAsync();
         }
 
         protected override async Task<RunSummary> RunTestAsync()
         {
-            if (dataDiscoveryException != null)
+            if (_dataDiscoveryException != null)
                 return RunTest_DataDiscoveryException();
 
             var runSummary = new RunSummary();
 
-            foreach (var testRunner in testRunners)
+            foreach (var testRunner in _testRunners)
                 runSummary.Aggregate(await testRunner.RunAsync());
 
             // Run the cleanup here so we can include cleanup time in the run summary,
             // but save any exceptions so we can surface them during the cleanup phase,
             // so they get properly reported as test case cleanup failures.
             var timer = new ExecutionTimer();
-            foreach (var disposable in toDispose)
-                timer.Aggregate(() => cleanupAggregator.Run(() => disposable.Dispose()));
+            foreach (var disposable in _toDispose)
+                timer.Aggregate(() => _cleanupAggregator.Run(() => disposable.Dispose()));
 
             runSummary.Time += timer.Total;
 
             return runSummary;
         }
 
-        RunSummary RunTest_DataDiscoveryException()
+        private RunSummary RunTest_DataDiscoveryException()
         {
             var test = new XunitTest(TestCase, DisplayName);
 
             if (!MessageBus.QueueMessage(new TestStarting(test)))
                 CancellationTokenSource.Cancel();
-            else if (!MessageBus.QueueMessage(new TestFailed(test, 0, null, Unwrap(dataDiscoveryException))))
+            else if (!MessageBus.QueueMessage(new TestFailed(test, 0, null, Unwrap(_dataDiscoveryException))))
                 CancellationTokenSource.Cancel();
             if (!MessageBus.QueueMessage(new TestFinished(test, 0, null)))
                 CancellationTokenSource.Cancel();

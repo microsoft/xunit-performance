@@ -1,4 +1,7 @@
-﻿using Microsoft.Diagnostics.Tracing.Parsers;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using Microsoft.Diagnostics.Tracing.Parsers;
 using System;
 using Microsoft.Diagnostics.Tracing.Session;
 using System.Collections.Generic;

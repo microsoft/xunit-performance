@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Collections.Generic;
 using Microsoft.ProcessDomain;
 using System.Collections.Concurrent;
@@ -10,21 +13,21 @@ namespace Microsoft.Xunit.Performance
 {
     public static class Logger
     {
-        private static bool _unloadHandlerRegistered;
-        private static ConcurrentDictionary<string, TraceEventSession> _sessions = new ConcurrentDictionary<string, TraceEventSession>();
+        private static bool s_unloadHandlerRegistered;
+        private static ConcurrentDictionary<string, TraceEventSession> s_sessions = new ConcurrentDictionary<string, TraceEventSession>();
 
         private static void EnsureUnloadHandlerRegistered()
         {
-            if (!_unloadHandlerRegistered)
+            if (!s_unloadHandlerRegistered)
             {
                 ProcDomain.GetCurrentProcDomain().Unloading += Logger_Unloading;
-                _unloadHandlerRegistered = true;
+                s_unloadHandlerRegistered = true;
             }
         }
 
         private static void Logger_Unloading(ProcDomain obj)
         {
-            foreach (var session in _sessions)
+            foreach (var session in s_sessions)
             {
                 session.Value.Dispose();
             }
@@ -53,7 +56,7 @@ namespace Microsoft.Xunit.Performance
                 foreach (var userInfo in mergedProviderInfo.OfType<UserProviderInfo>())
                     session.EnableProvider(userInfo.ProviderGuid, userInfo.Level, userInfo.Keywords);
 
-                _sessions[sessionName] = session;
+                s_sessions[sessionName] = session;
             }
             catch
             {
@@ -68,11 +71,11 @@ namespace Microsoft.Xunit.Performance
         public static void Stop(string sessionName)
         {
             TraceEventSession session;
-            if (_sessions.TryRemove(sessionName, out session))
+            if (s_sessions.TryRemove(sessionName, out session))
                 session.Dispose();
         }
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             if (args.Length == 0)
             {

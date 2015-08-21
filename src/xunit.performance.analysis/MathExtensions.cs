@@ -1,4 +1,7 @@
-﻿using MathNet.Numerics;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using MathNet.Numerics;
 using MathNet.Numerics.Statistics;
 using System;
 using System.Collections.Generic;
@@ -21,13 +24,13 @@ namespace Microsoft.Xunit.Performance.Analysis
         }
 
         [ThreadStatic]
-        private static Dictionary<double, Dictionary<int, double>> _TInvCache = new Dictionary<double, Dictionary<int, double>>();
+        private static Dictionary<double, Dictionary<int, double>> t_TInvCache = new Dictionary<double, Dictionary<int, double>>();
 
         private static double TInv(double probability, int degreesOfFreedom)
         {
             Dictionary<int, double> dofCache;
-            if (!_TInvCache.TryGetValue(probability, out dofCache))
-                _TInvCache[probability] = dofCache = new Dictionary<int, double>();
+            if (!t_TInvCache.TryGetValue(probability, out dofCache))
+                t_TInvCache[probability] = dofCache = new Dictionary<int, double>();
             double result;
             if (!dofCache.TryGetValue(degreesOfFreedom, out result))
                 dofCache[degreesOfFreedom] = result = ExcelFunctions.TInv(probability, degreesOfFreedom);

@@ -1,4 +1,7 @@
-﻿using Microsoft.Diagnostics.Tracing;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using Microsoft.Diagnostics.Tracing;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,9 +14,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
-    class Program
+    internal class Program
     {
-        class ConsoleReporter : IMessageSink
+        private class ConsoleReporter : IMessageSink
         {
             public bool OnMessage(IMessageSinkMessage message)
             {
@@ -22,10 +25,10 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
-        static bool _nologo = false;
-        static bool _verbose = false;
+        private static bool s_nologo = false;
+        private static bool s_verbose = false;
 
-        static int Main(string[] args)
+        private static int Main(string[] args)
         {
             if (args.Length == 0 || args[0] == "-?")
             {
@@ -37,7 +40,7 @@ namespace Microsoft.Xunit.Performance
             try
             {
                 var project = ParseCommandLine(args);
-                if (!_nologo)
+                if (!s_nologo)
                 {
                     PrintHeader();
                 }
@@ -59,7 +62,7 @@ namespace Microsoft.Xunit.Performance
             return 0;
         }
 
-        const string RunnerOptions = "-nologo -parallel none -noshadow -noappdomain -verbose";
+        private const string RunnerOptions = "-nologo -parallel none -noshadow -noappdomain -verbose";
 
         private static void RunTests(IEnumerable<PerformanceTestInfo> tests, string runnerCommand, string runId, string outDir)
         {
@@ -282,11 +285,11 @@ Arguments: {startInfo.Arguments}");
                 switch (optionName)
                 {
                     case "nologo":
-                        _nologo = true;
+                        s_nologo = true;
                         break;
 
                     case "verbose":
-                        _verbose = true;
+                        s_verbose = true;
                         break;
 
                     case "trait":
@@ -386,13 +389,13 @@ Arguments: {startInfo.Arguments}");
             return project;
         }
 
-        static bool IsConfigFile(string fileName)
+        private static bool IsConfigFile(string fileName)
         {
             return fileName.EndsWith(".config", StringComparison.OrdinalIgnoreCase)
                 || fileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase);
         }
 
-        static XunitPerformanceProject GetProjectFile(List<Tuple<string, string>> assemblies)
+        private static XunitPerformanceProject GetProjectFile(List<Tuple<string, string>> assemblies)
         {
             var result = new XunitPerformanceProject();
 
@@ -407,7 +410,7 @@ Arguments: {startInfo.Arguments}");
             return result;
         }
 
-        static void AddBaseline(XunitPerformanceProject project, string assembly)
+        private static void AddBaseline(XunitPerformanceProject project, string assembly)
         {
             project.AddBaseline(new XunitProjectAssembly
             {
@@ -427,13 +430,13 @@ Arguments: {startInfo.Arguments}");
             return new KeyValuePair<string, string>(option, value);
         }
 
-        static void GuardNoOptionValue(KeyValuePair<string, string> option)
+        private static void GuardNoOptionValue(KeyValuePair<string, string> option)
         {
             if (option.Value != null)
                 throw new ArgumentException($"error: unknown command line option: {option.Value}");
         }
 
-        static void ReportException(Exception ex, TextWriter writer)
+        private static void ReportException(Exception ex, TextWriter writer)
         {
             for (; ex != null; ex = ex.InnerException)
             {
@@ -441,21 +444,21 @@ Arguments: {startInfo.Arguments}");
             }
         }
 
-        static void ReportExceptionToStderr(Exception ex)
+        private static void ReportExceptionToStderr(Exception ex)
         {
             ReportException(ex, Console.Error);
         }
 
-        static void PrintHeader()
+        private static void PrintHeader()
         {
             Console.WriteLine($"xunit.performance Console Runner ({IntPtr.Size * 8}-bit .NET {Environment.Version})");
             Console.WriteLine("Copyright (C) 2015 Microsoft Corporation.");
             Console.WriteLine();
         }
 
-        static void PrintIfVerbose(string message)
+        private static void PrintIfVerbose(string message)
         {
-            if (_verbose)
+            if (s_verbose)
             {
                 Console.ForegroundColor = ConsoleColor.DarkGray;
                 Console.WriteLine(message);
@@ -463,7 +466,7 @@ Arguments: {startInfo.Arguments}");
             }
         }
 
-        static void PrintUsage()
+        private static void PrintUsage()
         {
             Console.WriteLine(@"usage: xunit.performance.run <assemblyFile> [options]
 

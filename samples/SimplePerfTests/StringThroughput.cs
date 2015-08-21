@@ -1,4 +1,7 @@
-﻿using Microsoft.Xunit.Performance;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using Microsoft.Xunit.Performance;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,12 +12,12 @@ using Xunit;
 public static class StringThroughput
 {
     #region helpers
-    static IEnumerable<object[]> MakeArgs(params object[] args)
+    private static IEnumerable<object[]> MakeArgs(params object[] args)
     {
         return args.Select(arg => new object[] { arg });
     }
 
-    static IEnumerable<object[]> MakePermutations(IEnumerable<object[]> args1, IEnumerable<object[]> args2)
+    private static IEnumerable<object[]> MakePermutations(IEnumerable<object[]> args1, IEnumerable<object[]> args2)
     {
         foreach (var arg1 in args1)
             foreach (var arg2 in args2)
@@ -207,99 +210,99 @@ public static class StringThroughput
     //    tC.Replace(sc1, sc2); tC.Replace(sc2, sc3); tC.Replace(sc3, sc4); tC.Replace(sc4, sc5); tC.Replace(sc5, sc6); tC.Replace(sc6, sc7); tC.Replace(sc7, sc8); tC.Replace(sc8, sc9); tC.Replace(sc9, sc1);
     //}
 
-    static string e1 = "a";
-    static string e2 = "  ";
-    static string e3 = "TeSt!";
-    static string e4 = "I think Turkish i \u0131s TROUBL\u0130NG";
-    static string e5 = "dzsdzsDDZSDZSDZSddsz";
-    static string e6 = "a\u0300\u00C0A\u0300A";
-    static string e7 = "Foo\u0400Bar!";
-    static string e8 = "a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a";
-    static string e9 = "\u4e33\u4e65 Testing... \u4EE8";
-    static string e1a = "a";
-    static string e2a = "  ";
-    static string e3a = "TeSt!";
-    static string e4a = "I think Turkish i \u0131s TROUBL\u0130NG";
-    static string e5a = "dzsdzsDDZSDZSDZSddsz";
-    static string e6a = "a\u0300\u00C0A\u0300A";
-    static string e7a = "Foo\u0400Bar!";
-    static string e8a = "a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a";
-    static string e9a = "\u4e33\u4e65 Testing... \u4EE8";
+    private static string s_e1 = "a";
+    private static string s_e2 = "  ";
+    private static string s_e3 = "TeSt!";
+    private static string s_e4 = "I think Turkish i \u0131s TROUBL\u0130NG";
+    private static string s_e5 = "dzsdzsDDZSDZSDZSddsz";
+    private static string s_e6 = "a\u0300\u00C0A\u0300A";
+    private static string s_e7 = "Foo\u0400Bar!";
+    private static string s_e8 = "a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a";
+    private static string s_e9 = "\u4e33\u4e65 Testing... \u4EE8";
+    private static string s_e1a = "a";
+    private static string s_e2a = "  ";
+    private static string s_e3a = "TeSt!";
+    private static string s_e4a = "I think Turkish i \u0131s TROUBL\u0130NG";
+    private static string s_e5a = "dzsdzsDDZSDZSDZSddsz";
+    private static string s_e6a = "a\u0300\u00C0A\u0300A";
+    private static string s_e7a = "Foo\u0400Bar!";
+    private static string s_e8a = "a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a";
+    private static string s_e9a = "\u4e33\u4e65 Testing... \u4EE8";
 
     [Benchmark, Allocates(false)]
     public static void Equality()
     {
         bool b;
-        b = e1 == e2; b = e2 == e3; b = e3 == e4; b = e4 == e5; b = e5 == e6; b = e6 == e7; b = e7 == e8; b = e8 == e9; b = e9 == e1;
-        b = e1 == e1a; b = e2 == e2a; b = e3 == e3a; b = e4 == e4a; b = e5 == e5a; b = e6 == e6a; b = e7 == e7a; b = e8 == e8a; b = e9 == e9a;
+        b = s_e1 == s_e2; b = s_e2 == s_e3; b = s_e3 == s_e4; b = s_e4 == s_e5; b = s_e5 == s_e6; b = s_e6 == s_e7; b = s_e7 == s_e8; b = s_e8 == s_e9; b = s_e9 == s_e1;
+        b = s_e1 == s_e1a; b = s_e2 == s_e2a; b = s_e3 == s_e3a; b = s_e4 == s_e4a; b = s_e5 == s_e5a; b = s_e6 == s_e6a; b = s_e7 == s_e7a; b = s_e8 == s_e8a; b = s_e9 == s_e9a;
     }
 
     [Benchmark]
     public static void RemoveInt()
     {
-        e1.Remove(0); e2.Remove(0); e2.Remove(1);
-        e3.Remove(0); e3.Remove(2); e3.Remove(3);
-        e4.Remove(0); e4.Remove(18); e4.Remove(22);
-        e5.Remove(0); e5.Remove(7); e5.Remove(10);
-        e6.Remove(0); e6.Remove(3); e6.Remove(4);
-        e7.Remove(0); e7.Remove(3); e7.Remove(4);
-        e8.Remove(0); e8.Remove(3);
-        e9.Remove(0); e9.Remove(4);
+        s_e1.Remove(0); s_e2.Remove(0); s_e2.Remove(1);
+        s_e3.Remove(0); s_e3.Remove(2); s_e3.Remove(3);
+        s_e4.Remove(0); s_e4.Remove(18); s_e4.Remove(22);
+        s_e5.Remove(0); s_e5.Remove(7); s_e5.Remove(10);
+        s_e6.Remove(0); s_e6.Remove(3); s_e6.Remove(4);
+        s_e7.Remove(0); s_e7.Remove(3); s_e7.Remove(4);
+        s_e8.Remove(0); s_e8.Remove(3);
+        s_e9.Remove(0); s_e9.Remove(4);
     }
 
     [Benchmark]
     public static void RemoveIntInt()
     {
-        e1.Remove(0, 0); e2.Remove(0, 1); e2.Remove(1, 0);
-        e3.Remove(0, 2); e3.Remove(2, 1); e3.Remove(3, 0);
-        e4.Remove(0, 3); e4.Remove(18, 3); e4.Remove(22, 1);
-        e5.Remove(0, 8); e5.Remove(7, 4); e5.Remove(10, 1);
-        e6.Remove(0, 2); e6.Remove(3, 1); e6.Remove(4, 0);
-        e7.Remove(0, 4); e7.Remove(3, 2); e7.Remove(4, 1);
-        e8.Remove(0, 2); e8.Remove(3, 3);
-        e9.Remove(0, 3); e9.Remove(4, 1);
+        s_e1.Remove(0, 0); s_e2.Remove(0, 1); s_e2.Remove(1, 0);
+        s_e3.Remove(0, 2); s_e3.Remove(2, 1); s_e3.Remove(3, 0);
+        s_e4.Remove(0, 3); s_e4.Remove(18, 3); s_e4.Remove(22, 1);
+        s_e5.Remove(0, 8); s_e5.Remove(7, 4); s_e5.Remove(10, 1);
+        s_e6.Remove(0, 2); s_e6.Remove(3, 1); s_e6.Remove(4, 0);
+        s_e7.Remove(0, 4); s_e7.Remove(3, 2); s_e7.Remove(4, 1);
+        s_e8.Remove(0, 2); s_e8.Remove(3, 3);
+        s_e9.Remove(0, 3); s_e9.Remove(4, 1);
     }
 
-    static string f1 = "Testing {0}, {0:C}, {0:D5}, {0:E} - {0:F4}{0:G}{0:N}  {0:X} !!";
-    static string f2 = "Testing {0}, {0:C}, {0:E} - {0:F4}{0:G}{0:N} , !!";
-    static string f3 = "More testing: {0}";
-    static string f4 = "More testing: {0} {1} {2} {3} {4} {5}{6} {7}";
+    private static string s_f1 = "Testing {0}, {0:C}, {0:D5}, {0:E} - {0:F4}{0:G}{0:N}  {0:X} !!";
+    private static string s_f2 = "Testing {0}, {0:C}, {0:E} - {0:F4}{0:G}{0:N} , !!";
+    private static string s_f3 = "More testing: {0}";
+    private static string s_f4 = "More testing: {0} {1} {2} {3} {4} {5}{6} {7}";
 
     [Benchmark]
     public static void Format()
     {
-        String.Format(f1, 8); String.Format(f1, 0); String.Format(f2, 0); String.Format(f2, -2); String.Format(f2, 3.14159); String.Format(f2, 11000000);
-        String.Format(f3, 0); String.Format(f3, -2); String.Format(f3, 3.14159); String.Format(f3, 11000000); String.Format(f3, "Foo");
-        String.Format(f3, 'a'); String.Format(f3, f1);
-        String.Format(f4, '1', "Foo", "Foo", "Foo", "Foo", "Foo", "Foo", "Foo");
+        String.Format(s_f1, 8); String.Format(s_f1, 0); String.Format(s_f2, 0); String.Format(s_f2, -2); String.Format(s_f2, 3.14159); String.Format(s_f2, 11000000);
+        String.Format(s_f3, 0); String.Format(s_f3, -2); String.Format(s_f3, 3.14159); String.Format(s_f3, 11000000); String.Format(s_f3, "Foo");
+        String.Format(s_f3, 'a'); String.Format(s_f3, s_f1);
+        String.Format(s_f4, '1', "Foo", "Foo", "Foo", "Foo", "Foo", "Foo", "Foo");
     }
 
-    static string h1 = String.Empty;
-    static string h2 = "  ";
-    static string h3 = "TeSt!";
-    static string h4 = "I think Turkish i \u0131s TROUBL\u0130NG";
-    static string h5 = "dzsdzsDDZSDZSDZSddsz";
-    static string h6 = "a\u0300\u00C0A\u0300A";
-    static string h7 = "Foo\u0400Bar!";
-    static string h8 = "a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a";
-    static string h9 = "\u4e33\u4e65 Testing... \u4EE8";
+    private static string s_h1 = String.Empty;
+    private static string s_h2 = "  ";
+    private static string s_h3 = "TeSt!";
+    private static string s_h4 = "I think Turkish i \u0131s TROUBL\u0130NG";
+    private static string s_h5 = "dzsdzsDDZSDZSDZSddsz";
+    private static string s_h6 = "a\u0300\u00C0A\u0300A";
+    private static string s_h7 = "Foo\u0400Bar!";
+    private static string s_h8 = "a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a";
+    private static string s_h9 = "\u4e33\u4e65 Testing... \u4EE8";
 
     [Benchmark, Allocates(false)]
     public static new void GetHashCode()
     {
-        h1.GetHashCode(); h2.GetHashCode(); h3.GetHashCode(); h4.GetHashCode(); h5.GetHashCode(); h6.GetHashCode(); h7.GetHashCode(); h8.GetHashCode(); h9.GetHashCode();
+        s_h1.GetHashCode(); s_h2.GetHashCode(); s_h3.GetHashCode(); s_h4.GetHashCode(); s_h5.GetHashCode(); s_h6.GetHashCode(); s_h7.GetHashCode(); s_h8.GetHashCode(); s_h9.GetHashCode();
     }
 
-    static string p1 = "a";
+    private static string s_p1 = "a";
 
     [Benchmark]
     public static void PadLeft()
     {
-        p1.PadLeft(0);
-        p1.PadLeft(1);
-        p1.PadLeft(5);
-        p1.PadLeft(18);
-        p1.PadLeft(2142);
+        s_p1.PadLeft(0);
+        s_p1.PadLeft(1);
+        s_p1.PadLeft(5);
+        s_p1.PadLeft(18);
+        s_p1.PadLeft(2142);
     }
 
     [Benchmark, Allocates(false)]
@@ -316,27 +319,27 @@ public static class StringThroughput
     [Benchmark]
     public static void SubstringInt()
     {
-        e1.Substring(0); e2.Substring(0); e2.Substring(1);
-        e3.Substring(0); e3.Substring(2); e3.Substring(3);
-        e4.Substring(0); e4.Substring(18); e4.Substring(22);
-        e5.Substring(0); e5.Substring(7); e5.Substring(10);
-        e6.Substring(0); e6.Substring(3); e6.Substring(4);
-        e7.Substring(0); e7.Substring(3); e7.Substring(4);
-        e8.Substring(0); e8.Substring(3);
-        e9.Substring(0); e9.Substring(4);
+        s_e1.Substring(0); s_e2.Substring(0); s_e2.Substring(1);
+        s_e3.Substring(0); s_e3.Substring(2); s_e3.Substring(3);
+        s_e4.Substring(0); s_e4.Substring(18); s_e4.Substring(22);
+        s_e5.Substring(0); s_e5.Substring(7); s_e5.Substring(10);
+        s_e6.Substring(0); s_e6.Substring(3); s_e6.Substring(4);
+        s_e7.Substring(0); s_e7.Substring(3); s_e7.Substring(4);
+        s_e8.Substring(0); s_e8.Substring(3);
+        s_e9.Substring(0); s_e9.Substring(4);
     }
 
     [Benchmark]
     public static void SubstringIntInt()
     {
-        e1.Substring(0, 0); e2.Substring(0, 1); e2.Substring(1, 0);
-        e3.Substring(0, 2); e3.Substring(2, 1); e3.Substring(3, 0);
-        e4.Substring(0, 3); e4.Substring(18, 3); e4.Substring(22, 1);
-        e5.Substring(0, 8); e5.Substring(7, 4); e5.Substring(10, 1);
-        e6.Substring(0, 2); e6.Substring(3, 1); e6.Substring(4, 0);
-        e7.Substring(0, 4); e7.Substring(3, 2); e7.Substring(4, 1);
-        e8.Substring(0, 2); e8.Substring(3, 3);
-        e9.Substring(0, 3); e9.Substring(4, 1);
+        s_e1.Substring(0, 0); s_e2.Substring(0, 1); s_e2.Substring(1, 0);
+        s_e3.Substring(0, 2); s_e3.Substring(2, 1); s_e3.Substring(3, 0);
+        s_e4.Substring(0, 3); s_e4.Substring(18, 3); s_e4.Substring(22, 1);
+        s_e5.Substring(0, 8); s_e5.Substring(7, 4); s_e5.Substring(10, 1);
+        s_e6.Substring(0, 2); s_e6.Substring(3, 1); s_e6.Substring(4, 0);
+        s_e7.Substring(0, 4); s_e7.Substring(3, 2); s_e7.Substring(4, 1);
+        s_e8.Substring(0, 2); s_e8.Substring(3, 3);
+        s_e9.Substring(0, 3); s_e9.Substring(4, 1);
     }
 
     [Benchmark]

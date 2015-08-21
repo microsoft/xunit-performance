@@ -1,4 +1,7 @@
-﻿using MathNet.Numerics.Statistics;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using MathNet.Numerics.Statistics;
 using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using System;
@@ -10,18 +13,18 @@ using System.Xml.Linq;
 
 namespace Microsoft.Xunit.Performance.Analysis
 {
-    class Program
+    internal class Program
     {
-        const double ErrorConfidence = 0.95; // TODO: make configurable
+        private const double ErrorConfidence = 0.95; // TODO: make configurable
 
-        static int Usage()
+        private static int Usage()
         {
             Console.Error.WriteLine(
                 "usage: xunit.performance.analysis <etlPaths> [-compare \"baselineRunId\" \"comparisonRunId\"]  [-xml <output.xml>] [-html <output.html>]");
             return 1;
         }
 
-        static int Main(string[] args)
+        private static int Main(string[] args)
         {
             var etlPaths = new List<string>();
             var allComparisonIds = new List<Tuple<string, string>>();
@@ -276,7 +279,7 @@ namespace Microsoft.Xunit.Performance.Analysis
         }
 
 
-        static IEnumerable<string> ExpandFilePath(string path)
+        private static IEnumerable<string> ExpandFilePath(string path)
         {
             if (File.Exists(path))
             {
@@ -292,7 +295,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             }
         }
 
-        class TestResult
+        private class TestResult
         {
             public string TestName;
             public string RunId;
@@ -302,7 +305,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             public List<TestIterationResult> Iterations = new List<TestIterationResult>();
         }
 
-        class TestIterationResult
+        private class TestIterationResult
         {
             public string EtlPath;
             public string RunId;
@@ -318,7 +321,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             public HashSet<int> tempProcessIds = new HashSet<int>(); // process IDs active for this iteration; used only while parsing.
         }
 
-        class TestResultComparison
+        private class TestResultComparison
         {
             public string TestName;
             public TestResult BaselineResult;
@@ -340,15 +343,15 @@ namespace Microsoft.Xunit.Performance.Analysis
             }
         }
 
-        static IEnumerable<TestIterationResult> ParseEtlFiles(IEnumerable<string> etlPaths)
+        private static IEnumerable<TestIterationResult> ParseEtlFiles(IEnumerable<string> etlPaths)
         {
-            return 
+            return
                 from path in etlPaths.AsParallel()
                 from result in ParseOneEtlFile(path)
                 select result;
         }
 
-        static IEnumerable<TestIterationResult> ParseOneEtlFile(string path)
+        private static IEnumerable<TestIterationResult> ParseOneEtlFile(string path)
         {
             Console.WriteLine($"Parsing {path}");
 
@@ -384,7 +387,7 @@ namespace Microsoft.Xunit.Performance.Analysis
 
                     currentIterations.Remove(args.RunId);
                     currentIteration.tempProcessIds = null;
-                    results.Add(currentIteration);                                        
+                    results.Add(currentIteration);
                 };
 
                 source.Kernel.ProcessStart += args =>

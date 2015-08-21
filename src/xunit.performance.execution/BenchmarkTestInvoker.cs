@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -12,8 +15,8 @@ namespace Microsoft.Xunit.Performance
 {
     internal class BenchmarkTestInvoker : XunitTestInvoker
     {
-        static SemaphoreSlim _semaphore = new SemaphoreSlim(1);
-        
+        private static SemaphoreSlim s_semaphore = new SemaphoreSlim(1);
+
         public BenchmarkTestInvoker(ITest test,
                                 IMessageBus messageBus,
                                 Type testClass,
@@ -32,14 +35,14 @@ namespace Microsoft.Xunit.Performance
             //
             // Serialize all benchmarks
             //
-            await _semaphore.WaitAsync();
+            await s_semaphore.WaitAsync();
             try
             {
                 return await base.InvokeTestMethodAsync(testClassInstance);
             }
             finally
             {
-                _semaphore.Release();
+                s_semaphore.Release();
             }
         }
 

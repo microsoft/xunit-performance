@@ -1,4 +1,7 @@
-﻿using Microsoft.Diagnostics.Tracing;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Parsers.Clr;
 using Microsoft.Xunit.Performance.Sdk;
@@ -11,16 +14,16 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
-    class GCCountMetricDiscoverer : IPerformanceMetricDiscoverer
+    internal class GCCountMetricDiscoverer : IPerformanceMetricDiscoverer
     {
         public IEnumerable<PerformanceMetric> GetMetrics(IAttributeInfo metricAttribute)
         {
             yield return new GCCountMetric();
         }
 
-        class GCCountMetric : PerformanceMetric
+        private class GCCountMetric : PerformanceMetric
         {
-            public GCCountMetric() 
+            public GCCountMetric()
                 : base("GCCount", "count", PerformanceMetricInterpretation.LowerIsBetter)
             {
             }
@@ -44,7 +47,7 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
-        class GCCountEvaluator : PerformanceMetricEvaluator
+        private class GCCountEvaluator : PerformanceMetricEvaluator
         {
             private readonly PerformanceMetricEvaluationContext _context;
             private int _count;

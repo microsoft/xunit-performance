@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System.Collections.Generic;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
@@ -6,7 +9,7 @@ namespace Microsoft.Xunit.Performance
 {
     internal class BenchmarkDiscoverer : TheoryDiscoverer
     {
-        IMessageSink _diagnosticMessageSink;
+        private IMessageSink _diagnosticMessageSink;
 
         public BenchmarkDiscoverer(IMessageSink diagnosticMessageSink)
             : base(diagnosticMessageSink)

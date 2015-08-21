@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
@@ -22,7 +25,6 @@ namespace Microsoft.ProcessDomain
             formatter.Serialize(memStream, this);
 
             return memStream.ToArray();
-
         }
 
         public static CrossDomainInvokeResponse FromByteArray(byte[] bytes)
@@ -34,6 +36,5 @@ namespace Microsoft.ProcessDomain
 
             return (CrossDomainInvokeResponse)formatter.Deserialize(memStream);
         }
-
     }
 }

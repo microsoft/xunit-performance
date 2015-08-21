@@ -1,10 +1,13 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Collections.Generic;
 using Xunit;
 
 namespace Microsoft.Xunit.Performance
 {
-    class XunitPerformanceProject : XunitProject
+    internal class XunitPerformanceProject : XunitProject
     {
         private List<XunitProjectAssembly> _baselineAssemblies = new List<XunitProjectAssembly>();
         private string _baselineRunnerCommand;
