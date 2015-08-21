@@ -129,11 +129,14 @@ namespace Microsoft.Xunit.Performance
                     {
                         var testName = testElem.Attribute("name").Value;
 
+                        var perfElem = new XElement("performance", new XAttribute("runid", runId));
+                        testElem.Add(perfElem);
+
                         var metrics = evaluationContext.GetMetrics(testName);
                         if (metrics != null)
                         {
                             var metricsElem = new XElement("metrics");
-                            testElem.Add(metricsElem);
+                            perfElem.Add(metricsElem);
 
                             foreach (var metric in metrics)
                                 metricsElem.Add(new XElement(metric.Name, new XAttribute("unit", metric.Unit), new XAttribute("interpretation", metric.Interpretation)));
@@ -142,8 +145,8 @@ namespace Microsoft.Xunit.Performance
                         var iterations = evaluationContext.GetValues(testName);
                         if (iterations != null)
                         {
-                            var iterationsElem = new XElement("iterations", new XAttribute("runid", runId));
-                            testElem.Add(iterationsElem);
+                            var iterationsElem = new XElement("iterations");
+                            perfElem.Add(iterationsElem);
 
                             for (int i = 0; i < iterations.Count; i++)
                             {
