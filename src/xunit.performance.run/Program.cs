@@ -142,7 +142,7 @@ namespace Microsoft.Xunit.Performance
                         var iterations = evaluationContext.GetValues(testName);
                         if (iterations != null)
                         {
-                            var iterationsElem = new XElement("iterations");
+                            var iterationsElem = new XElement("iterations", new XAttribute("runid", runId));
                             testElem.Add(iterationsElem);
 
                             for (int i = 0; i < iterations.Count; i++)
