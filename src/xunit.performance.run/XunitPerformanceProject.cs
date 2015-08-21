@@ -24,7 +24,7 @@ namespace Microsoft.Xunit.Performance
             set { _baselineRunnerCommand = value; }
         }
 
-        public string RunName { get; set; } = Environment.MachineName + "-" + DateTimeOffset.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss");
+        public string RunId { get; set; } = Environment.MachineName + "-" + DateTimeOffset.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss");
 
         public string OutputDir { get; set; } = ".";
     }

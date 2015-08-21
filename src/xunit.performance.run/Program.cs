@@ -51,7 +51,7 @@ namespace Microsoft.Xunit.Performance
                 if (!Directory.Exists(project.OutputDir))
                     Directory.CreateDirectory(project.OutputDir);
 
-                RunTests(tests, project.RunnerCommand, project.RunName, project.OutputDir);
+                RunTests(tests, project.RunnerCommand, project.RunId, project.OutputDir);
             }
             catch (Exception ex)
             {
@@ -357,14 +357,14 @@ Arguments: {startInfo.Arguments}");
                         AddBaseline(project, option.Value);
                         break;
 
-                    case "runname":
+                    case "runid":
                         if (option.Value == null)
-                            throw new ArgumentException("missing argument for -runname");
+                            throw new ArgumentException("missing argument for -runid");
 
                         if (option.Value.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
                             throw new ArgumentException($"runname contains invalid characters.", optionName);
 
-                        project.RunName = option.Value;
+                        project.RunId = option.Value;
                         break;
 
                     case "outdir":
