@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -13,8 +16,8 @@ namespace Microsoft.ProcessDomain
 {
     public class ProcDomain
     {
-        private static ProcDomain g_currentDomain;
-        private static readonly object g_currentDomainLock = new object();
+        private static ProcDomain s_currentDomain;
+        private static readonly object s_currentDomainLock = new object();
 
         private string _domName = "DefaultProcDomain";
         private string _pipeName;
@@ -25,7 +28,7 @@ namespace Microsoft.ProcessDomain
         public event Action<ProcDomain> Unloading;
         public event Action<ProcDomain> Unloaded;
 
-        public string Name { get { return this._domName; } }
+        public string Name { get { return _domName; } }
 
         public static void HostDomain(string pipeName)
         {
@@ -73,28 +76,28 @@ namespace Microsoft.ProcessDomain
 
         public static ProcDomain GetCurrentProcDomain()
         {
-            if (g_currentDomain == null)
+            if (s_currentDomain == null)
             {
                 InitializeCurrentDomain();
             }
 
-            return g_currentDomain;
+            return s_currentDomain;
         }
 
         internal static void InitializeCurrentDomain(string pipeName = null)
         {
-            lock (g_currentDomainLock)
+            lock (s_currentDomainLock)
             {
-                if (g_currentDomain == null)
+                if (s_currentDomain == null)
                 {
-                    g_currentDomain = new ProcDomain();
+                    s_currentDomain = new ProcDomain();
 
-                    g_currentDomain._pipeName = pipeName;
+                    s_currentDomain._pipeName = pipeName;
 
                     //if the pipe name is specified this is a child domain
-                    if (g_currentDomain._pipeName != null)
+                    if (s_currentDomain._pipeName != null)
                     {
-                        g_currentDomain.InitializeChildDomain();
+                        s_currentDomain.InitializeChildDomain();
                     }
                 }
             }
@@ -116,15 +119,15 @@ namespace Microsoft.ProcessDomain
         private void InitializeChildDomain()
         {
             //get the first _ in the pipename as this splits the parent proc handle and the domain name
-            int splitIdx = this._pipeName.IndexOf('_');
+            int splitIdx = _pipeName.IndexOf('_');
 
-            this._domName = this._pipeName.Substring(0, splitIdx);
+            _domName = _pipeName.Substring(0, splitIdx);
 
             //create a client for the named pipe of the parent
             //the child process will connect as a client but both sides act as a server and a client sending and waiting for messages
-            var pipeClient = new NamedPipeClientStream(".", this._pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+            var pipeClient = new NamedPipeClientStream(".", _pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
 
-            this._pipe = pipeClient;
+            _pipe = pipeClient;
 
             pipeClient.Connect();
 
@@ -208,7 +211,7 @@ namespace Microsoft.ProcessDomain
         {
             byte[] buff = message.ToByteArray();
 
-            await this._pipe.WriteAsync(buff, 0, buff.Length);
+            await _pipe.WriteAsync(buff, 0, buff.Length);
         }
 
         private async Task<CrossDomainInvokeResponse> SendRequestAndWaitAsync(CrossDomainInvokeRequest message)
@@ -216,11 +219,11 @@ namespace Microsoft.ProcessDomain
             var taskCompletionSource = new TaskCompletionSource<CrossDomainInvokeResponse>();
 
             //add the transation to the pendingActions before sending the message to avoid a race with completion of the action
-            this._pendingActions.Add(message.MessageId, taskCompletionSource);
+            _pendingActions.Add(message.MessageId, taskCompletionSource);
 
             byte[] buff = message.ToByteArray();
 
-            await this._pipe.WriteAsync(buff, 0, buff.Length);
+            await _pipe.WriteAsync(buff, 0, buff.Length);
 
             //wait for the response the completion source will be triggered in the ListenForResponsesAsync loop once the 
             //appropriate message has been recieved, (matching messageId)
@@ -232,12 +235,12 @@ namespace Microsoft.ProcessDomain
             CrossDomainInvokeResponse childMessage = null;
 
             //while the child process is aliave and we continue to get messages
-            while (!this._process.HasExited && (childMessage = await ReadNextResponseAsync()) != null)
+            while (!_process.HasExited && (childMessage = await ReadNextResponseAsync()) != null)
             {
                 TaskCompletionSource<CrossDomainInvokeResponse> completionSource;
 
                 //find the task completion which signals the completion of the invoke request
-                if (this._pendingActions.TryGetValue(childMessage.MessageId, out completionSource))
+                if (_pendingActions.TryGetValue(childMessage.MessageId, out completionSource))
                 {
                     //try to mark the task as complete returning the response
                     completionSource.TrySetResult(childMessage);
@@ -253,31 +256,29 @@ namespace Microsoft.ProcessDomain
 
             do
             {
-                int bytesRead = await this._pipe.ReadAsync(buff, 0, 1024);
+                int bytesRead = await _pipe.ReadAsync(buff, 0, 1024);
                 if (bytesRead == 0)
                     return null;
                 memStream.Write(buff, 0, bytesRead);
-
-            } while (!this._pipe.IsMessageComplete);
+            } while (!_pipe.IsMessageComplete);
 
             return CrossDomainInvokeResponse.FromByteArray(memStream.ToArray());
         }
 
         private async Task<CrossDomainInvokeRequest> ReadNextRequestAsync()
         {
-            this._pipe.ReadMode = PipeTransmissionMode.Message;
+            _pipe.ReadMode = PipeTransmissionMode.Message;
             byte[] buff = new byte[1024];
 
             MemoryStream memStream = new MemoryStream();
 
             do
             {
-                int bytesRead = await this._pipe.ReadAsync(buff, 0, 1024);
+                int bytesRead = await _pipe.ReadAsync(buff, 0, 1024);
                 if (bytesRead == 0)
                     return null;
                 memStream.Write(buff, 0, bytesRead);
-
-            } while (!this._pipe.IsMessageComplete);
+            } while (!_pipe.IsMessageComplete);
 
             return CrossDomainInvokeRequest.FromByteArray(memStream.ToArray());
         }
@@ -288,12 +289,12 @@ namespace Microsoft.ProcessDomain
 
             startInfo.UseShellExecute = true;
             startInfo.FileName = executablePath;
-            startInfo.Arguments = this._pipeName;
+            startInfo.Arguments = _pipeName;
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
             if (runElevated)
                 startInfo.Verb = "runas";
 
-            var proc = this._process = Process.Start(startInfo);
+            var proc = _process = Process.Start(startInfo);
 
             return proc;
         }

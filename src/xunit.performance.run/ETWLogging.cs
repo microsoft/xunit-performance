@@ -1,4 +1,7 @@
-﻿using Microsoft.Diagnostics.Tracing;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.ProcessDomain;
 using System;
@@ -8,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Xunit.Performance
 {
-    static class ETWLogging
+    internal static class ETWLogging
     {
-        static readonly Guid BenchmarkEventSourceGuid = Guid.Parse("A3B447A8-6549-4158-9BAD-76D442A47061");
+        private static readonly Guid s_benchmarkEventSourceGuid = Guid.Parse("A3B447A8-6549-4158-9BAD-76D442A47061");
 
-        static readonly ProviderInfo[] RequiredProviders = new ProviderInfo[]
+        private static readonly ProviderInfo[] s_requiredProviders = new ProviderInfo[]
         {
             new KernelProviderInfo()
             {
@@ -21,7 +24,7 @@ namespace Microsoft.Xunit.Performance
             },
             new UserProviderInfo()
             {
-                ProviderGuid = BenchmarkEventSourceGuid,
+                ProviderGuid = s_benchmarkEventSourceGuid,
                 Level = TraceEventLevel.Verbose,
                 Keywords = ulong.MaxValue,
             },
@@ -29,7 +32,7 @@ namespace Microsoft.Xunit.Performance
             {
                 ProviderGuid = ClrTraceEventParser.ProviderGuid,
                 Level = TraceEventLevel.Informational,
-                Keywords = 
+                Keywords =
                 (
                     (ulong)ClrTraceEventParser.Keywords.Jit |
                     (ulong)ClrTraceEventParser.Keywords.JittedMethodILToNativeMap |
@@ -40,7 +43,7 @@ namespace Microsoft.Xunit.Performance
             }
         };
 
-        private static readonly ProcDomain _loggerDomain = ProcDomain.CreateDomain(nameof(Logger), typeof(Logger), runElevated: true);
+        private static readonly ProcDomain s_loggerDomain = ProcDomain.CreateDomain(nameof(Logger), typeof(Logger), runElevated: true);
 
         private class Stopper : IDisposable
         {
@@ -48,14 +51,14 @@ namespace Microsoft.Xunit.Performance
             public Stopper(string session) { _session = session; }
             public void Dispose()
             {
-                _loggerDomain.ExecuteAsync(() => Logger.Stop(_session)).Wait();
+                s_loggerDomain.ExecuteAsync(() => Logger.Stop(_session)).Wait();
             }
         }
 
         public static async Task<IDisposable> StartAsync(string filename, IEnumerable<ProviderInfo> providers)
         {
-            var allProviders = RequiredProviders.Concat(providers).ToArray();
-            var sessionName = await _loggerDomain.ExecuteAsync(() => Logger.Start(filename, allProviders, 128));
+            var allProviders = s_requiredProviders.Concat(providers).ToArray();
+            var sessionName = await s_loggerDomain.ExecuteAsync(() => Logger.Start(filename, allProviders, 128));
             return new Stopper(sessionName);
         }
     }

@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Collections.Generic;
 using Microsoft.Xunit.Performance.Sdk;
 using Xunit.Abstractions;
@@ -6,16 +9,16 @@ using Microsoft.Diagnostics.Tracing;
 
 namespace Microsoft.Xunit.Performance
 {
-    class BenchmarkMetricDiscoverer : IPerformanceMetricDiscoverer
+    internal class BenchmarkMetricDiscoverer : IPerformanceMetricDiscoverer
     {
         public IEnumerable<PerformanceMetric> GetMetrics(IAttributeInfo metricAttribute)
         {
             yield return new BenchmarkDurationMetric();
         }
 
-        class BenchmarkDurationMetric : PerformanceMetric
+        private class BenchmarkDurationMetric : PerformanceMetric
         {
-            public BenchmarkDurationMetric() 
+            public BenchmarkDurationMetric()
                 : base("Duration", "msec", PerformanceMetricInterpretation.LowerIsBetter)
             {
             }
@@ -27,7 +30,7 @@ namespace Microsoft.Xunit.Performance
         }
         internal class BenchmarkDurationEvaluator : PerformanceMetricEvaluator
         {
-            double _iterationStartRelativeMSec;
+            private double _iterationStartRelativeMSec;
 
             public BenchmarkDurationEvaluator(PerformanceMetricEvaluationContext context)
             {

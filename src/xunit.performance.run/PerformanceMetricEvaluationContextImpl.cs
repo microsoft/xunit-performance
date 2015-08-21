@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Diagnostics.Tracing;
@@ -9,7 +12,7 @@ using Microsoft.Xunit.Performance.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    class PerformanceMetricEvaluationContextImpl : PerformanceMetricEvaluationContext, IDisposable
+    internal class PerformanceMetricEvaluationContextImpl : PerformanceMetricEvaluationContext, IDisposable
     {
         private readonly Dictionary<string, List<KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>>> _evaluators = new Dictionary<string, List<KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>>>();
         private readonly Dictionary<string, List<Dictionary<string, double>>> _metricValues = new Dictionary<string, List<Dictionary<string, double>>>();
@@ -95,7 +98,7 @@ namespace Microsoft.Xunit.Performance
             }
 
             _currentTestCase = null;
-            _currentProcesses.Clear();               
+            _currentProcesses.Clear();
         }
 
         private void ProcessStart(ProcessTraceData args)
