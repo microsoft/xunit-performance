@@ -40,7 +40,7 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>..\common\DotNetOSS.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\common\xunit.performance.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <None Include="project.json" />
