@@ -186,6 +186,9 @@ namespace Microsoft.Xunit.Performance
             Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_ITERATION", 1000.ToString());
             Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS", 1000.ToString());
 
+            Environment.SetEnvironmentVariable("COMPLUS_gcConcurrent", "0");
+            Environment.SetEnvironmentVariable("COMPLUS_gcServer", "0");
+        
             ProcessStartInfo startInfo = new ProcessStartInfo()
             {
                 FileName = runnerCommand,
