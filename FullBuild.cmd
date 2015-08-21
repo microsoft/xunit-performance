@@ -20,7 +20,7 @@ bump the build number on BuildSemanticVersion below.
 :main
 setlocal
 
-set BuildAssemblyVersion=1.0.0.0
+set BuildAssemblyVersion=1.0.0.*
 set BuildSemanticVersion=1.0.0-alpha-build0007
 
 echo Building version %BuildSemanticVersion% NuGet packages.
