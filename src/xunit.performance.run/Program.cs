@@ -129,7 +129,7 @@ namespace Microsoft.Xunit.Performance
                     {
                         var testName = testElem.Attribute("name").Value;
 
-                        var perfElem = new XElement("performance", new XAttribute("runid", runId));
+                        var perfElem = new XElement("performance", new XAttribute("runid", runId), new XAttribute("etl", Path.GetFullPath(etlPath)));
                         testElem.Add(perfElem);
 
                         var metrics = evaluationContext.GetMetrics(testName);
