@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata minClientVersion="2.8.5">
+    <id>Microsoft.DotNet.xunit.performance.analysis</id>
+    <version>99.99.99-dev</version>
+    <title>xUnit Performance Analysis tools</title>
+    <authors>ericeil@microsoft.com;pharring@microsoft.com</authors>
+    <owners>Microsoft</owners>
+    <description>
+Contains the tools necessary for analyzing the output of xunit Performance tests (ETL files).
+    </description>
+    <language>en-US</language>
+    <projectUrl>https://github.com/Microsoft/xunit-performance</projectUrl>
+    <licenseUrl>https://github.com/Microsoft/xunit-performance/blob/master/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+  </metadata>
+  <files>
+    <file src="xunit.performance.analysis\bin\Release\MathNet.Numerics.dll" target="tools\" />
+    <file src="xunit.performance.analysis\bin\Release\Microsoft.Diagnostics.Tracing.TraceEvent.dll" target="tools\" />
+    <file src="xunit.performance.analysis\bin\Release\xunit.performance.analysis.exe" target="tools\" />
+    <file src="xunit.performance.analysis\bin\Release\xunit.performance.analysis.exe.config" target="tools\" />
+    <file src="xunit.performance.analysis\bin\Release\xunit.performance.analysis.pdb" target="tools\" />
+  </files>
+</package>
