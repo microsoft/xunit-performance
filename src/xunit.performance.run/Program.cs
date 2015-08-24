@@ -11,6 +11,7 @@ using System.Text;
 using System.Xml.Linq;
 using Xunit;
 using Xunit.Abstractions;
+using System.ComponentModel;
 
 namespace Microsoft.Xunit.Performance
 {
@@ -46,12 +47,18 @@ namespace Microsoft.Xunit.Performance
                 }
 
                 var tests = DiscoverTests(project.Assemblies, project.Filters, new ConsoleReporter());
-
                 PrintIfVerbose($"Creating output directory: {project.OutputDir}");
                 if (!Directory.Exists(project.OutputDir))
                     Directory.CreateDirectory(project.OutputDir);
 
-                RunTests(tests, project.RunnerCommand, project.RunName, project.OutputDir);
+                if (!tests.Any())
+                {
+                    Console.WriteLine("Could not find any suitable tests.");
+                }
+                else
+                {
+                    RunTests(tests, project.RunnerCommand, project.RunName, project.OutputDir);
+                }
             }
             catch (Exception ex)
             {
@@ -188,7 +195,7 @@ namespace Microsoft.Xunit.Performance
 
             Environment.SetEnvironmentVariable("COMPLUS_gcConcurrent", "0");
             Environment.SetEnvironmentVariable("COMPLUS_gcServer", "0");
-        
+
             ProcessStartInfo startInfo = new ProcessStartInfo()
             {
                 FileName = runnerCommand,
@@ -200,10 +207,17 @@ namespace Microsoft.Xunit.Performance
 Runner:    {startInfo.FileName}
 Arguments: {startInfo.Arguments}");
 
-            using (var proc = Process.Start(startInfo))
+            try
             {
-                proc.EnableRaisingEvents = true;
-                proc.WaitForExit();
+                using (var proc = Process.Start(startInfo))
+                {
+                    proc.EnableRaisingEvents = true;
+                    proc.WaitForExit();
+                }
+            }
+            catch (Win32Exception ex)
+            {
+                throw new Exception($"Could not launch the test runner, {startInfo.FileName}", innerException: ex);
             }
         }
 
