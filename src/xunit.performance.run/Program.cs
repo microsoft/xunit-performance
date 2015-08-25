@@ -78,13 +78,15 @@ namespace Microsoft.Xunit.Performance
 
             PrintIfVerbose($"Starting ETW tracing. Logging to {etlPath}");
 
-            var etwProviders =
+            var allEtwProviders =
                 from test in tests
                 from metric in test.Metrics
                 from provider in metric.ProviderInfo
                 select provider;
 
-            using (ETWLogging.StartAsync(etlPath, etwProviders).Result)
+            var mergedEtwProviders = ProviderInfo.Merge(allEtwProviders);
+
+            using (ETWLogging.StartAsync(etlPath, mergedEtwProviders).Result)
             {
                 const int maxCommandLineLength = 32767;
 
