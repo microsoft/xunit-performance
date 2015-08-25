@@ -503,7 +503,7 @@ Valid options:
                          : i.e., 'MyNamespace.MyClass.MyTestMethod')
   -runner ""name""         : use the specified runner to excecute tests. Defaults
                          : to xunit.console.exe
-  -runname ""name""        : a run identifier used to create unique output filenames.
+  -runid ""name""          : a run identifier used to create unique output filenames.
   -outdir  ""name""        : folder for output files.
   -verbose               : verbose logging
 ");
