@@ -212,12 +212,12 @@ Arguments: {startInfo.Arguments}");
 
             try
             {
-            using (var proc = Process.Start(startInfo))
-            {
-                proc.EnableRaisingEvents = true;
-                proc.WaitForExit();
+                using (var proc = Process.Start(startInfo))
+                {
+                    proc.EnableRaisingEvents = true;
+                    proc.WaitForExit();
+                }
             }
-        }
             catch (Win32Exception ex)
             {
                 throw new Exception($"Could not launch the test runner, {startInfo.FileName}", innerException: ex);
