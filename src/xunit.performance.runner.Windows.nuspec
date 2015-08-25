@@ -24,20 +24,24 @@ Contains the tools necessary for running xunit Performance tests in Windows usin
     <file src="xunit.performance.run\bin\Release\xunit.abstractions.dll" target="tools\" />
     <file src="xunit.performance.run\bin\Release\xunit.core.dll" target="tools\" />
     <file src="xunit.performance.run\bin\Release\xunit.core.pdb" target="tools\" />
+    <file src="xunit.performance.run\bin\Release\xunit.execution.desktop.dll" target="tools\" />
     <file src="xunit.performance.run\bin\Release\xunit.performance.metrics.dll" target="tools\" />
     <file src="xunit.performance.run\bin\Release\xunit.performance.metrics.pdb" target="tools\" />
     <file src="xunit.performance.run\bin\Release\xunit.performance.logger.exe" target="tools\" />
     <file src="xunit.performance.run\bin\Release\xunit.performance.logger.pdb" target="tools\" />
     <file src="xunit.performance.run\bin\Release\xunit.performance.core.dll" target="tools\" />
     <file src="xunit.performance.run\bin\Release\xunit.performance.core.pdb" target="tools\" />
+    <file src="xunit.performance.run\bin\Release\xunit.performance.execution.desktop.dll" target="tools\" />
+    <file src="xunit.performance.run\bin\Release\xunit.performance.execution.desktop.pdb" target="tools\" />
     <file src="xunit.performance.run\bin\Release\xunit.performance.run.exe" target="tools\" />
     <file src="xunit.performance.run\bin\Release\xunit.performance.run.exe.config" target="tools\" />
     <file src="xunit.performance.run\bin\Release\xunit.performance.run.pdb" target="tools\" />
     <file src="xunit.performance.run\bin\Release\xunit.runner.utility.desktop.dll" target="tools\" />
     <file src="xunit.performance.run\bin\Release\xunit.runner.utility.desktop.pdb" target="tools\" />
-    <file src="xunit.performance.run\bin\Release\x86\KernelTraceControl.dll" target="tools\x86\" />
-    <file src="xunit.performance.run\bin\Release\x86\msdia120.dll" target="tools\x86\" />
-    <file src="xunit.performance.run\bin\Release\amd64\KernelTraceControl.dll" target="tools\amd64\" />
-    <file src="xunit.performance.run\bin\Release\amd64\msdia120.dll" target="tools\amd64\" />
+    <!-- Pick up the following directly from the nuget because they're not copied to bin\Release in non-DesignTimeBuild builds -->
+    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.35\lib\native\x86\KernelTraceControl.dll" target="tools\x86\" />
+    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.35\lib\native\x86\msdia120.dll" target="tools\x86\" />
+    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.35\lib\native\amd64\KernelTraceControl.dll" target="tools\amd64\" />
+    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.35\lib\native\amd64\msdia120.dll" target="tools\amd64\" />
   </files>
 </package>
