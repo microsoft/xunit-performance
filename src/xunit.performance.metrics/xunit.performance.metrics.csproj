@@ -69,7 +69,7 @@
     <Compile Include="KernelProviderInfo.cs" />
     <Compile Include="PerformanceMetricEvaluationContext.cs" />
     <Compile Include="PerformanceMetricEvaluator.cs" />
-    <Compile Include="PerformanceMetricInterpretation.cs" />
+    <Compile Include="PerformanceMetricUnits.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProviderInfo.cs" />
     <Compile Include="UserProviderInfo.cs" />

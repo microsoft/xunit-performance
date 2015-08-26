@@ -94,7 +94,7 @@ namespace Microsoft.Xunit.Performance
                 allValues.Add(values);
 
                 foreach (var evaluator in _evaluators[_currentTestCase])
-                    values[evaluator.Key.Name] = evaluator.Value.EndIteration(args);
+                    values[evaluator.Key.Id] = evaluator.Value.EndIteration(args);
             }
 
             _currentTestCase = null;

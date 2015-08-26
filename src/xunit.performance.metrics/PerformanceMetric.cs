@@ -12,16 +12,16 @@ namespace Microsoft.Xunit.Performance.Sdk
     /// </summary>
     public abstract class PerformanceMetric
     {
-        public PerformanceMetric(string name, string unit, PerformanceMetricInterpretation interpretation)
+        public PerformanceMetric(string id, string displayName, string unit)
         {
-            Name = name;
+            Id = id;
+            DisplayName = displayName;
             Unit = unit;
-            Interpretation = interpretation;
         }
 
-        public string Name { get; }
+        public string Id { get; }
+        public string DisplayName { get; }
         public string Unit { get; }
-        public PerformanceMetricInterpretation Interpretation { get; }
 
         public virtual IEnumerable<ProviderInfo> ProviderInfo => Enumerable.Empty<ProviderInfo>();
 
