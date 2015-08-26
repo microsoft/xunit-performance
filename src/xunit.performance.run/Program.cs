@@ -148,7 +148,7 @@ namespace Microsoft.Xunit.Performance
                             perfElem.Add(metricsElem);
 
                             foreach (var metric in metrics)
-                                metricsElem.Add(new XElement(metric.Name, new XAttribute("unit", metric.Unit), new XAttribute("interpretation", metric.Interpretation)));
+                                metricsElem.Add(new XElement(metric.Id, new XAttribute("displayName", metric.DisplayName), new XAttribute("unit", metric.Unit)));
                         }
 
                         var iterations = evaluationContext.GetValues(testName);
