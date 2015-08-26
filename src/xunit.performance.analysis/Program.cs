@@ -20,13 +20,13 @@ namespace Microsoft.Xunit.Performance.Analysis
         private static int Usage()
         {
             Console.Error.WriteLine(
-                "usage: xunit.performance.analysis <etlPaths> [-compare \"baselineRunId\" \"comparisonRunId\"]  [-xml <output.xml>] [-html <output.html>]");
+                "usage: xunit.performance.analysis <xmlPaths> [-compare \"baselineRunId\" \"comparisonRunId\"]  [-xml <output.xml>] [-html <output.html>]");
             return 1;
         }
 
         private static int Main(string[] args)
         {
-            var etlPaths = new List<string>();
+            var xmlPaths = new List<string>();
             var allComparisonIds = new List<Tuple<string, string>>();
             var xmlOutputPath = (string)null;
             var htmlOutputPath = (string)null;
@@ -69,14 +69,14 @@ namespace Microsoft.Xunit.Performance.Analysis
                     bool foundFile = false;
                     foreach (var file in ExpandFilePath(args[i]))
                     {
-                        if (file.EndsWith(".etl", StringComparison.OrdinalIgnoreCase) || file.EndsWith(".etl.zip", StringComparison.OrdinalIgnoreCase))
+                        if (file.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
                         {
                             foundFile = true;
-                            etlPaths.Add(file);
+                            xmlPaths.Add(file);
                         }
                         else
                         {
-                            Console.Error.WriteLine($"{file}' is not a .etl or .etl.zip file.");
+                            Console.Error.WriteLine($"{file}' is not a .xml file.");
                             return 1;
                         }
                     }
@@ -88,10 +88,10 @@ namespace Microsoft.Xunit.Performance.Analysis
                 }
             }
 
-            if (etlPaths.Count == 0)
+            if (xmlPaths.Count == 0)
                 return Usage();
 
-            var allIterations = ParseEtlFiles(etlPaths);
+            var allIterations = ParseXmlFiles(xmlPaths);
 
             var testResults = SummarizeTestResults(allIterations);
 
@@ -121,14 +121,14 @@ namespace Microsoft.Xunit.Performance.Analysis
 
                     // Compute the standard error in the difference
                     var baselineCount = baselineTest.Iterations.Count;
-                    var baselineSum = baselineTest.Iterations.Sum(iteration => iteration.Duration);
+                    var baselineSum = baselineTest.Iterations.Sum(iteration => iteration.MetricValues["duration"]);
                     var baselineSumSquared = baselineSum * baselineSum;
-                    var baselineSumOfSquares = baselineTest.Iterations.Sum(iteration => iteration.Duration * iteration.Duration);
+                    var baselineSumOfSquares = baselineTest.Iterations.Sum(iteration => iteration.MetricValues["duration"] * iteration.MetricValues["duration"]);
 
                     var comparisonCount = comparisonTest.Iterations.Count;
-                    var comparisonSum = comparisonTest.Iterations.Sum(iteration => iteration.Duration);
+                    var comparisonSum = comparisonTest.Iterations.Sum(iteration => iteration.MetricValues["duration"]);
                     var comparisonSumSquared = comparisonSum * comparisonSum;
-                    var comparisonSumOfSquares = comparisonTest.Iterations.Sum(iteration => iteration.Duration * iteration.Duration);
+                    var comparisonSumOfSquares = comparisonTest.Iterations.Sum(iteration => iteration.MetricValues["duration"] * iteration.MetricValues["duration"]);
 
                     var stdErrorDiff = Math.Sqrt((baselineSumOfSquares - (baselineSumSquared / baselineCount) + comparisonSumOfSquares - (comparisonSumSquared / comparisonCount)) * (1.0 / baselineCount + 1.0 / comparisonCount) / (baselineCount + comparisonCount - 1));
                     var interval = stdErrorDiff * MathNet.Numerics.ExcelFunctions.TInv(1.0 - ErrorConfidence, baselineCount + comparisonCount - 2);
@@ -137,8 +137,8 @@ namespace Microsoft.Xunit.Performance.Analysis
                     comparisonResult.BaselineResult = baselineTest;
                     comparisonResult.ComparisonResult = comparisonTest;
                     comparisonResult.TestName = comparisonTest.TestName;
-                    comparisonResult.PercentChange = (comparisonTest.DurationStats.Mean - baselineTest.DurationStats.Mean) / baselineTest.DurationStats.Mean;
-                    comparisonResult.PercentChangeError = interval / baselineTest.DurationStats.Mean;
+                    comparisonResult.PercentChange = (comparisonTest.Stats["duration"].Mean - baselineTest.Stats["duration"].Mean) / baselineTest.Stats["duration"].Mean;
+                    comparisonResult.PercentChangeError = interval / baselineTest.Stats["duration"].Mean;
 
                     comparisonResults.Add(comparisonResult);
                 }
@@ -165,9 +165,13 @@ namespace Microsoft.Xunit.Performance.Analysis
                     result.TestName = iteration.TestName;
                 }
 
-                result.DurationStats.Push(iteration.Duration);
-                result.GCCountStats.Push(iteration.GCCount);
-                result.Failed |= iteration.Failed;
+                foreach (var metric in iteration.MetricValues)
+                {
+                    RunningStatistics stats;
+                    if (!result.Stats.TryGetValue(metric.Key, out stats))
+                        result.Stats[metric.Key] = stats = new RunningStatistics();
+                    stats.Push(metric.Value);
+                }
 
                 result.Iterations.Add(iteration);
             }
@@ -190,32 +194,17 @@ namespace Microsoft.Xunit.Performance.Analysis
                     var testElem = new XElement("test", new XAttribute("name", result.TestName));
                     runIdElem.Add(testElem);
 
-                    if (result.Failed)
+                    var summaryElem = new XElement("summary");
+                    testElem.Add(summaryElem);
+
+                    foreach (var stat in result.Stats)
                     {
-                        testElem.Add(new XAttribute("failed", true));
-                    }
-                    else
-                    {
-                        testElem.Add(
-                            new XElement("summary",
-                                new XElement("duration",
-                                    new XAttribute("unit", "milliseconds"),
-                                    new XAttribute("min", result.DurationStats.Minimum.ToString("G3")),
-                                    new XAttribute("mean", result.DurationStats.Mean.ToString("G3")),
-                                    new XAttribute("max", result.DurationStats.Maximum.ToString("G3")),
-                                    new XAttribute("marginOfError", result.DurationStats.MarginOfError(ErrorConfidence).ToString("G3")),
-                                    new XAttribute("stddev", result.DurationStats.StandardDeviation.ToString("G3"))
-                                ),
-                                new XElement("gcCount",
-                                    new XAttribute("unit", "count"),
-                                    new XAttribute("min", result.GCCountStats.Minimum.ToString("G3")),
-                                    new XAttribute("mean", result.GCCountStats.Mean.ToString("G3")),
-                                    new XAttribute("max", result.GCCountStats.Maximum.ToString("G3")),
-                                    new XAttribute("marginOfError", result.GCCountStats.MarginOfError(ErrorConfidence).ToString("G3")),
-                                    new XAttribute("stddev", result.GCCountStats.StandardDeviation.ToString("G3"))
-                                )
-                            )
-                        );
+                        summaryElem.Add(new XElement(stat.Key,
+                            new XAttribute("min", stat.Value.Minimum.ToString("G3")),
+                            new XAttribute("mean", stat.Value.Mean.ToString("G3")),
+                            new XAttribute("max", stat.Value.Maximum.ToString("G3")),
+                            new XAttribute("marginOfError", stat.Value.MarginOfError(ErrorConfidence).ToString("G3")),
+                            new XAttribute("stddev", stat.Value.StandardDeviation.ToString("G3"))));
                     }
                 }
             }
@@ -269,7 +258,8 @@ namespace Microsoft.Xunit.Performance.Analysis
                     writer.WriteLine($"<tr><th>Test</th><th>Unit</th><th>Min</th><th>Mean</th><th>Max</th><th>Margin</th><th>StdDev</th></tr>");
                     foreach (var test in run.Value)
                     {
-                        writer.WriteLine($"<tr><td>{test.Value.TestName}</td><td>ms</td><td>{test.Value.DurationStats.Minimum.ToString("G3")}</td><td>{test.Value.DurationStats.Mean.ToString("G3")}</td><td>{test.Value.DurationStats.Maximum.ToString("G3")}</td><td>{test.Value.DurationStats.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{test.Value.DurationStats.StandardDeviation.ToString("G3")}</td></tr>");
+                        var stats = test.Value.Stats["duration"];
+                        writer.WriteLine($"<tr><td>{test.Value.TestName}</td><td>ms</td><td>{stats.Minimum.ToString("G3")}</td><td>{stats.Mean.ToString("G3")}</td><td>{stats.Maximum.ToString("G3")}</td><td>{stats.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{stats.StandardDeviation.ToString("G3")}</td></tr>");
                     }
                     writer.WriteLine($"</table>");
                 }
@@ -287,10 +277,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             }
             else if (Directory.Exists(path))
             {
-                foreach (var file in Directory.EnumerateFiles(path, "*.etl"))
-                    yield return file;
-
-                foreach (var file in Directory.EnumerateFiles(path, "*.etl.zip"))
+                foreach (var file in Directory.EnumerateFiles(path, "*.xml"))
                     yield return file;
             }
         }
@@ -299,9 +286,7 @@ namespace Microsoft.Xunit.Performance.Analysis
         {
             public string TestName;
             public string RunId;
-            public bool Failed;
-            public RunningStatistics DurationStats = new RunningStatistics();
-            public RunningStatistics GCCountStats = new RunningStatistics();
+            public Dictionary<string, RunningStatistics> Stats = new Dictionary<string, RunningStatistics>();
             public List<TestIterationResult> Iterations = new List<TestIterationResult>();
         }
 
@@ -311,14 +296,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             public string RunId;
             public string TestName;
             public int TestIteration;
-            public DateTime StartTime;
-            public double RelativeStartMilliseconds;
-            public double RelativeStopMilliseconds;
-            public double Duration => RelativeStopMilliseconds - RelativeStartMilliseconds;
-            public int GCCount;
-            public bool Failed;
-
-            public HashSet<int> tempProcessIds = new HashSet<int>(); // process IDs active for this iteration; used only while parsing.
+            public Dictionary<string, double> MetricValues = new Dictionary<string, double>();
         }
 
         private class TestResultComparison
@@ -343,77 +321,49 @@ namespace Microsoft.Xunit.Performance.Analysis
             }
         }
 
-        private static IEnumerable<TestIterationResult> ParseEtlFiles(IEnumerable<string> etlPaths)
+        private static IEnumerable<TestIterationResult> ParseXmlFiles(IEnumerable<string> etlPaths)
         {
             return
                 from path in etlPaths.AsParallel()
-                from result in ParseOneEtlFile(path)
+                from result in ParseOneXmlFile(path)
                 select result;
         }
 
-        private static IEnumerable<TestIterationResult> ParseOneEtlFile(string path)
+        private static IEnumerable<TestIterationResult> ParseOneXmlFile(string path)
         {
             Console.WriteLine($"Parsing {path}");
 
-            List<TestIterationResult> results = new List<TestIterationResult>();
-            using (var source = new ETWTraceEventSource(path))
+            var doc = XDocument.Load(path);
+
+            foreach (var testElem in doc.Descendants("test"))
             {
-                if (source.EventsLost > 0)
-                    throw new Exception($"Events were lost in trace '{path}'");
+                var testName = testElem.Attribute("name").Value;
 
-                MicrosoftXunitBenchmarkTraceEventParser benchmarkParser = new MicrosoftXunitBenchmarkTraceEventParser(source);
+                var perfElem = testElem.Element("performance");
+                var runId = perfElem.Attribute("runid").Value;
+                var etlPath = perfElem.Attribute("etl").Value;
 
-                Dictionary<string, TestIterationResult> currentIterations = new Dictionary<string, TestIterationResult>();
-
-                benchmarkParser.BenchmarkIterationStart += args =>
+                foreach (var iteration in perfElem.Descendants("iteration"))
                 {
-                    var currentIteration = new TestIterationResult();
-                    currentIteration.EtlPath = path;
-                    currentIteration.RunId = args.RunId;
-                    currentIteration.TestName = args.BenchmarkName;
-                    currentIteration.TestIteration = args.Iteration;
-                    currentIteration.StartTime = args.TimeStamp;
-                    currentIteration.RelativeStartMilliseconds = args.TimeStampRelativeMSec;
-                    currentIteration.tempProcessIds.Add(args.ProcessID);
+                    var index = int.Parse(iteration.Attribute("index").Value);
 
-                    currentIterations[args.RunId] = currentIteration;
-                };
+                    var result = new TestIterationResult();
+                    result.TestName = testName;
+                    result.TestIteration = index;
+                    result.RunId = runId;
+                    result.EtlPath = etlPath;
 
-                benchmarkParser.BenchmarkIterationStop += args =>
-                {
-                    TestIterationResult currentIteration = currentIterations[args.RunId];
-                    currentIteration.RelativeStopMilliseconds = args.TimeStampRelativeMSec;
-                    currentIteration.Failed = !args.Success;
+                    foreach(var metricAttr in iteration.Attributes().Where(a => a.Name != "index"))
+                    {
+                        var metricName = metricAttr.Name.LocalName;
+                        var metricVal = double.Parse(metricAttr.Value);
 
-                    currentIterations.Remove(args.RunId);
-                    currentIteration.tempProcessIds = null;
-                    results.Add(currentIteration);
-                };
+                        result.MetricValues.Add(metricName, metricVal);
+                    }
 
-                source.Kernel.ProcessStart += args =>
-                {
-                    foreach (var currentIteration in currentIterations.Values)
-                        if (currentIteration.tempProcessIds.Contains(args.ParentID))
-                            currentIteration.tempProcessIds.Add(args.ProcessID);
-                };
-
-                source.Kernel.ProcessStop += args =>
-                {
-                    foreach (var currentIteration in currentIterations.Values)
-                        currentIteration.tempProcessIds.Remove(args.ProcessID);
-                };
-
-                source.Clr.GCStart += args =>
-                {
-                    foreach (var currentIteration in currentIterations.Values)
-                        if (currentIteration.tempProcessIds.Contains(args.ProcessID))
-                            currentIteration.GCCount++;
-                };
-
-                source.Process();
+                    yield return result;
+                }
             }
-
-            return results;
         }
     }
 }

@@ -57,7 +57,7 @@ namespace Microsoft.Xunit.Performance
                 }
                 else
                 {
-                    RunTests(tests, project.RunnerCommand, project.RunName, project.OutputDir);
+                    RunTests(tests, project.RunnerCommand, project.RunId, project.OutputDir);
                 }
             }
             catch (Exception ex)
@@ -78,13 +78,15 @@ namespace Microsoft.Xunit.Performance
 
             PrintIfVerbose($"Starting ETW tracing. Logging to {etlPath}");
 
-            var etwProviders =
+            var allEtwProviders =
                 from test in tests
                 from metric in test.Metrics
                 from provider in metric.ProviderInfo
                 select provider;
 
-            using (ETWLogging.StartAsync(etlPath, etwProviders).Result)
+            var mergedEtwProviders = ProviderInfo.Merge(allEtwProviders);
+
+            using (ETWLogging.StartAsync(etlPath, mergedEtwProviders).Result)
             {
                 const int maxCommandLineLength = 32767;
 
@@ -136,11 +138,14 @@ namespace Microsoft.Xunit.Performance
                     {
                         var testName = testElem.Attribute("name").Value;
 
+                        var perfElem = new XElement("performance", new XAttribute("runid", runId), new XAttribute("etl", Path.GetFullPath(etlPath)));
+                        testElem.Add(perfElem);
+
                         var metrics = evaluationContext.GetMetrics(testName);
                         if (metrics != null)
                         {
                             var metricsElem = new XElement("metrics");
-                            testElem.Add(metricsElem);
+                            perfElem.Add(metricsElem);
 
                             foreach (var metric in metrics)
                                 metricsElem.Add(new XElement(metric.Id, new XAttribute("displayName", metric.DisplayName), new XAttribute("unit", metric.Unit)));
@@ -150,7 +155,7 @@ namespace Microsoft.Xunit.Performance
                         if (iterations != null)
                         {
                             var iterationsElem = new XElement("iterations");
-                            testElem.Add(iterationsElem);
+                            perfElem.Add(iterationsElem);
 
                             for (int i = 0; i < iterations.Count; i++)
                             {
@@ -374,14 +379,14 @@ Arguments: {startInfo.Arguments}");
                         AddBaseline(project, option.Value);
                         break;
 
-                    case "runname":
+                    case "runid":
                         if (option.Value == null)
-                            throw new ArgumentException("missing argument for -runname");
+                            throw new ArgumentException("missing argument for -runid");
 
                         if (option.Value.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
                             throw new ArgumentException($"runname contains invalid characters.", optionName);
 
-                        project.RunName = option.Value;
+                        project.RunId = option.Value;
                         break;
 
                     case "outdir":
@@ -500,7 +505,7 @@ Valid options:
                          : i.e., 'MyNamespace.MyClass.MyTestMethod')
   -runner ""name""         : use the specified runner to excecute tests. Defaults
                          : to xunit.console.exe
-  -runname ""name""        : a run identifier used to create unique output filenames.
+  -runid ""name""          : a run identifier used to create unique output filenames.
   -outdir  ""name""        : folder for output files.
   -verbose               : verbose logging
 ");
