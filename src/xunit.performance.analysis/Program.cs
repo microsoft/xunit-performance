@@ -353,7 +353,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                     result.RunId = runId;
                     result.EtlPath = etlPath;
 
-                    foreach(var metricAttr in iteration.Attributes().Where(a => a.Name != "index"))
+                    foreach (var metricAttr in iteration.Attributes().Where(a => a.Name != "index"))
                     {
                         var metricName = metricAttr.Name.LocalName;
                         var metricVal = double.Parse(metricAttr.Value);
