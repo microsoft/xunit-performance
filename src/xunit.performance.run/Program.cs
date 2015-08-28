@@ -471,7 +471,7 @@ Arguments: {startInfo.Arguments}");
             var option = arguments.Pop();
             string value = null;
 
-            if (option.Equals("-runnerargs", StringComparison.Ordinal))
+            if (option.Equals("-runnerargs", StringComparison.OrdinalIgnoreCase))
             {
                 // Special case, just grab all of the args to pass along.
                 if (arguments.Count > 0)
@@ -543,7 +543,7 @@ Valid options:
                          : to xunit.console.exe
   -runnerargs ""args""   : append the given args to the end of the xunit runner's command-line
                            : a quoted group of arguments, 
-                           : e.g. -runnerargs ""-verbose -no-logo -parallel none""
+                           : e.g. -runnerargs ""-verbose -nologo -parallel none""
   -runid ""name""        : a run identifier used to create unique output filenames.
   -outdir  ""name""        : folder for output files.
   -verbose               : verbose logging
