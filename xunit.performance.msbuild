@@ -25,11 +25,24 @@
 
   <!-- Build server targets -->
 
-  <Target Name="CI" DependsOnTargets="Clean;PackageRestore;SetVersionNumber;Build;Packages" />
+  <Target Name="CI" DependsOnTargets="Clean;PackageRestore;Build;Test;Packages" />
+
+  <Target Name="Nightly" DependsOnTargets="Clean;PackageRestore;SetVersionNumber;Build;Test;Packages" />
 
   <Target Name="DevBuild" DependsOnTargets="Clean;PackageRestore;Build;Packages" />
 
   <!-- Individual targets -->
+
+  <Target Name="Test">
+    <ItemGroup>
+      <!-- For now this is the only unit test assembly we have. If/when we add more, we should
+           come up with convention so that they can be discovered automatically without editing
+           this file. -->
+      <TestAssemblies Include="Samples\SimplePerfTests\bin\$(Configuration)\SimplePerfTests.dll" />
+    </ItemGroup>
+
+    <Exec Command="packages\xunit.runner.console.2.1.0-beta4-build3109\tools\xunit.console.exe @(TestAssemblies, ' ')" />
+  </Target>
 
   <Target Name="Clean">
     <ItemGroup>
@@ -69,7 +82,7 @@
         Condition=" '$(BuildAssemblyVersion)' != '' "/>
   </Target>
 
-  <Target Name='Packages'>
+  <Target Name='Packages' Condition="'$(Configuration)' == 'Release'">
     <Message Text="Creating NuGet packages..." Importance="High" />
     <MakeDir Directories="$(NugetPackageOutputDirectory)" />
     <Exec Condition="'$(BuildSemanticVersion)' == ''" Command='"$(NuGetExePath)" pack %(NuspecFiles.Identity) -OutputDirectory $(NugetPackageOutputDirectory) -NoPackageAnalysis -NonInteractive -Verbosity quiet' />
