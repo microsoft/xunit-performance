@@ -14,7 +14,7 @@ The normal xUnit runners will run Benchmarks as normal unit tests.  The test exe
 
 To collect more detailed data, use xunit.performance.run.exe:
 
-> xunit.performance.run MyTests.dll -runner xunit.console.exe -runName MyRun1234
+> xunit.performance.run MyTests.dll -runner xunit.console.exe -runid MyRun1234
 
 This will produce a file named MyRun1234.etl in the current directory.
 
