@@ -82,7 +82,7 @@
         Condition=" '$(BuildAssemblyVersion)' != '' "/>
   </Target>
 
-  <Target Name='Packages'>
+  <Target Name='Packages' Condition="'$(Configuration)' == 'Release'">
     <Message Text="Creating NuGet packages..." Importance="High" />
     <MakeDir Directories="$(NugetPackageOutputDirectory)" />
     <Exec Condition="'$(BuildSemanticVersion)' == ''" Command='"$(NuGetExePath)" pack %(NuspecFiles.Identity) -OutputDirectory $(NugetPackageOutputDirectory) -NoPackageAnalysis -NonInteractive -Verbosity quiet' />
