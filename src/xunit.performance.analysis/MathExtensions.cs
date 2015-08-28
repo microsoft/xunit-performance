@@ -10,6 +10,15 @@ namespace Microsoft.Xunit.Performance.Analysis
 {
     public static class MathExtensions
     {
+        /// <summary>
+        /// Calculates a confidence interval as a percentage of the mean
+        /// </summary>
+        /// <remarks>
+        /// This assumes a roughly normal distribution in the sample data.
+        /// </remarks>
+        /// <param name="stats">A <see cref="RunningStatistics"/> object pre-populated with the sample data.</param>
+        /// <param name="confidence">The desired confidence in the resulting interval.</param>
+        /// <returns>The confidence interval, as a percentage of the mean.</returns>
         public static double MarginOfError(this RunningStatistics stats, double confidence)
         {
             if (stats.Count < 2)
