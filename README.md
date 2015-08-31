@@ -1,4 +1,10 @@
 # xunit.performance
+
+Build | Status
+------------ | -------------
+Release | [![Build Status](http://dotnet-ci.cloudapp.net/buildStatus/icon?job=microsoft_xunit-performance_release)](http://dotnet-ci.cloudapp.net/job/microsoft_xunit-performance_release/)
+Debug | [![Build Status](http://dotnet-ci.cloudapp.net/buildStatus/icon?job=microsoft_xunit-performance_debug)](http://dotnet-ci.cloudapp.net/job/microsoft_xunit-performance_debug)
+
 Provides extensions over xUnit to author performance tests.
 
 ## Authoring benchmarks
