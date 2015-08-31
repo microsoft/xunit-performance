@@ -57,7 +57,7 @@ namespace Microsoft.Xunit.Performance
                 }
                 else
                 {
-                    RunTests(tests, project.RunnerCommand, project.RunId, project.OutputDir);
+                    RunTests(tests, project.RunnerHost, project.RunnerCommand, project.RunnerArgs, project.RunId, project.OutputDir);
                 }
             }
             catch (Exception ex)
@@ -69,9 +69,7 @@ namespace Microsoft.Xunit.Performance
             return 0;
         }
 
-        private const string RunnerOptions = "-nologo -parallel none -noshadow -noappdomain -verbose";
-
-        private static void RunTests(IEnumerable<PerformanceTestInfo> tests, string runnerCommand, string runId, string outDir)
+        private static void RunTests(IEnumerable<PerformanceTestInfo> tests, string runnerHost, string runnerCommand, string runnerArgs, string runId, string outDir)
         {
             string etlPath = Path.Combine(outDir, runId + ".etl");
             string xmlPath = Path.Combine(outDir, runId + ".xml");
@@ -96,7 +94,7 @@ namespace Microsoft.Xunit.Performance
 
                 var assemblyFileBatch = new HashSet<string>();
                 var methodBatch = new HashSet<string>();
-                var commandLineLength = runnerCommand.Length + " ".Length + RunnerOptions.Length + " ".Length + outputOption.Length;
+                var commandLineLength = (runnerHost?.Length ?? 0) + runnerCommand.Length + " ".Length + (runnerArgs?.Length ?? 0) + " ".Length + outputOption.Length;
 
                 foreach (var currentTestInfo in tests)
                 {
@@ -109,7 +107,7 @@ namespace Microsoft.Xunit.Performance
 
                         if (commandLineLength + currentTestInfoCommandLineLength > maxCommandLineLength)
                         {
-                            RunTestBatch(methodBatch, assemblyFileBatch, runnerCommand, runId, outputOption);
+                            RunTestBatch(methodBatch, assemblyFileBatch, runnerHost, runnerCommand, runnerArgs, runId, outputOption);
                             methodBatch.Clear();
                             assemblyFileBatch.Clear();
                         }
@@ -120,7 +118,7 @@ namespace Microsoft.Xunit.Performance
                 }
 
                 if (methodBatch.Count > 0)
-                    RunTestBatch(methodBatch, assemblyFileBatch, runnerCommand, runId, outputOption);
+                    RunTestBatch(methodBatch, assemblyFileBatch, runnerHost, runnerCommand, runnerArgs, runId, outputOption);
             }
 
 
@@ -176,9 +174,16 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
-        private static void RunTestBatch(IEnumerable<string> methods, IEnumerable<string> assemblyFiles, string runnerCommand, string runId, string outputOption)
+        private static void RunTestBatch(IEnumerable<string> methods, IEnumerable<string> assemblyFiles, string runnerHost, string runnerCommand, string runnerArgs, string runId, string outputOption)
         {
             var commandLineArgs = new StringBuilder();
+
+            if (!string.IsNullOrEmpty(runnerHost))
+            {
+                commandLineArgs.Append(runnerCommand);
+                commandLineArgs.Append(" ");
+            }
+
             foreach (var assemblyFile in assemblyFiles)
             {
                 commandLineArgs.Append(assemblyFile);
@@ -190,8 +195,13 @@ namespace Microsoft.Xunit.Performance
                 commandLineArgs.Append(method);
                 commandLineArgs.Append(" ");
             }
-            commandLineArgs.Append(RunnerOptions);
-            commandLineArgs.Append(" ");
+
+            if (!string.IsNullOrEmpty(runnerArgs))
+            {
+                commandLineArgs.Append(runnerArgs);
+                commandLineArgs.Append(" ");
+            }
+
             commandLineArgs.Append(outputOption);
 
             Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_RUN_ID", runId);
@@ -203,7 +213,7 @@ namespace Microsoft.Xunit.Performance
 
             ProcessStartInfo startInfo = new ProcessStartInfo()
             {
-                FileName = runnerCommand,
+                FileName = runnerHost ?? runnerCommand,
                 Arguments = commandLineArgs.ToString(),
                 UseShellExecute = false,
             };
@@ -236,10 +246,11 @@ Arguments: {startInfo.Arguments}");
 
                 // Note: We do not use shadowCopy because that creates a new AppDomain which can cause
                 // assembly load failures with delay-signed or "fake signed" assemblies.
-                using (var controller = new XunitFrontController(
+                using (var controller = new Xunit2(
+                    useAppDomain: false,
+                    sourceInformationProvider: new NullSourceInformationProvider(),
                     assemblyFileName: assembly.AssemblyFilename,
                     shadowCopy: false,
-                    useAppDomain: false,
                     diagnosticMessageSink: new ConsoleDiagnosticsMessageVisitor())
                     )
                 using (var discoveryVisitor = new PerformanceTestDiscoveryVisitor(assembly, filters, diagnosticMessageSink))
@@ -358,11 +369,25 @@ Arguments: {startInfo.Arguments}");
                         project.Filters.IncludedMethods.Add(option.Value);
                         break;
 
+                    case "runnerhost":
+                        if (option.Value == null)
+                            throw new ArgumentException("missing argument for -runnerhost");
+
+                        project.RunnerHost = option.Value;
+                        break;
+
                     case "runner":
                         if (option.Value == null)
                             throw new ArgumentException("missing argument for -runner");
 
                         project.RunnerCommand = option.Value;
+                        break;
+
+                    case "runnerargs":
+                        if (option.Value == null)
+                            throw new ArgumentException("missing argument for -runnerargs");
+
+                        project.RunnerArgs = option.Value;
                         break;
 
                     case "baselinerunner":
@@ -446,6 +471,15 @@ Arguments: {startInfo.Arguments}");
             var option = arguments.Pop();
             string value = null;
 
+            if (option.Equals("-runnerargs", StringComparison.OrdinalIgnoreCase))
+            {
+                // Special case, just grab all of the args to pass along.
+                if (arguments.Count > 0)
+                {
+                    value = arguments.Pop();
+                }
+            }
+
             if (arguments.Count > 0 && !arguments.Peek().StartsWith("-", StringComparison.Ordinal))
                 value = arguments.Pop();
 
@@ -463,6 +497,7 @@ Arguments: {startInfo.Arguments}");
             for (; ex != null; ex = ex.InnerException)
             {
                 writer.WriteLine(ex.Message);
+                writer.WriteLine(ex.StackTrace);
             }
         }
 
@@ -503,9 +538,13 @@ Valid options:
                          : if specified more than once, acts as an OR operation
   -method ""name""         : run a given test method (should be fully specified;
                          : i.e., 'MyNamespace.MyClass.MyTestMethod')
+  -runnerhost ""name""   : use the given CLR host to launch the runner program.
   -runner ""name""         : use the specified runner to excecute tests. Defaults
                          : to xunit.console.exe
-  -runid ""name""          : a run identifier used to create unique output filenames.
+  -runnerargs ""args""   : append the given args to the end of the xunit runner's command-line
+                           : a quoted group of arguments, 
+                           : e.g. -runnerargs ""-verbose -nologo -parallel none""
+  -runid ""name""        : a run identifier used to create unique output filenames.
   -outdir  ""name""        : folder for output files.
   -verbose               : verbose logging
 ");

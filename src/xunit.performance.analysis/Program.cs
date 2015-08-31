@@ -258,7 +258,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                     writer.WriteLine($"<tr><th>Test</th><th>Unit</th><th>Min</th><th>Mean</th><th>Max</th><th>Margin</th><th>StdDev</th></tr>");
                     foreach (var test in run.Value)
                     {
-                        var stats = test.Value.Stats["duration"];
+                        var stats = test.Value.Stats["Duration"];
                         writer.WriteLine($"<tr><td>{test.Value.TestName}</td><td>ms</td><td>{stats.Minimum.ToString("G3")}</td><td>{stats.Mean.ToString("G3")}</td><td>{stats.Maximum.ToString("G3")}</td><td>{stats.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{stats.StandardDeviation.ToString("G3")}</td></tr>");
                     }
                     writer.WriteLine($"</table>");
@@ -353,7 +353,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                     result.RunId = runId;
                     result.EtlPath = etlPath;
 
-                    foreach(var metricAttr in iteration.Attributes().Where(a => a.Name != "index"))
+                    foreach (var metricAttr in iteration.Attributes().Where(a => a.Name != "index"))
                     {
                         var metricName = metricAttr.Name.LocalName;
                         var metricVal = double.Parse(metricAttr.Value);

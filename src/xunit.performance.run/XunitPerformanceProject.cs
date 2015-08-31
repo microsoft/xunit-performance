@@ -16,7 +16,11 @@ namespace Microsoft.Xunit.Performance
 
         public void AddBaseline(XunitProjectAssembly assembly) { _baselineAssemblies.Add(assembly); }
 
+        public string RunnerHost { get; set; } = null;
+
         public string RunnerCommand { get; set; } = "xunit.console.exe";
+
+        public string RunnerArgs { get; set; }
 
         public string BaselineRunnerCommand
         {
