@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.Xunit.Performance</RootNamespace>
-    <AssemblyName>xunit.performance.execution.DotNetCore</AssemblyName>
+    <AssemblyName>xunit.performance.execution.dnx</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -47,12 +47,6 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\xunit.performance.core\xunit.performance.core.csproj">
-      <Project>{d8820889-cc47-42b6-bac1-01d16d241ece}</Project>
-      <Name>xunit.performance.core</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\common\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
@@ -86,7 +80,16 @@
       <InProject>false</InProject>
     </NuSpecFile>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\xunit.performance.core\xunit.performance.core.csproj">
+      <Project>{d8820889-cc47-42b6-bac1-01d16d241ece}</Project>
+      <Name>xunit.performance.core</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
+  <PropertyGroup>
+    <NuGetTargetMoniker>DNXCore,Version=v5.0</NuGetTargetMoniker>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
