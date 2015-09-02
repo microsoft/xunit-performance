@@ -7,17 +7,18 @@ using Xunit.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class BenchmarkDiscoverer : TheoryDiscoverer
+    internal class BenchmarkDiscoverer : IXunitTestCaseDiscoverer
     {
         private IMessageSink _diagnosticMessageSink;
+        private TheoryDiscoverer _theoryDiscoverer;
 
         public BenchmarkDiscoverer(IMessageSink diagnosticMessageSink)
-            : base(diagnosticMessageSink)
         {
+            _theoryDiscoverer = new TheoryDiscoverer(diagnosticMessageSink);
             _diagnosticMessageSink = diagnosticMessageSink;
         }
 
-        public override IEnumerable<IXunitTestCase> Discover(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo benchmarkAttribute)
+        public IEnumerable<IXunitTestCase> Discover(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo benchmarkAttribute)
         {
             var defaultMethodDisplay = discoveryOptions.MethodDisplayOrDefault();
 
@@ -36,7 +37,7 @@ namespace Microsoft.Xunit.Performance
             // xUnit doesn't expose everything we need (for example, the ability to ask if an
             // object is xUnit-serializable).
             //
-            foreach (var theoryCase in base.Discover(discoveryOptions, testMethod, benchmarkAttribute))
+            foreach (var theoryCase in _theoryDiscoverer.Discover(discoveryOptions, testMethod, benchmarkAttribute))
             {
                 if (theoryCase is XunitTheoryTestCase)
                 {

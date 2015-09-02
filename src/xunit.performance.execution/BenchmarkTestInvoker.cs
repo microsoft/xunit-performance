@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
@@ -38,7 +39,7 @@ namespace Microsoft.Xunit.Performance
             await s_semaphore.WaitAsync();
             try
             {
-                return await base.InvokeTestMethodAsync(testClassInstance);
+                return await InvokeTestMethodImplAsync(testClassInstance);
             }
             finally
             {
@@ -46,7 +47,7 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
-        protected override object CallTestMethod(object testClassInstance)
+        private object CallTestMethod(object testClassInstance)
         {
             return IterateAsync(testClassInstance);
         }
@@ -141,6 +142,62 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
+
+        //
+        // This duplicates the implementation of InvokeTestMethodAsync, but delegates to CallTestMethod to actually run the test.
+        // This can be removed when we move to xunit 2.1 beta 4 or later.
+        //
+        protected async Task<decimal> InvokeTestMethodImplAsync(object testClassInstance)
+        {
+            var oldSyncContext = SynchronizationContext.Current;
+
+            try
+            {
+                var asyncSyncContext = new AsyncTestSyncContext(oldSyncContext);
+                SetSynchronizationContext(asyncSyncContext);
+
+                await Aggregator.RunAsync(
+                    () => Timer.AggregateAsync(
+                        async () =>
+                        {
+                            var parameterCount = TestMethod.GetParameters().Length;
+                            var valueCount = TestMethodArguments == null ? 0 : TestMethodArguments.Length;
+                            if (parameterCount != valueCount)
+                            {
+                                Aggregator.Add(
+                                    new InvalidOperationException(
+                                        $"The test method expected {parameterCount} parameter value{(parameterCount == 1 ? "" : "s")}, but {valueCount} parameter value{(valueCount == 1 ? "" : "s")} {(valueCount == 1 ? "was" : "were")} provided."
+                                    )
+                                );
+                            }
+                            else
+                            {
+                                var result = CallTestMethod(testClassInstance);
+                                var task = result as Task;
+                                if (task != null)
+                                    await task;
+                                else
+                                {
+                                    var ex = await asyncSyncContext.WaitForCompletionAsync();
+                                    if (ex != null)
+                                        Aggregator.Add(ex);
+                                }
+                            }
+                        }
+                    )
+                );
+            }
+            finally
+            {
+                SetSynchronizationContext(oldSyncContext);
+            }
+
+            return Timer.Total;
+        }
+
+        [SecuritySafeCritical]
+        static void SetSynchronizationContext(SynchronizationContext context)
+            => SynchronizationContext.SetSynchronizationContext(context);
 
         /// <summary>
         /// Make a delegate that invokes the test method with this case's arguments.  The idea is that invoking the delegate
