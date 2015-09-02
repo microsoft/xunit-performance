@@ -14,7 +14,7 @@ Contains the tools necessary for running xunit Performance tests in Windows usin
     <licenseUrl>https://github.com/Microsoft/xunit-performance/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <dependencies>
-      <dependency id="xunit.runner.console" version="2.1.0-beta4-build3109" />
+      <dependency id="xunit.runner.console" version="2.1.0-beta3-build3029" />
     </dependencies>
   </metadata>
   <files>
