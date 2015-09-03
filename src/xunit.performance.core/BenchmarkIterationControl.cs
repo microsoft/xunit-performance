@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -13,17 +14,17 @@ namespace Microsoft.Xunit.Performance
     /// <summary>
     /// Allows a performance test to manually control test iterations.
     /// </summary>
-    public class BenchmarkIterationControl
+    public abstract class BenchmarkIterationControl
     {
         /// <summary>
         /// Returns true if the test should execute at least one more iteration.
         /// </summary>
-        public bool NeedMoreIterations { get; }
+        public abstract bool NeedMoreIterations { get; }
 
         /// <summary>
         /// Provides a <see cref="IterationCancellationToken"/> that will enter the cancelled state when no more iterations are needed.
         /// </summary>
-        public CancellationToken IterationCancellationToken { get; }
+        public abstract CancellationToken IterationCancellationToken { get; }
 
         /// <summary>
         /// Called by the test method to indicate that an iteration is starting.
@@ -32,11 +33,12 @@ namespace Microsoft.Xunit.Performance
         /// When the iteration is complete, call <see cref="RunningBenchmarkIteration.Dispose"/>.
         /// </remarks>
         /// <returns>A <see cref="RunningBenchmarkIteration"/> representing this iteration.</returns>
-        /// <param name="iteration">The ordinal of this iteration.  If zero, this is a "warmup" iteration that should be ignored by analysis.</param>
-        public RunningBenchmarkIteration StartIteration(int iteration)
-        {
-            return new RunningBenchmarkIteration();
-        }
+        public abstract RunningBenchmarkIteration StartNextIteration();
+
+        /// <summary>
+        /// Called when the current iteration has completed.
+        /// </summary>
+        protected internal abstract void EndCurrentIteration();
     }
 
     /// <summary>
@@ -47,11 +49,17 @@ namespace Microsoft.Xunit.Performance
     /// </remarks>
     public struct RunningBenchmarkIteration : IDisposable
     {
+        private BenchmarkIterationControl _control;
+
+        internal RunningBenchmarkIteration(BenchmarkIterationControl control) { _control = control; }
+
         /// <summary>
         /// Marks the end of the iteration.
         /// </summary>
         public void Dispose()
         {
+            if (_control != null)
+                _control.EndCurrentIteration();
         }
     }
 }
