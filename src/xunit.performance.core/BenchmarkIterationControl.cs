@@ -31,33 +31,42 @@ namespace Microsoft.Xunit.Performance
         public abstract RunningBenchmarkIteration StartNextIteration();
 
         /// <summary>
-        /// Called when the current iteration has completed.
+        /// Creates a new RunningBenchmarkIteration instance associated with this object.
         /// </summary>
-        protected internal abstract void EndCurrentIteration();
-    }
-
-    /// <summary>
-    /// Represents a benchmark iteration that is currently executing.
-    /// </summary>
-    /// <remarks>
-    /// Call <see cref="Dispose"/> when the iteration is complete.
-    /// </remarks>
-    public struct RunningBenchmarkIteration : IDisposable
-    {
-        private BenchmarkIterationControl _control;
-
-        internal RunningBenchmarkIteration(BenchmarkIterationControl control)
+        /// <returns></returns>
+        protected RunningBenchmarkIteration CreateRunningBenchmarkIteration()
         {
-            _control = control;
+            return new RunningBenchmarkIteration(this);
         }
 
         /// <summary>
-        /// Marks the end of the iteration.
+        /// Called when the current iteration has completed.
         /// </summary>
-        public void Dispose()
+        protected internal abstract void EndCurrentIteration();
+
+        /// <summary>
+        /// Represents a benchmark iteration that is currently executing.
+        /// </summary>
+        /// <remarks>
+        /// Call <see cref="Dispose"/> when the iteration is complete.
+        /// </remarks>
+        public struct RunningBenchmarkIteration : IDisposable
         {
-            if (_control != null)
-                _control.EndCurrentIteration();
+            private BenchmarkIterationControl _control;
+
+            internal RunningBenchmarkIteration(BenchmarkIterationControl control)
+            {
+                _control = control;
+            }
+
+            /// <summary>
+            /// Marks the end of the iteration.
+            /// </summary>
+            public void Dispose()
+            {
+                if (_control != null)
+                    _control.EndCurrentIteration();
+            }
         }
     }
 }
