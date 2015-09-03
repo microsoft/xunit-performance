@@ -20,7 +20,7 @@ namespace Microsoft.Xunit.Performance
         /// Indicates that the method requires manual control over iterations.
         /// </summary>
         /// <remarks>
-        /// The method's first argument must be of type BenchmarkIterationControl.
+        /// The method's first argument must be of type <see cref="BenchmarkIterationControl"/>.
         /// </remarks>
         ManualControl
     }
