@@ -46,7 +46,10 @@ namespace Microsoft.Xunit.Performance
     {
         private BenchmarkIterationControl _control;
 
-        internal RunningBenchmarkIteration(BenchmarkIterationControl control) { _control = control; }
+        internal RunningBenchmarkIteration(BenchmarkIterationControl control)
+        {
+            _control = control;
+        }
 
         /// <summary>
         /// Marks the end of the iteration.
