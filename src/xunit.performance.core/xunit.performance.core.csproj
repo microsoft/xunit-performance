@@ -51,7 +51,7 @@
     </Compile>
     <Compile Include="AllocatesAttribute.cs" />
     <Compile Include="BenchmarkAttribute.cs" />
-    <Compile Include="BenchmarkType.cs" />
+    <Compile Include="BenchmarkOptions.cs" />
     <Compile Include="BenchmarkIterationControl.cs" />
     <Compile Include="IPerformanceMetricAttribute.cs" />
     <Compile Include="MeasureGCCountsAttribute.cs" />
