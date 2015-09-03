@@ -18,9 +18,9 @@ namespace Microsoft.Xunit.Performance
         public bool NeedMoreIterations { get; }
 
         /// <summary>
-        /// Provides a <see cref="CancellationToken"/> that will enter the cancelled state when no more iterations are needed.
+        /// Provides a <see cref="IterationCancellationToken"/> that will enter the cancelled state when no more iterations are needed.
         /// </summary>
-        public CancellationToken CancellationToken { get; }
+        public CancellationToken IterationCancellationToken { get; }
 
         /// <summary>
         /// Called by the test method to indicate that an iteration is starting.
