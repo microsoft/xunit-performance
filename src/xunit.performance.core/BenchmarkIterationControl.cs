@@ -48,7 +48,7 @@ namespace Microsoft.Xunit.Performance
     public struct RunningBenchmarkIteration : IDisposable
     {
         /// <summary>
-        /// 
+        /// Marks the end of the iteration.
         /// </summary>
         public void Dispose()
         {
