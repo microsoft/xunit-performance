@@ -17,11 +17,5 @@ namespace Microsoft.Xunit.Performance
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class BenchmarkAttribute : FactAttribute, IPerformanceMetricAttribute
     {
-        /// <summary>
-        /// Creates a <see cref="BenchmarkAttribute"/> with no options specified.
-        /// </summary>
-        public BenchmarkAttribute()
-        {
-        }
     }
 }
