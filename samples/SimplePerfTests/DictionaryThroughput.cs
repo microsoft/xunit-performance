@@ -1,4 +1,7 @@
-﻿using Microsoft.Xunit.Performance;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using Microsoft.Xunit.Performance;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +13,7 @@ namespace SimplePerfTests
     public class DictionaryThroughput
     {
         [Benchmark]
-        static void Add()
+        private static void Add()
         {
             foreach (var iteration in Benchmark.Iterations)
             {
