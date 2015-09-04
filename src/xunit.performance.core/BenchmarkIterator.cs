@@ -17,18 +17,27 @@ namespace Microsoft.Xunit.Performance.Internal
         /// <summary>
         /// Runs the specified method with this <see cref="BenchmarkIterator"/> as the <see cref="Current"/> iterator.
         /// </summary>
-        /// <param name="method"></param>
+        /// <param name="testMethod"></param>
         /// <returns></returns>
-        public async Task RunAsync(Func<Task> method)
+        public async Task RunAsync(Func<Task> testMethod)
         {
+            //
+            // Ensure there's only one "current" iterator at a time.
+            //
             await s_semaphore.WaitAsync();
             try
             {
+                //
+                // Prevent neseted iterators
+                //
                 if (Current != null)
                     throw new InvalidOperationException();
 
+                //
+                // Set the current iterator, and call the test.
+                //
                 Current = this;
-                await method();
+                await testMethod();
             }
             finally
             {
