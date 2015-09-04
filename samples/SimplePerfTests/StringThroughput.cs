@@ -31,39 +31,48 @@ public static class StringThroughput
     [Benchmark]
     public static void BoundCheckHoist()
     {
-        Benchmark.Iterate(() =>
+        foreach (var iteration in Benchmark.Iterations)
         {
-        int strLength = i1.Length;
+            using (iteration.StartMeasurement())
+            {
+                int strLength = i1.Length;
 
-        for (int j = 0; j < strLength; j++)
-        {
-            counter += i1[j];
+                for (int j = 0; j < strLength; j++)
+                {
+                    counter += i1[j];
+                }
+            }
         }
-        });
     }
 
     [Benchmark]
     public static void LengthHoisting()
     {
-        Benchmark.Iterate(() =>
+        foreach (var iteration in Benchmark.Iterations)
         {
-        for (int j = 0; j < i1.Length; j++)
-        {
-            counter += i1[j];
+            using (iteration.StartMeasurement())
+            {
+                for (int j = 0; j < i1.Length; j++)
+                {
+                    counter += i1[j];
+                }
+            }
         }
-        });
     }
 
     [Benchmark]
     public static void PathLength()
     {
-        Benchmark.Iterate(() =>
+        foreach (var iteration in Benchmark.Iterations)
         {
-        for (int j = 0; j < i1.Length; j++)
-        {
-            counter += GetStringCharNoInline(i1, j);
+            using (iteration.StartMeasurement())
+            {
+                for (int j = 0; j < i1.Length; j++)
+                {
+                    counter += GetStringCharNoInline(i1, j);
+                }
+            }
         }
-        });
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -91,14 +100,18 @@ public static class StringThroughput
     [MemberData(nameof(CaseStrings))]
     public static void ToUpper(string s)
     {
-        Benchmark.Iterate(() => s.ToUpper());
+        foreach (var iteration in Benchmark.Iterations)
+            using (iteration.StartMeasurement())
+                s.ToUpper();
     }
 
     [Benchmark]
     [MemberData(nameof(CaseStrings))]
     public static void ToUpperInvariant(string s)
     {
-        Benchmark.Iterate(() => s.ToUpperInvariant());
+        foreach (var iteration in Benchmark.Iterations)
+            using (iteration.StartMeasurement())
+                s.ToUpperInvariant();
     }
 
     public static IEnumerable<object[]> TrimStrings => MakeArgs(
@@ -133,28 +146,36 @@ public static class StringThroughput
     [MemberData(nameof(TrimStrings))]
     public static void Trim(string s)
     {
-        Benchmark.Iterate(() => s.Trim());
+        foreach (var iteration in Benchmark.Iterations)
+            using (iteration.StartMeasurement())
+                s.Trim();
     }
 
     [Benchmark]
     [MemberData(nameof(TrimStringsAndChars))]
     public static void TrimCharArr(string s, char[] c)
     {
-        Benchmark.Iterate(() => s.Trim(c));
+        foreach (var iteration in Benchmark.Iterations)
+            using (iteration.StartMeasurement())
+                s.Trim(c);
     }
 
     [Benchmark]
     [MemberData(nameof(TrimStringsAndChars))]
     public static void TrimStart(string s, char[] c)
     {
-        Benchmark.Iterate(() => s.TrimStart(c));
+        foreach (var iteration in Benchmark.Iterations)
+            using (iteration.StartMeasurement())
+                s.TrimStart(c);
     }
 
     [Benchmark]
     [MemberData(nameof(TrimStringsAndChars))]
     public static void TrimEnd(string s, char[] c)
     {
-        Benchmark.Iterate(() => s.TrimEnd(c));
+        foreach (var iteration in Benchmark.Iterations)
+            using (iteration.StartMeasurement())
+                s.TrimEnd(c);
     }
 
     #region more tests
@@ -241,44 +262,53 @@ public static class StringThroughput
     [Benchmark]
     public static void Equality()
     {
-        Benchmark.Iterate(() =>
+        foreach (var iteration in Benchmark.Iterations)
         {
-        bool b;
-        b = s_e1 == s_e2; b = s_e2 == s_e3; b = s_e3 == s_e4; b = s_e4 == s_e5; b = s_e5 == s_e6; b = s_e6 == s_e7; b = s_e7 == s_e8; b = s_e8 == s_e9; b = s_e9 == s_e1;
-        b = s_e1 == s_e1a; b = s_e2 == s_e2a; b = s_e3 == s_e3a; b = s_e4 == s_e4a; b = s_e5 == s_e5a; b = s_e6 == s_e6a; b = s_e7 == s_e7a; b = s_e8 == s_e8a; b = s_e9 == s_e9a;
-        });
+            using (iteration.StartMeasurement())
+            {
+                bool b;
+                b = s_e1 == s_e2; b = s_e2 == s_e3; b = s_e3 == s_e4; b = s_e4 == s_e5; b = s_e5 == s_e6; b = s_e6 == s_e7; b = s_e7 == s_e8; b = s_e8 == s_e9; b = s_e9 == s_e1;
+                b = s_e1 == s_e1a; b = s_e2 == s_e2a; b = s_e3 == s_e3a; b = s_e4 == s_e4a; b = s_e5 == s_e5a; b = s_e6 == s_e6a; b = s_e7 == s_e7a; b = s_e8 == s_e8a; b = s_e9 == s_e9a;
+            }
+        }
     }
 
     [Benchmark]
     public static void RemoveInt()
     {
-        Benchmark.Iterate(() =>
+        foreach (var iteration in Benchmark.Iterations)
         {
-        s_e1.Remove(0); s_e2.Remove(0); s_e2.Remove(1);
-        s_e3.Remove(0); s_e3.Remove(2); s_e3.Remove(3);
-        s_e4.Remove(0); s_e4.Remove(18); s_e4.Remove(22);
-        s_e5.Remove(0); s_e5.Remove(7); s_e5.Remove(10);
-        s_e6.Remove(0); s_e6.Remove(3); s_e6.Remove(4);
-        s_e7.Remove(0); s_e7.Remove(3); s_e7.Remove(4);
-        s_e8.Remove(0); s_e8.Remove(3);
-        s_e9.Remove(0); s_e9.Remove(4);
-        });
+            using (iteration.StartMeasurement())
+            {
+                s_e1.Remove(0); s_e2.Remove(0); s_e2.Remove(1);
+                s_e3.Remove(0); s_e3.Remove(2); s_e3.Remove(3);
+                s_e4.Remove(0); s_e4.Remove(18); s_e4.Remove(22);
+                s_e5.Remove(0); s_e5.Remove(7); s_e5.Remove(10);
+                s_e6.Remove(0); s_e6.Remove(3); s_e6.Remove(4);
+                s_e7.Remove(0); s_e7.Remove(3); s_e7.Remove(4);
+                s_e8.Remove(0); s_e8.Remove(3);
+                s_e9.Remove(0); s_e9.Remove(4);
+            }
+        }
     }
 
     [Benchmark]
     public static void RemoveIntInt()
     {
-        Benchmark.Iterate(() =>
+        foreach (var iteration in Benchmark.Iterations)
         {
-        s_e1.Remove(0, 0); s_e2.Remove(0, 1); s_e2.Remove(1, 0);
-        s_e3.Remove(0, 2); s_e3.Remove(2, 1); s_e3.Remove(3, 0);
-        s_e4.Remove(0, 3); s_e4.Remove(18, 3); s_e4.Remove(22, 1);
-        s_e5.Remove(0, 8); s_e5.Remove(7, 4); s_e5.Remove(10, 1);
-        s_e6.Remove(0, 2); s_e6.Remove(3, 1); s_e6.Remove(4, 0);
-        s_e7.Remove(0, 4); s_e7.Remove(3, 2); s_e7.Remove(4, 1);
-        s_e8.Remove(0, 2); s_e8.Remove(3, 3);
-        s_e9.Remove(0, 3); s_e9.Remove(4, 1);
-        });
+            using (iteration.StartMeasurement())
+            {
+                s_e1.Remove(0, 0); s_e2.Remove(0, 1); s_e2.Remove(1, 0);
+                s_e3.Remove(0, 2); s_e3.Remove(2, 1); s_e3.Remove(3, 0);
+                s_e4.Remove(0, 3); s_e4.Remove(18, 3); s_e4.Remove(22, 1);
+                s_e5.Remove(0, 8); s_e5.Remove(7, 4); s_e5.Remove(10, 1);
+                s_e6.Remove(0, 2); s_e6.Remove(3, 1); s_e6.Remove(4, 0);
+                s_e7.Remove(0, 4); s_e7.Remove(3, 2); s_e7.Remove(4, 1);
+                s_e8.Remove(0, 2); s_e8.Remove(3, 3);
+                s_e9.Remove(0, 3); s_e9.Remove(4, 1);
+            }
+        }
     }
 
     private static string s_f1 = "Testing {0}, {0:C}, {0:D5}, {0:E} - {0:F4}{0:G}{0:N}  {0:X} !!";
@@ -289,13 +319,16 @@ public static class StringThroughput
     [Benchmark]
     public static void Format()
     {
-        Benchmark.Iterate(() =>
+        foreach (var iteration in Benchmark.Iterations)
         {
-        String.Format(s_f1, 8); String.Format(s_f1, 0); String.Format(s_f2, 0); String.Format(s_f2, -2); String.Format(s_f2, 3.14159); String.Format(s_f2, 11000000);
-        String.Format(s_f3, 0); String.Format(s_f3, -2); String.Format(s_f3, 3.14159); String.Format(s_f3, 11000000); String.Format(s_f3, "Foo");
-        String.Format(s_f3, 'a'); String.Format(s_f3, s_f1);
-        String.Format(s_f4, '1', "Foo", "Foo", "Foo", "Foo", "Foo", "Foo", "Foo");
-        });
+            using (iteration.StartMeasurement())
+            {
+                String.Format(s_f1, 8); String.Format(s_f1, 0); String.Format(s_f2, 0); String.Format(s_f2, -2); String.Format(s_f2, 3.14159); String.Format(s_f2, 11000000);
+                String.Format(s_f3, 0); String.Format(s_f3, -2); String.Format(s_f3, 3.14159); String.Format(s_f3, 11000000); String.Format(s_f3, "Foo");
+                String.Format(s_f3, 'a'); String.Format(s_f3, s_f1);
+                String.Format(s_f4, '1', "Foo", "Foo", "Foo", "Foo", "Foo", "Foo", "Foo");
+            }
+        }
     }
 
     private static string s_h1 = String.Empty;
@@ -311,10 +344,13 @@ public static class StringThroughput
     [Benchmark]
     public static new void GetHashCode()
     {
-        Benchmark.Iterate(() =>
+        foreach (var iteration in Benchmark.Iterations)
         {
-        s_h1.GetHashCode(); s_h2.GetHashCode(); s_h3.GetHashCode(); s_h4.GetHashCode(); s_h5.GetHashCode(); s_h6.GetHashCode(); s_h7.GetHashCode(); s_h8.GetHashCode(); s_h9.GetHashCode();
-        });
+            using (iteration.StartMeasurement())
+            {
+                s_h1.GetHashCode(); s_h2.GetHashCode(); s_h3.GetHashCode(); s_h4.GetHashCode(); s_h5.GetHashCode(); s_h6.GetHashCode(); s_h7.GetHashCode(); s_h8.GetHashCode(); s_h9.GetHashCode();
+            }
+        }
     }
 
     private static string s_p1 = "a";
@@ -322,60 +358,72 @@ public static class StringThroughput
     [Benchmark]
     public static void PadLeft()
     {
-        Benchmark.Iterate(() =>
+        foreach (var iteration in Benchmark.Iterations)
         {
-        s_p1.PadLeft(0);
-        s_p1.PadLeft(1);
-        s_p1.PadLeft(5);
-        s_p1.PadLeft(18);
-        s_p1.PadLeft(2142);
-        });
+            using (iteration.StartMeasurement())
+            {
+                s_p1.PadLeft(0);
+                s_p1.PadLeft(1);
+                s_p1.PadLeft(5);
+                s_p1.PadLeft(18);
+                s_p1.PadLeft(2142);
+            }
+        }
     }
 
     [Benchmark]
     public static void CompareCurrentCulture()
     {
-        Benchmark.Iterate(() =>
+        foreach (var iteration in Benchmark.Iterations)
         {
-        string.Compare("The quick brown fox", "The quick brown fox");
-        string.Compare("The quick brown fox", "The quick brown fox j");
-        string.Compare("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x");
-        string.Compare("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x jumped");
-        string.Compare("a\u0300a\u0300a\u0300", "\u00e0\u00e0\u00e0");
-        string.Compare("a\u0300a\u0300a\u0300", "\u00c0\u00c0\u00c0");
-        });
+            using (iteration.StartMeasurement())
+            {
+                string.Compare("The quick brown fox", "The quick brown fox");
+                string.Compare("The quick brown fox", "The quick brown fox j");
+                string.Compare("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x");
+                string.Compare("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x jumped");
+                string.Compare("a\u0300a\u0300a\u0300", "\u00e0\u00e0\u00e0");
+                string.Compare("a\u0300a\u0300a\u0300", "\u00c0\u00c0\u00c0");
+            }
+        }
     }
 
     [Benchmark]
     public static void SubstringInt()
     {
-        Benchmark.Iterate(() =>
+        foreach (var iteration in Benchmark.Iterations)
         {
-        s_e1.Substring(0); s_e2.Substring(0); s_e2.Substring(1);
-        s_e3.Substring(0); s_e3.Substring(2); s_e3.Substring(3);
-        s_e4.Substring(0); s_e4.Substring(18); s_e4.Substring(22);
-        s_e5.Substring(0); s_e5.Substring(7); s_e5.Substring(10);
-        s_e6.Substring(0); s_e6.Substring(3); s_e6.Substring(4);
-        s_e7.Substring(0); s_e7.Substring(3); s_e7.Substring(4);
-        s_e8.Substring(0); s_e8.Substring(3);
-        s_e9.Substring(0); s_e9.Substring(4);
-        });
+            using (iteration.StartMeasurement())
+            {
+                s_e1.Substring(0); s_e2.Substring(0); s_e2.Substring(1);
+                s_e3.Substring(0); s_e3.Substring(2); s_e3.Substring(3);
+                s_e4.Substring(0); s_e4.Substring(18); s_e4.Substring(22);
+                s_e5.Substring(0); s_e5.Substring(7); s_e5.Substring(10);
+                s_e6.Substring(0); s_e6.Substring(3); s_e6.Substring(4);
+                s_e7.Substring(0); s_e7.Substring(3); s_e7.Substring(4);
+                s_e8.Substring(0); s_e8.Substring(3);
+                s_e9.Substring(0); s_e9.Substring(4);
+            }
+        }
     }
 
     [Benchmark]
     public static void SubstringIntInt()
     {
-        Benchmark.Iterate(() =>
+        foreach (var iteration in Benchmark.Iterations)
         {
-        s_e1.Substring(0, 0); s_e2.Substring(0, 1); s_e2.Substring(1, 0);
-        s_e3.Substring(0, 2); s_e3.Substring(2, 1); s_e3.Substring(3, 0);
-        s_e4.Substring(0, 3); s_e4.Substring(18, 3); s_e4.Substring(22, 1);
-        s_e5.Substring(0, 8); s_e5.Substring(7, 4); s_e5.Substring(10, 1);
-        s_e6.Substring(0, 2); s_e6.Substring(3, 1); s_e6.Substring(4, 0);
-        s_e7.Substring(0, 4); s_e7.Substring(3, 2); s_e7.Substring(4, 1);
-        s_e8.Substring(0, 2); s_e8.Substring(3, 3);
-        s_e9.Substring(0, 3); s_e9.Substring(4, 1);
-        });
+            using (iteration.StartMeasurement())
+            {
+                s_e1.Substring(0, 0); s_e2.Substring(0, 1); s_e2.Substring(1, 0);
+                s_e3.Substring(0, 2); s_e3.Substring(2, 1); s_e3.Substring(3, 0);
+                s_e4.Substring(0, 3); s_e4.Substring(18, 3); s_e4.Substring(22, 1);
+                s_e5.Substring(0, 8); s_e5.Substring(7, 4); s_e5.Substring(10, 1);
+                s_e6.Substring(0, 2); s_e6.Substring(3, 1); s_e6.Substring(4, 0);
+                s_e7.Substring(0, 4); s_e7.Substring(3, 2); s_e7.Substring(4, 1);
+                s_e8.Substring(0, 2); s_e8.Substring(3, 3);
+                s_e9.Substring(0, 3); s_e9.Substring(4, 1);
+            }
+        }
     }
 
     [Benchmark]
@@ -403,26 +451,29 @@ public static class StringThroughput
         char[] c7 = { "\u0400"[0] };
         char[] c8 = { '1', 'a', ' ', '0', 'd', 'e', 's', 't', "\u0400"[0] };
 
-        Benchmark.Iterate(() =>
+        foreach (var iteration in Benchmark.Iterations)
         {
-        t1.Split(c1, StringSplitOptions.None); t2.Split(c1, StringSplitOptions.None); t3.Split(c1, StringSplitOptions.None); t4.Split(c1, StringSplitOptions.None); t5.Split(c1, StringSplitOptions.None); t6.Split(c1, StringSplitOptions.None); t7.Split(c1, StringSplitOptions.None); t8.Split(c1, StringSplitOptions.None); t9.Split(c1, StringSplitOptions.None); tA.Split(c1, StringSplitOptions.None); tB.Split(c1, StringSplitOptions.None); tC.Split(c1, StringSplitOptions.None);
-        t1.Split(c2, StringSplitOptions.None); t2.Split(c2, StringSplitOptions.None); t3.Split(c2, StringSplitOptions.None); t4.Split(c2, StringSplitOptions.None); t5.Split(c2, StringSplitOptions.None); t6.Split(c2, StringSplitOptions.None); t7.Split(c2, StringSplitOptions.None); t8.Split(c2, StringSplitOptions.None); t9.Split(c2, StringSplitOptions.None); tA.Split(c2, StringSplitOptions.None); tB.Split(c2, StringSplitOptions.None); tC.Split(c2, StringSplitOptions.None);
-        t1.Split(c3, StringSplitOptions.None); t2.Split(c3, StringSplitOptions.None); t3.Split(c3, StringSplitOptions.None); t4.Split(c3, StringSplitOptions.None); t5.Split(c3, StringSplitOptions.None); t6.Split(c3, StringSplitOptions.None); t7.Split(c3, StringSplitOptions.None); t8.Split(c3, StringSplitOptions.None); t9.Split(c3, StringSplitOptions.None); tA.Split(c3, StringSplitOptions.None); tB.Split(c3, StringSplitOptions.None); tC.Split(c3, StringSplitOptions.None);
-        t1.Split(c4, StringSplitOptions.None); t2.Split(c4, StringSplitOptions.None); t3.Split(c4, StringSplitOptions.None); t4.Split(c4, StringSplitOptions.None); t5.Split(c4, StringSplitOptions.None); t6.Split(c4, StringSplitOptions.None); t7.Split(c4, StringSplitOptions.None); t8.Split(c4, StringSplitOptions.None); t9.Split(c4, StringSplitOptions.None); tA.Split(c4, StringSplitOptions.None); tB.Split(c4, StringSplitOptions.None); tC.Split(c4, StringSplitOptions.None);
-        t1.Split(c5, StringSplitOptions.None); t2.Split(c5, StringSplitOptions.None); t3.Split(c5, StringSplitOptions.None); t4.Split(c5, StringSplitOptions.None); t5.Split(c5, StringSplitOptions.None); t6.Split(c5, StringSplitOptions.None); t7.Split(c5, StringSplitOptions.None); t8.Split(c5, StringSplitOptions.None); t9.Split(c5, StringSplitOptions.None); tA.Split(c5, StringSplitOptions.None); tB.Split(c5, StringSplitOptions.None); tC.Split(c5, StringSplitOptions.None);
-        t1.Split(c6, StringSplitOptions.None); t2.Split(c6, StringSplitOptions.None); t3.Split(c6, StringSplitOptions.None); t4.Split(c6, StringSplitOptions.None); t5.Split(c6, StringSplitOptions.None); t6.Split(c6, StringSplitOptions.None); t7.Split(c6, StringSplitOptions.None); t8.Split(c6, StringSplitOptions.None); t9.Split(c6, StringSplitOptions.None); tA.Split(c6, StringSplitOptions.None); tB.Split(c6, StringSplitOptions.None); tC.Split(c6, StringSplitOptions.None);
-        t1.Split(c7, StringSplitOptions.None); t2.Split(c7, StringSplitOptions.None); t3.Split(c7, StringSplitOptions.None); t4.Split(c7, StringSplitOptions.None); t5.Split(c7, StringSplitOptions.None); t6.Split(c7, StringSplitOptions.None); t7.Split(c7, StringSplitOptions.None); t8.Split(c7, StringSplitOptions.None); t9.Split(c7, StringSplitOptions.None); tA.Split(c7, StringSplitOptions.None); tB.Split(c7, StringSplitOptions.None); tC.Split(c7, StringSplitOptions.None);
-        t1.Split(c8, StringSplitOptions.None); t2.Split(c8, StringSplitOptions.None); t3.Split(c8, StringSplitOptions.None); t4.Split(c8, StringSplitOptions.None); t5.Split(c8, StringSplitOptions.None); t6.Split(c8, StringSplitOptions.None); t7.Split(c8, StringSplitOptions.None); t8.Split(c8, StringSplitOptions.None); t9.Split(c8, StringSplitOptions.None); tA.Split(c8, StringSplitOptions.None); tB.Split(c8, StringSplitOptions.None); tC.Split(c8, StringSplitOptions.None);
+            using (iteration.StartMeasurement())
+            {
+                t1.Split(c1, StringSplitOptions.None); t2.Split(c1, StringSplitOptions.None); t3.Split(c1, StringSplitOptions.None); t4.Split(c1, StringSplitOptions.None); t5.Split(c1, StringSplitOptions.None); t6.Split(c1, StringSplitOptions.None); t7.Split(c1, StringSplitOptions.None); t8.Split(c1, StringSplitOptions.None); t9.Split(c1, StringSplitOptions.None); tA.Split(c1, StringSplitOptions.None); tB.Split(c1, StringSplitOptions.None); tC.Split(c1, StringSplitOptions.None);
+                t1.Split(c2, StringSplitOptions.None); t2.Split(c2, StringSplitOptions.None); t3.Split(c2, StringSplitOptions.None); t4.Split(c2, StringSplitOptions.None); t5.Split(c2, StringSplitOptions.None); t6.Split(c2, StringSplitOptions.None); t7.Split(c2, StringSplitOptions.None); t8.Split(c2, StringSplitOptions.None); t9.Split(c2, StringSplitOptions.None); tA.Split(c2, StringSplitOptions.None); tB.Split(c2, StringSplitOptions.None); tC.Split(c2, StringSplitOptions.None);
+                t1.Split(c3, StringSplitOptions.None); t2.Split(c3, StringSplitOptions.None); t3.Split(c3, StringSplitOptions.None); t4.Split(c3, StringSplitOptions.None); t5.Split(c3, StringSplitOptions.None); t6.Split(c3, StringSplitOptions.None); t7.Split(c3, StringSplitOptions.None); t8.Split(c3, StringSplitOptions.None); t9.Split(c3, StringSplitOptions.None); tA.Split(c3, StringSplitOptions.None); tB.Split(c3, StringSplitOptions.None); tC.Split(c3, StringSplitOptions.None);
+                t1.Split(c4, StringSplitOptions.None); t2.Split(c4, StringSplitOptions.None); t3.Split(c4, StringSplitOptions.None); t4.Split(c4, StringSplitOptions.None); t5.Split(c4, StringSplitOptions.None); t6.Split(c4, StringSplitOptions.None); t7.Split(c4, StringSplitOptions.None); t8.Split(c4, StringSplitOptions.None); t9.Split(c4, StringSplitOptions.None); tA.Split(c4, StringSplitOptions.None); tB.Split(c4, StringSplitOptions.None); tC.Split(c4, StringSplitOptions.None);
+                t1.Split(c5, StringSplitOptions.None); t2.Split(c5, StringSplitOptions.None); t3.Split(c5, StringSplitOptions.None); t4.Split(c5, StringSplitOptions.None); t5.Split(c5, StringSplitOptions.None); t6.Split(c5, StringSplitOptions.None); t7.Split(c5, StringSplitOptions.None); t8.Split(c5, StringSplitOptions.None); t9.Split(c5, StringSplitOptions.None); tA.Split(c5, StringSplitOptions.None); tB.Split(c5, StringSplitOptions.None); tC.Split(c5, StringSplitOptions.None);
+                t1.Split(c6, StringSplitOptions.None); t2.Split(c6, StringSplitOptions.None); t3.Split(c6, StringSplitOptions.None); t4.Split(c6, StringSplitOptions.None); t5.Split(c6, StringSplitOptions.None); t6.Split(c6, StringSplitOptions.None); t7.Split(c6, StringSplitOptions.None); t8.Split(c6, StringSplitOptions.None); t9.Split(c6, StringSplitOptions.None); tA.Split(c6, StringSplitOptions.None); tB.Split(c6, StringSplitOptions.None); tC.Split(c6, StringSplitOptions.None);
+                t1.Split(c7, StringSplitOptions.None); t2.Split(c7, StringSplitOptions.None); t3.Split(c7, StringSplitOptions.None); t4.Split(c7, StringSplitOptions.None); t5.Split(c7, StringSplitOptions.None); t6.Split(c7, StringSplitOptions.None); t7.Split(c7, StringSplitOptions.None); t8.Split(c7, StringSplitOptions.None); t9.Split(c7, StringSplitOptions.None); tA.Split(c7, StringSplitOptions.None); tB.Split(c7, StringSplitOptions.None); tC.Split(c7, StringSplitOptions.None);
+                t1.Split(c8, StringSplitOptions.None); t2.Split(c8, StringSplitOptions.None); t3.Split(c8, StringSplitOptions.None); t4.Split(c8, StringSplitOptions.None); t5.Split(c8, StringSplitOptions.None); t6.Split(c8, StringSplitOptions.None); t7.Split(c8, StringSplitOptions.None); t8.Split(c8, StringSplitOptions.None); t9.Split(c8, StringSplitOptions.None); tA.Split(c8, StringSplitOptions.None); tB.Split(c8, StringSplitOptions.None); tC.Split(c8, StringSplitOptions.None);
 
-        t1.Split(c1, StringSplitOptions.RemoveEmptyEntries); t2.Split(c1, StringSplitOptions.RemoveEmptyEntries); t3.Split(c1, StringSplitOptions.RemoveEmptyEntries); t4.Split(c1, StringSplitOptions.RemoveEmptyEntries); t5.Split(c1, StringSplitOptions.RemoveEmptyEntries); t6.Split(c1, StringSplitOptions.RemoveEmptyEntries); t7.Split(c1, StringSplitOptions.RemoveEmptyEntries); t8.Split(c1, StringSplitOptions.RemoveEmptyEntries); t9.Split(c1, StringSplitOptions.RemoveEmptyEntries); tA.Split(c1, StringSplitOptions.RemoveEmptyEntries); tB.Split(c1, StringSplitOptions.RemoveEmptyEntries); tC.Split(c1, StringSplitOptions.RemoveEmptyEntries);
-        t1.Split(c2, StringSplitOptions.RemoveEmptyEntries); t2.Split(c2, StringSplitOptions.RemoveEmptyEntries); t3.Split(c2, StringSplitOptions.RemoveEmptyEntries); t4.Split(c2, StringSplitOptions.RemoveEmptyEntries); t5.Split(c2, StringSplitOptions.RemoveEmptyEntries); t6.Split(c2, StringSplitOptions.RemoveEmptyEntries); t7.Split(c2, StringSplitOptions.RemoveEmptyEntries); t8.Split(c2, StringSplitOptions.RemoveEmptyEntries); t9.Split(c2, StringSplitOptions.RemoveEmptyEntries); tA.Split(c2, StringSplitOptions.RemoveEmptyEntries); tB.Split(c2, StringSplitOptions.RemoveEmptyEntries); tC.Split(c2, StringSplitOptions.RemoveEmptyEntries);
-        t1.Split(c3, StringSplitOptions.RemoveEmptyEntries); t2.Split(c3, StringSplitOptions.RemoveEmptyEntries); t3.Split(c3, StringSplitOptions.RemoveEmptyEntries); t4.Split(c3, StringSplitOptions.RemoveEmptyEntries); t5.Split(c3, StringSplitOptions.RemoveEmptyEntries); t6.Split(c3, StringSplitOptions.RemoveEmptyEntries); t7.Split(c3, StringSplitOptions.RemoveEmptyEntries); t8.Split(c3, StringSplitOptions.RemoveEmptyEntries); t9.Split(c3, StringSplitOptions.RemoveEmptyEntries); tA.Split(c3, StringSplitOptions.RemoveEmptyEntries); tB.Split(c3, StringSplitOptions.RemoveEmptyEntries); tC.Split(c3, StringSplitOptions.RemoveEmptyEntries);
-        t1.Split(c4, StringSplitOptions.RemoveEmptyEntries); t2.Split(c4, StringSplitOptions.RemoveEmptyEntries); t3.Split(c4, StringSplitOptions.RemoveEmptyEntries); t4.Split(c4, StringSplitOptions.RemoveEmptyEntries); t5.Split(c4, StringSplitOptions.RemoveEmptyEntries); t6.Split(c4, StringSplitOptions.RemoveEmptyEntries); t7.Split(c4, StringSplitOptions.RemoveEmptyEntries); t8.Split(c4, StringSplitOptions.RemoveEmptyEntries); t9.Split(c4, StringSplitOptions.RemoveEmptyEntries); tA.Split(c4, StringSplitOptions.RemoveEmptyEntries); tB.Split(c4, StringSplitOptions.RemoveEmptyEntries); tC.Split(c4, StringSplitOptions.RemoveEmptyEntries);
-        t1.Split(c5, StringSplitOptions.RemoveEmptyEntries); t2.Split(c5, StringSplitOptions.RemoveEmptyEntries); t3.Split(c5, StringSplitOptions.RemoveEmptyEntries); t4.Split(c5, StringSplitOptions.RemoveEmptyEntries); t5.Split(c5, StringSplitOptions.RemoveEmptyEntries); t6.Split(c5, StringSplitOptions.RemoveEmptyEntries); t7.Split(c5, StringSplitOptions.RemoveEmptyEntries); t8.Split(c5, StringSplitOptions.RemoveEmptyEntries); t9.Split(c5, StringSplitOptions.RemoveEmptyEntries); tA.Split(c5, StringSplitOptions.RemoveEmptyEntries); tB.Split(c5, StringSplitOptions.RemoveEmptyEntries); tC.Split(c5, StringSplitOptions.RemoveEmptyEntries);
-        t1.Split(c6, StringSplitOptions.RemoveEmptyEntries); t2.Split(c6, StringSplitOptions.RemoveEmptyEntries); t3.Split(c6, StringSplitOptions.RemoveEmptyEntries); t4.Split(c6, StringSplitOptions.RemoveEmptyEntries); t5.Split(c6, StringSplitOptions.RemoveEmptyEntries); t6.Split(c6, StringSplitOptions.RemoveEmptyEntries); t7.Split(c6, StringSplitOptions.RemoveEmptyEntries); t8.Split(c6, StringSplitOptions.RemoveEmptyEntries); t9.Split(c6, StringSplitOptions.RemoveEmptyEntries); tA.Split(c6, StringSplitOptions.RemoveEmptyEntries); tB.Split(c6, StringSplitOptions.RemoveEmptyEntries); tC.Split(c6, StringSplitOptions.RemoveEmptyEntries);
-        t1.Split(c7, StringSplitOptions.RemoveEmptyEntries); t2.Split(c7, StringSplitOptions.RemoveEmptyEntries); t3.Split(c7, StringSplitOptions.RemoveEmptyEntries); t4.Split(c7, StringSplitOptions.RemoveEmptyEntries); t5.Split(c7, StringSplitOptions.RemoveEmptyEntries); t6.Split(c7, StringSplitOptions.RemoveEmptyEntries); t7.Split(c7, StringSplitOptions.RemoveEmptyEntries); t8.Split(c7, StringSplitOptions.RemoveEmptyEntries); t9.Split(c7, StringSplitOptions.RemoveEmptyEntries); tA.Split(c7, StringSplitOptions.RemoveEmptyEntries); tB.Split(c7, StringSplitOptions.RemoveEmptyEntries); tC.Split(c7, StringSplitOptions.RemoveEmptyEntries);
-        t1.Split(c8, StringSplitOptions.RemoveEmptyEntries); t2.Split(c8, StringSplitOptions.RemoveEmptyEntries); t3.Split(c8, StringSplitOptions.RemoveEmptyEntries); t4.Split(c8, StringSplitOptions.RemoveEmptyEntries); t5.Split(c8, StringSplitOptions.RemoveEmptyEntries); t6.Split(c8, StringSplitOptions.RemoveEmptyEntries); t7.Split(c8, StringSplitOptions.RemoveEmptyEntries); t8.Split(c8, StringSplitOptions.RemoveEmptyEntries); t9.Split(c8, StringSplitOptions.RemoveEmptyEntries); tA.Split(c8, StringSplitOptions.RemoveEmptyEntries); tB.Split(c8, StringSplitOptions.RemoveEmptyEntries); tC.Split(c8, StringSplitOptions.RemoveEmptyEntries);
-        });
+                t1.Split(c1, StringSplitOptions.RemoveEmptyEntries); t2.Split(c1, StringSplitOptions.RemoveEmptyEntries); t3.Split(c1, StringSplitOptions.RemoveEmptyEntries); t4.Split(c1, StringSplitOptions.RemoveEmptyEntries); t5.Split(c1, StringSplitOptions.RemoveEmptyEntries); t6.Split(c1, StringSplitOptions.RemoveEmptyEntries); t7.Split(c1, StringSplitOptions.RemoveEmptyEntries); t8.Split(c1, StringSplitOptions.RemoveEmptyEntries); t9.Split(c1, StringSplitOptions.RemoveEmptyEntries); tA.Split(c1, StringSplitOptions.RemoveEmptyEntries); tB.Split(c1, StringSplitOptions.RemoveEmptyEntries); tC.Split(c1, StringSplitOptions.RemoveEmptyEntries);
+                t1.Split(c2, StringSplitOptions.RemoveEmptyEntries); t2.Split(c2, StringSplitOptions.RemoveEmptyEntries); t3.Split(c2, StringSplitOptions.RemoveEmptyEntries); t4.Split(c2, StringSplitOptions.RemoveEmptyEntries); t5.Split(c2, StringSplitOptions.RemoveEmptyEntries); t6.Split(c2, StringSplitOptions.RemoveEmptyEntries); t7.Split(c2, StringSplitOptions.RemoveEmptyEntries); t8.Split(c2, StringSplitOptions.RemoveEmptyEntries); t9.Split(c2, StringSplitOptions.RemoveEmptyEntries); tA.Split(c2, StringSplitOptions.RemoveEmptyEntries); tB.Split(c2, StringSplitOptions.RemoveEmptyEntries); tC.Split(c2, StringSplitOptions.RemoveEmptyEntries);
+                t1.Split(c3, StringSplitOptions.RemoveEmptyEntries); t2.Split(c3, StringSplitOptions.RemoveEmptyEntries); t3.Split(c3, StringSplitOptions.RemoveEmptyEntries); t4.Split(c3, StringSplitOptions.RemoveEmptyEntries); t5.Split(c3, StringSplitOptions.RemoveEmptyEntries); t6.Split(c3, StringSplitOptions.RemoveEmptyEntries); t7.Split(c3, StringSplitOptions.RemoveEmptyEntries); t8.Split(c3, StringSplitOptions.RemoveEmptyEntries); t9.Split(c3, StringSplitOptions.RemoveEmptyEntries); tA.Split(c3, StringSplitOptions.RemoveEmptyEntries); tB.Split(c3, StringSplitOptions.RemoveEmptyEntries); tC.Split(c3, StringSplitOptions.RemoveEmptyEntries);
+                t1.Split(c4, StringSplitOptions.RemoveEmptyEntries); t2.Split(c4, StringSplitOptions.RemoveEmptyEntries); t3.Split(c4, StringSplitOptions.RemoveEmptyEntries); t4.Split(c4, StringSplitOptions.RemoveEmptyEntries); t5.Split(c4, StringSplitOptions.RemoveEmptyEntries); t6.Split(c4, StringSplitOptions.RemoveEmptyEntries); t7.Split(c4, StringSplitOptions.RemoveEmptyEntries); t8.Split(c4, StringSplitOptions.RemoveEmptyEntries); t9.Split(c4, StringSplitOptions.RemoveEmptyEntries); tA.Split(c4, StringSplitOptions.RemoveEmptyEntries); tB.Split(c4, StringSplitOptions.RemoveEmptyEntries); tC.Split(c4, StringSplitOptions.RemoveEmptyEntries);
+                t1.Split(c5, StringSplitOptions.RemoveEmptyEntries); t2.Split(c5, StringSplitOptions.RemoveEmptyEntries); t3.Split(c5, StringSplitOptions.RemoveEmptyEntries); t4.Split(c5, StringSplitOptions.RemoveEmptyEntries); t5.Split(c5, StringSplitOptions.RemoveEmptyEntries); t6.Split(c5, StringSplitOptions.RemoveEmptyEntries); t7.Split(c5, StringSplitOptions.RemoveEmptyEntries); t8.Split(c5, StringSplitOptions.RemoveEmptyEntries); t9.Split(c5, StringSplitOptions.RemoveEmptyEntries); tA.Split(c5, StringSplitOptions.RemoveEmptyEntries); tB.Split(c5, StringSplitOptions.RemoveEmptyEntries); tC.Split(c5, StringSplitOptions.RemoveEmptyEntries);
+                t1.Split(c6, StringSplitOptions.RemoveEmptyEntries); t2.Split(c6, StringSplitOptions.RemoveEmptyEntries); t3.Split(c6, StringSplitOptions.RemoveEmptyEntries); t4.Split(c6, StringSplitOptions.RemoveEmptyEntries); t5.Split(c6, StringSplitOptions.RemoveEmptyEntries); t6.Split(c6, StringSplitOptions.RemoveEmptyEntries); t7.Split(c6, StringSplitOptions.RemoveEmptyEntries); t8.Split(c6, StringSplitOptions.RemoveEmptyEntries); t9.Split(c6, StringSplitOptions.RemoveEmptyEntries); tA.Split(c6, StringSplitOptions.RemoveEmptyEntries); tB.Split(c6, StringSplitOptions.RemoveEmptyEntries); tC.Split(c6, StringSplitOptions.RemoveEmptyEntries);
+                t1.Split(c7, StringSplitOptions.RemoveEmptyEntries); t2.Split(c7, StringSplitOptions.RemoveEmptyEntries); t3.Split(c7, StringSplitOptions.RemoveEmptyEntries); t4.Split(c7, StringSplitOptions.RemoveEmptyEntries); t5.Split(c7, StringSplitOptions.RemoveEmptyEntries); t6.Split(c7, StringSplitOptions.RemoveEmptyEntries); t7.Split(c7, StringSplitOptions.RemoveEmptyEntries); t8.Split(c7, StringSplitOptions.RemoveEmptyEntries); t9.Split(c7, StringSplitOptions.RemoveEmptyEntries); tA.Split(c7, StringSplitOptions.RemoveEmptyEntries); tB.Split(c7, StringSplitOptions.RemoveEmptyEntries); tC.Split(c7, StringSplitOptions.RemoveEmptyEntries);
+                t1.Split(c8, StringSplitOptions.RemoveEmptyEntries); t2.Split(c8, StringSplitOptions.RemoveEmptyEntries); t3.Split(c8, StringSplitOptions.RemoveEmptyEntries); t4.Split(c8, StringSplitOptions.RemoveEmptyEntries); t5.Split(c8, StringSplitOptions.RemoveEmptyEntries); t6.Split(c8, StringSplitOptions.RemoveEmptyEntries); t7.Split(c8, StringSplitOptions.RemoveEmptyEntries); t8.Split(c8, StringSplitOptions.RemoveEmptyEntries); t9.Split(c8, StringSplitOptions.RemoveEmptyEntries); tA.Split(c8, StringSplitOptions.RemoveEmptyEntries); tB.Split(c8, StringSplitOptions.RemoveEmptyEntries); tC.Split(c8, StringSplitOptions.RemoveEmptyEntries);
+            }
+        }
     }
     #endregion
 }
