@@ -38,34 +38,34 @@ namespace Microsoft.Xunit.Performance
         {
             var asyncSyncContext = (AsyncTestSyncContext)SynchronizationContext.Current;
 
-                BenchmarkEventSource.Log.BenchmarkStart(BenchmarkConfiguration.RunId, DisplayName);
+            BenchmarkEventSource.Log.BenchmarkStart(BenchmarkConfiguration.RunId, DisplayName);
 
             var iterator = new BenchmarkIteratorImpl(DisplayName);
             var success = false;
             try
-                {
+            {
                 await iterator.RunAsync(async () =>
                     {
-                    var result = TestMethod.Invoke(testClassInstance, TestMethodArguments);
+                        var result = TestMethod.Invoke(testClassInstance, TestMethodArguments);
 
-                            var task = result as Task;
-                            if (task != null)
-                            {
-                                await task;
-                                success = true;
-                            }
-                            else
-                            {
-                                var ex = await asyncSyncContext.WaitForCompletionAsync();
-                                if (ex == null)
-                                    success = true;
-                                else
-                                    Aggregator.Add(ex);
-                            }
-                });
-                        }
-                        finally
+                        var task = result as Task;
+                        if (task != null)
                         {
+                            await task;
+                            success = true;
+                        }
+                        else
+                        {
+                            var ex = await asyncSyncContext.WaitForCompletionAsync();
+                            if (ex == null)
+                                success = true;
+                            else
+                                Aggregator.Add(ex);
+                        }
+                    });
+            }
+            finally
+            {
                 var stopReason = success ? iterator.IterationStopReason : "TestFailed";
                 BenchmarkEventSource.Log.BenchmarkStop(BenchmarkConfiguration.RunId, DisplayName, stopReason);
             }
@@ -87,7 +87,7 @@ namespace Microsoft.Xunit.Performance
                 _testName = testName;
                 _overallTimer = new Stopwatch();
                 _currentIteration = -1;
-                        }
+            }
 
             private bool DoneIterating
             {
@@ -113,7 +113,7 @@ namespace Microsoft.Xunit.Performance
             }
 
             protected override IEnumerable<BenchmarkIteration> Iterations
-                    {
+            {
                 get
                 {
                     for (_currentIteration = 0; !DoneIterating; _currentIteration++)
@@ -133,7 +133,7 @@ namespace Microsoft.Xunit.Performance
             }
 
             protected override void StartMeasurement(int iterationNumber)
-                    {
+            {
                 if (iterationNumber == _currentIteration)
                 {
                     if (_currentIterationMeasurementStarted)
@@ -145,8 +145,8 @@ namespace Microsoft.Xunit.Performance
                     GC.WaitForPendingFinalizers();
 
                     BenchmarkEventSource.Log.BenchmarkIterationStart(BenchmarkConfiguration.RunId, _testName, iterationNumber);
-                    }
                 }
+            }
 
             protected override void StopMeasurement(int iterationNumber)
             {
@@ -158,7 +158,7 @@ namespace Microsoft.Xunit.Performance
                     // TODO: we should remove the "Success" parameter; this is already communicated elsewhere, and the information isn't
                     // easily available here.
                     BenchmarkEventSource.Log.BenchmarkIterationStop(BenchmarkConfiguration.RunId, _testName, iterationNumber, Success: true);
-            }
+                }
             }
         }
 
