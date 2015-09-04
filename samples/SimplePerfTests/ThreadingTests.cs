@@ -9,7 +9,7 @@ using Xunit;
 
 namespace SimplePerfTests
 {
-    class ThreadingTests
+    public class ThreadingTests
     {
         struct ThreadPoolConfiguration : IDisposable
         {
@@ -37,28 +37,28 @@ namespace SimplePerfTests
             var newConfig = oldConfig;
             if (minWorkerThreads != 0)
             {
-                Assert.True(maxWorkerThreads == 0 || maxWorkerThreads > minWorkerThreads);
+                Assert.True(maxWorkerThreads == 0 || maxWorkerThreads >= minWorkerThreads);
                 newConfig.minWorkerThreads = minWorkerThreads;
                 if (newConfig.maxWorkerThreads < newConfig.minWorkerThreads)
                     newConfig.maxWorkerThreads = newConfig.minWorkerThreads;
             }
             if (minCompletionPortThreads != 0)
             {
-                Assert.True(maxCompletionPortThreads == 0 || maxCompletionPortThreads > minCompletionPortThreads);
+                Assert.True(maxCompletionPortThreads == 0 || maxCompletionPortThreads >= minCompletionPortThreads);
                 newConfig.minCompletionPortThreads = minCompletionPortThreads;
                 if (newConfig.maxCompletionPortThreads < newConfig.minCompletionPortThreads)
                     newConfig.maxCompletionPortThreads = newConfig.minCompletionPortThreads;
             }
             if (maxWorkerThreads != 0)
             {
-                Assert.True(minWorkerThreads == 0 || minWorkerThreads < maxWorkerThreads);
+                Assert.True(minWorkerThreads == 0 || minWorkerThreads <= maxWorkerThreads);
                 newConfig.maxWorkerThreads = maxWorkerThreads;
                 if (newConfig.minWorkerThreads > newConfig.maxWorkerThreads)
                     newConfig.minWorkerThreads = newConfig.maxWorkerThreads;
             }
             if (maxCompletionPortThreads != 0)
             {
-                Assert.True(minCompletionPortThreads == 0 || minCompletionPortThreads < maxCompletionPortThreads);
+                Assert.True(minCompletionPortThreads == 0 || minCompletionPortThreads <= maxCompletionPortThreads);
                 newConfig.maxCompletionPortThreads = maxCompletionPortThreads;
                 if (newConfig.minCompletionPortThreads > newConfig.maxCompletionPortThreads)
                     newConfig.minCompletionPortThreads = newConfig.maxCompletionPortThreads;
@@ -73,18 +73,35 @@ namespace SimplePerfTests
             return oldConfig;
         }
 
-        //
-        // Ensures nThreads ThreadPool threads are blocked waiting for signalToGo to be signalled.
-        //
-        //static async Task<ThreadPoolConfiguration> ReadyWorkerThreadsAsync(int nThreads)
-        //{
-        //    var oldConfig = ConfigureThreadPool()
-        //}
+        public static IEnumerable<object[]> ThreadPoolThroughputData
+        {
+            get
+            {
+                for (int nThreads = 1; nThreads <= 1024; nThreads *= 2)
+                    for (int nTasks = 1; nTasks <= 1024; nTasks *= 2)
+                        yield return new object[] { nThreads, nTasks };
+            }
+        }
 
         [Benchmark]
-        public static async Task ThreadPoolThroughput(int nThreads)
+        [MemberData(nameof(ThreadPoolThroughputData))]
+        public static async Task ThreadPoolThroughput(int nThreads, int nTasks)
         {
+            using (ConfigureThreadPool(minWorkerThreads: nThreads, maxWorkerThreads: nThreads))
+            {
+                foreach (var iteration in Benchmark.Iterations)
+                {
+                    var tasks = new Task[nTasks];
 
+                    using (iteration.StartMeasurement())
+                    {
+                        for (int i = 0; i < tasks.Length; i++)
+                            tasks[i] = Task.Run(() => { });
+
+                        await Task.WhenAll(tasks);
+                    }
+                }
+            }
         }
     }
 }
