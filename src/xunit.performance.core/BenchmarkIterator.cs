@@ -21,12 +21,12 @@ namespace Microsoft.Xunit.Performance.Internal
         /// <returns></returns>
         public async Task RunAsync(Func<Task> method)
         {
-            if (Current != null)
-                throw new InvalidOperationException();
-
             await s_semaphore.WaitAsync();
             try
             {
+                if (Current != null)
+                    throw new InvalidOperationException();
+
                 Current = this;
                 await method();
             }
