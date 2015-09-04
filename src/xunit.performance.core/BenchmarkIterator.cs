@@ -17,26 +17,6 @@ namespace Microsoft.Xunit.Performance.Internal
         /// 
         /// </summary>
         /// <param name="method"></param>
-        public void Run(Action method)
-        {
-            if (Current != null)
-                throw new InvalidOperationException();
-
-            Current = this;
-            try
-            {
-                method();
-            }
-            finally
-            {
-                Current = null;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="method"></param>
         /// <returns></returns>
         public async Task RunAsync(Func<Task> method)
         {
@@ -70,5 +50,7 @@ namespace Microsoft.Xunit.Performance.Internal
         /// </summary>
         /// <param name="iterationNumber"></param>
         protected internal abstract void StopMeasurement(int iterationNumber);
+
+        protected BenchmarkIteration CreateIteration(int iterationNumber) => new BenchmarkIteration(this, iterationNumber);
     }
 }
