@@ -31,51 +31,49 @@ namespace Microsoft.Xunit.Performance
 
         private object CallTestMethod(object testClassInstance)
         {
-            return IterateAsync(testClassInstance);
-        }
-
-        private async Task IterateAsync(object testClassInstance)
-        {
             var asyncSyncContext = (AsyncTestSyncContext)SynchronizationContext.Current;
 
-            BenchmarkEventSource.Log.BenchmarkStart(BenchmarkConfiguration.RunId, DisplayName);
-
+            //
+            // Run the test method inside of our iterator.  Note that BenchmarkIterator.Run ensures that only one test
+            // method is running at any given time, so we don't need extra synchronization here.
+            //
             var iterator = new BenchmarkIteratorImpl(DisplayName);
-            var success = false;
-            try
+            return iterator.RunAsync(async () =>
             {
-                await iterator.RunAsync(async () =>
+                var success = false;
+                BenchmarkEventSource.Log.BenchmarkStart(BenchmarkConfiguration.RunId, DisplayName);
+                try
+                {
+                    var result = TestMethod.Invoke(testClassInstance, TestMethodArguments);
+
+                    var task = result as Task;
+                    if (task != null)
                     {
-                        var result = TestMethod.Invoke(testClassInstance, TestMethodArguments);
-
-                        var task = result as Task;
-                        if (task != null)
-                        {
-                            await task;
+                        await task;
+                        success = true;
+                    }
+                    else
+                    {
+                        var ex = await asyncSyncContext.WaitForCompletionAsync();
+                        if (ex == null)
                             success = true;
-                        }
                         else
-                        {
-                            var ex = await asyncSyncContext.WaitForCompletionAsync();
-                            if (ex == null)
-                                success = true;
-                            else
-                                Aggregator.Add(ex);
-                        }
-                    });
-            }
-            finally
-            {
-                var stopReason = success ? iterator.IterationStopReason : "TestFailed";
-                BenchmarkEventSource.Log.BenchmarkStop(BenchmarkConfiguration.RunId, DisplayName, stopReason);
-            }
+                            Aggregator.Add(ex);
+                    }
+                }
+                finally
+                {
+                    var stopReason = success ? iterator.IterationStopReason : "TestFailed";
+                    BenchmarkEventSource.Log.BenchmarkStop(BenchmarkConfiguration.RunId, DisplayName, stopReason);
+                }
+            });
         }
-
 
         internal class BenchmarkIteratorImpl : BenchmarkIterator
         {
             private readonly string _testName;
             private readonly Stopwatch _overallTimer;
+            private bool _startedIteration;
             private int _currentIteration;
             private bool _currentIterationMeasurementStarted;
             private bool _currentIterationMesaurementStopped;
@@ -116,19 +114,27 @@ namespace Microsoft.Xunit.Performance
             {
                 get
                 {
-                    for (_currentIteration = 0; !DoneIterating; _currentIteration++)
-                    {
-                        _currentIterationMeasurementStarted = false;
-                        _currentIterationMesaurementStopped = false;
+                    if (_startedIteration)
+                        throw new InvalidOperationException("Cannot use Benchmark.Iterations twice in a single test method.");
+                    _startedIteration = true;
+                    return GetIterations();
+                }
+            }
 
-                        yield return CreateIteration(_currentIteration);
+            private IEnumerable<BenchmarkIteration> GetIterations()
+            {
+                for (_currentIteration = 0; !DoneIterating; _currentIteration++)
+                {
+                    _currentIterationMeasurementStarted = false;
+                    _currentIterationMesaurementStopped = false;
 
-                        if (_currentIterationMeasurementStarted)
-                            StopMeasurement(_currentIteration);
+                    yield return CreateIteration(_currentIteration);
 
-                        if (_currentIteration == 0)
-                            _overallTimer.Start();
-                    }
+                    if (_currentIterationMeasurementStarted)
+                        StopMeasurement(_currentIteration);
+
+                    if (_currentIteration == 0)
+                        _overallTimer.Start();
                 }
             }
 
