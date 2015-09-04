@@ -16,8 +16,6 @@ namespace Microsoft.Xunit.Performance
 {
     internal class BenchmarkTestInvoker : XunitTestInvoker
     {
-        private static SemaphoreSlim s_semaphore = new SemaphoreSlim(1);
-
         public BenchmarkTestInvoker(ITest test,
                                 IMessageBus messageBus,
                                 Type testClass,
@@ -29,22 +27,6 @@ namespace Microsoft.Xunit.Performance
                                 CancellationTokenSource cancellationTokenSource)
             : base(test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, beforeAfterAttributes, aggregator, cancellationTokenSource)
         {
-        }
-
-        protected override async Task<decimal> InvokeTestMethodAsync(object testClassInstance)
-        {
-            //
-            // Serialize all benchmarks
-            //
-            await s_semaphore.WaitAsync();
-            try
-            {
-                return await InvokeTestMethodImplAsync(testClassInstance);
-            }
-            finally
-            {
-                s_semaphore.Release();
-            }
         }
 
         private object CallTestMethod(object testClassInstance)
@@ -185,7 +167,7 @@ namespace Microsoft.Xunit.Performance
         // This duplicates the implementation of InvokeTestMethodAsync, but delegates to CallTestMethod to actually run the test.
         // This can be removed when we move to xunit 2.1 beta 4 or later.
         //
-        protected async Task<decimal> InvokeTestMethodImplAsync(object testClassInstance)
+        protected override async Task<decimal> InvokeTestMethodAsync(object testClassInstance)
         {
             var oldSyncContext = SynchronizationContext.Current;
 
