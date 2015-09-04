@@ -57,6 +57,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DictionaryThroughput.cs" />
     <Compile Include="FormattingTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StringThroughput.cs" />
