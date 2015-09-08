@@ -41,27 +41,27 @@ namespace Microsoft.Xunit.Performance
             {
                 var success = false;
                 BenchmarkEventSource.Log.BenchmarkStart(BenchmarkConfiguration.RunId, DisplayName);
-                        try
-                        {
+                try
+                {
                     var result = TestMethod.Invoke(testClassInstance, TestMethodArguments);
 
-                            var task = result as Task;
-                            if (task != null)
-                            {
-                                await task;
-                                success = true;
-                            }
-                            else
-                            {
-                                var ex = await asyncSyncContext.WaitForCompletionAsync();
-                                if (ex == null)
-                                    success = true;
-                                else
-                                    Aggregator.Add(ex);
-                            }
-                        }
-                        finally
-                        {
+                    var task = result as Task;
+                    if (task != null)
+                    {
+                        await task;
+                        success = true;
+                    }
+                    else
+                    {
+                        var ex = await asyncSyncContext.WaitForCompletionAsync();
+                        if (ex == null)
+                            success = true;
+                        else
+                            Aggregator.Add(ex);
+                    }
+                }
+                finally
+                {
                     var stopReason = success ? iterator.IterationStopReason : "TestFailed";
                     BenchmarkEventSource.Log.BenchmarkStop(BenchmarkConfiguration.RunId, DisplayName, stopReason);
                 }
