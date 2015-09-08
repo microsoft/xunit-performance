@@ -61,7 +61,6 @@
     <Compile Include="FormattingTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StringThroughput.cs" />
-    <Compile Include="ThreadingTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\xunit.performance.core\xunit.performance.core.csproj">
