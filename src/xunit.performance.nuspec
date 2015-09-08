@@ -21,17 +21,17 @@
     <dependencies>
       <group targetFramework="dotnet">
         <dependency id="System.Collections" version="4.0.10" />
-        <dependency id="System.Diagnostics.Debug" version="4.0.10" />
         <dependency id="System.Diagnostics.Tracing" version="4.0.20" />
         <dependency id="System.Linq" version="4.0.0" />
         <dependency id="System.Reflection" version="4.0.10" />
-        <dependency id="System.Runtime" version="4.0.20" />
         <dependency id="System.Runtime.Extensions" version="4.0.10" />
+        <dependency id="xunit.abstractions" version="2.0.0" />
+        <dependency id="xunit.extensibility.execution" version="2.1.0-beta4-build3109" />
+        <dependency id="System.Diagnostics.Debug" version="4.0.10" />
+        <dependency id="System.Runtime" version="4.0.20" />
         <dependency id="System.Threading" version="4.0.10" />
         <dependency id="System.Threading.Tasks" version="4.0.10" />
-        <dependency id="xunit.abstractions" version="2.0.0" />
-        <dependency id="xunit.extensibility.core" version="2.1.0-beta4-build3109" />
-        <dependency id="xunit.extensibility.execution" version="2.1.0-beta4-build3109" />
+        <dependency id="xunit.extensibility.core" version="2.1.0-beta3-build3029" />
       </group>
     </dependencies>
   </metadata>

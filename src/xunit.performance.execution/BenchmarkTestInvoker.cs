@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
-using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
@@ -29,7 +28,7 @@ namespace Microsoft.Xunit.Performance
         {
         }
 
-        private object CallTestMethod(object testClassInstance)
+        protected override object CallTestMethod(object testClassInstance)
         {
             var asyncSyncContext = (AsyncTestSyncContext)SynchronizationContext.Current;
 
@@ -42,27 +41,27 @@ namespace Microsoft.Xunit.Performance
             {
                 var success = false;
                 BenchmarkEventSource.Log.BenchmarkStart(BenchmarkConfiguration.RunId, DisplayName);
-                try
-                {
+                        try
+                        {
                     var result = TestMethod.Invoke(testClassInstance, TestMethodArguments);
 
-                    var task = result as Task;
-                    if (task != null)
-                    {
-                        await task;
-                        success = true;
-                    }
-                    else
-                    {
-                        var ex = await asyncSyncContext.WaitForCompletionAsync();
-                        if (ex == null)
-                            success = true;
-                        else
-                            Aggregator.Add(ex);
-                    }
-                }
-                finally
-                {
+                            var task = result as Task;
+                            if (task != null)
+                            {
+                                await task;
+                                success = true;
+                            }
+                            else
+                            {
+                                var ex = await asyncSyncContext.WaitForCompletionAsync();
+                                if (ex == null)
+                                    success = true;
+                                else
+                                    Aggregator.Add(ex);
+                            }
+                        }
+                        finally
+                        {
                     var stopReason = success ? iterator.IterationStopReason : "TestFailed";
                     BenchmarkEventSource.Log.BenchmarkStop(BenchmarkConfiguration.RunId, DisplayName, stopReason);
                 }
@@ -85,7 +84,7 @@ namespace Microsoft.Xunit.Performance
                 _testName = testName;
                 _overallTimer = new Stopwatch();
                 _currentIteration = -1;
-            }
+                        }
 
             private bool DoneIterating
             {
@@ -108,23 +107,23 @@ namespace Microsoft.Xunit.Performance
 
                     return false;
                 }
-            }
+                    }
 
             protected override IEnumerable<BenchmarkIteration> Iterations
             {
                 get
-                {
+                    {
                     if (_startedIteration)
                         throw new InvalidOperationException("Cannot use Benchmark.Iterations twice in a single test method.");
                     _startedIteration = true;
                     return GetIterations();
                 }
-            }
+                    }
 
             private IEnumerable<BenchmarkIteration> GetIterations()
             {
                 for (_currentIteration = 0; !DoneIterating; _currentIteration++)
-                {
+                    {
                     _currentIterationMeasurementStarted = false;
                     _currentIterationMesaurementStopped = false;
 
@@ -135,8 +134,8 @@ namespace Microsoft.Xunit.Performance
 
                     if (_currentIteration == 0)
                         _overallTimer.Start();
+                    }
                 }
-            }
 
             protected override void StartMeasurement(int iterationNumber)
             {
@@ -151,7 +150,7 @@ namespace Microsoft.Xunit.Performance
                     GC.WaitForPendingFinalizers();
 
                     BenchmarkEventSource.Log.BenchmarkIterationStart(BenchmarkConfiguration.RunId, _testName, iterationNumber);
-                }
+            }
             }
 
             protected override void StopMeasurement(int iterationNumber)
@@ -164,65 +163,8 @@ namespace Microsoft.Xunit.Performance
                     // TODO: we should remove the "Success" parameter; this is already communicated elsewhere, and the information isn't
                     // easily available here.
                     BenchmarkEventSource.Log.BenchmarkIterationStop(BenchmarkConfiguration.RunId, _testName, iterationNumber, Success: true);
-                }
             }
         }
 
-
-        //
-        // This duplicates the implementation of InvokeTestMethodAsync, but delegates to CallTestMethod to actually run the test.
-        // This can be removed when we move to xunit 2.1 beta 4 or later.
-        //
-        protected override async Task<decimal> InvokeTestMethodAsync(object testClassInstance)
-        {
-            var oldSyncContext = SynchronizationContext.Current;
-
-            try
-            {
-                var asyncSyncContext = new AsyncTestSyncContext(oldSyncContext);
-                SetSynchronizationContext(asyncSyncContext);
-
-                await Aggregator.RunAsync(
-                    () => Timer.AggregateAsync(
-                        async () =>
-                        {
-                            var parameterCount = TestMethod.GetParameters().Length;
-                            var valueCount = TestMethodArguments == null ? 0 : TestMethodArguments.Length;
-                            if (parameterCount != valueCount)
-                            {
-                                Aggregator.Add(
-                                    new InvalidOperationException(
-                                        $"The test method expected {parameterCount} parameter value{(parameterCount == 1 ? "" : "s")}, but {valueCount} parameter value{(valueCount == 1 ? "" : "s")} {(valueCount == 1 ? "was" : "were")} provided."
-                                    )
-                                );
-                            }
-                            else
-                            {
-                                var result = CallTestMethod(testClassInstance);
-                                var task = result as Task;
-                                if (task != null)
-                                    await task;
-                                else
-                                {
-                                    var ex = await asyncSyncContext.WaitForCompletionAsync();
-                                    if (ex != null)
-                                        Aggregator.Add(ex);
-                                }
-                            }
-                        }
-                    )
-                );
-            }
-            finally
-            {
-                SetSynchronizationContext(oldSyncContext);
-            }
-
-            return Timer.Total;
-        }
-
-        [SecuritySafeCritical]
-        static void SetSynchronizationContext(SynchronizationContext context)
-            => SynchronizationContext.SetSynchronizationContext(context);
     }
 }
