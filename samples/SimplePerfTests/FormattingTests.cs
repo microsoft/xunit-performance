@@ -43,7 +43,9 @@ namespace SimplePerfTests
         [MemberData(nameof(FormatCurlyBracesMemberData))]
         public static void FormatCurlyBracesTest(Document document)
         {
-            document.Format();
+            foreach (var iteration in Benchmark.Iterations)
+                using (iteration.StartMeasurement())
+                    document.Format();
         }
     }
 }
