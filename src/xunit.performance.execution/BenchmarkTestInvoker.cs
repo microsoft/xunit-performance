@@ -84,7 +84,7 @@ namespace Microsoft.Xunit.Performance
                 _testName = testName;
                 _overallTimer = new Stopwatch();
                 _currentIteration = -1;
-                        }
+            }
 
             private bool DoneIterating
             {
@@ -107,23 +107,23 @@ namespace Microsoft.Xunit.Performance
 
                     return false;
                 }
-                    }
+            }
 
             protected override IEnumerable<BenchmarkIteration> Iterations
             {
                 get
-                    {
+                {
                     if (_startedIteration)
                         throw new InvalidOperationException("Cannot use Benchmark.Iterations twice in a single test method.");
                     _startedIteration = true;
                     return GetIterations();
                 }
-                    }
+            }
 
             private IEnumerable<BenchmarkIteration> GetIterations()
             {
                 for (_currentIteration = 0; !DoneIterating; _currentIteration++)
-                    {
+                {
                     _currentIterationMeasurementStarted = false;
                     _currentIterationMesaurementStopped = false;
 
@@ -134,8 +134,8 @@ namespace Microsoft.Xunit.Performance
 
                     if (_currentIteration == 0)
                         _overallTimer.Start();
-                    }
                 }
+            }
 
             protected override void StartMeasurement(int iterationNumber)
             {
@@ -150,7 +150,7 @@ namespace Microsoft.Xunit.Performance
                     GC.WaitForPendingFinalizers();
 
                     BenchmarkEventSource.Log.BenchmarkIterationStart(BenchmarkConfiguration.RunId, _testName, iterationNumber);
-            }
+                }
             }
 
             protected override void StopMeasurement(int iterationNumber)
@@ -163,8 +163,8 @@ namespace Microsoft.Xunit.Performance
                     // TODO: we should remove the "Success" parameter; this is already communicated elsewhere, and the information isn't
                     // easily available here.
                     BenchmarkEventSource.Log.BenchmarkIterationStop(BenchmarkConfiguration.RunId, _testName, iterationNumber, Success: true);
+                }
             }
         }
-
     }
 }
