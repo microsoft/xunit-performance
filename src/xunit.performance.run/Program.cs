@@ -4,6 +4,7 @@
 using Microsoft.Diagnostics.Tracing;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -11,7 +12,6 @@ using System.Text;
 using System.Xml.Linq;
 using Xunit;
 using Xunit.Abstractions;
-using System.ComponentModel;
 
 namespace Microsoft.Xunit.Performance
 {
@@ -71,10 +71,10 @@ namespace Microsoft.Xunit.Performance
 
         private static void RunTests(IEnumerable<PerformanceTestInfo> tests, string runnerHost, string runnerCommand, string runnerArgs, string runId, string outDir)
         {
-            string etlPath = Path.Combine(outDir, runId + ".etl");
-            string xmlPath = Path.Combine(outDir, runId + ".xml");
+            string pathBase = Path.Combine(outDir, runId);
+            string xmlPath = pathBase + ".xml";
 
-            PrintIfVerbose($"Starting ETW tracing. Logging to {etlPath}");
+            PrintIfVerbose($"Starting ETW tracing. Logging to {pathBase}");
 
             var allEtwProviders =
                 from test in tests
@@ -84,7 +84,7 @@ namespace Microsoft.Xunit.Performance
 
             var mergedEtwProviders = ProviderInfo.Merge(allEtwProviders);
 
-            using (ETWLogging.StartAsync(etlPath, mergedEtwProviders).Result)
+            using (ETWLogging.StartAsync(pathBase, mergedEtwProviders).Result)
             {
                 const int maxCommandLineLength = 32767;
 
@@ -122,10 +122,10 @@ namespace Microsoft.Xunit.Performance
             }
 
 
-            using (var source = new ETWTraceEventSource(etlPath))
+            using (var source = new ETWTraceEventSource(pathBase + ".etl"))
             {
                 if (source.EventsLost > 0)
-                    throw new Exception($"Events were lost in trace '{etlPath}'");
+                    throw new Exception($"Events were lost in trace '{pathBase}'");
 
                 using (var evaluationContext = new PerformanceMetricEvaluationContextImpl(source, tests, runId))
                 {
@@ -136,7 +136,7 @@ namespace Microsoft.Xunit.Performance
                     {
                         var testName = testElem.Attribute("name").Value;
 
-                        var perfElem = new XElement("performance", new XAttribute("runid", runId), new XAttribute("etl", Path.GetFullPath(etlPath)));
+                        var perfElem = new XElement("performance", new XAttribute("runid", runId), new XAttribute("etl", Path.GetFullPath(pathBase)));
                         testElem.Add(perfElem);
 
                         var metrics = evaluationContext.GetMetrics(testName);

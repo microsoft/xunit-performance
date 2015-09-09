@@ -13,6 +13,7 @@ namespace SimplePerfTests
     public class DictionaryThroughput
     {
         [Benchmark]
+        [MeasureInstructionsRetired(50000)]
         private static void Add()
         {
             foreach (var iteration in Benchmark.Iterations)
