@@ -11,23 +11,25 @@ namespace Microsoft.Xunit.Performance
     {
         internal ProviderInfo() { } // Only allow subclassing from this assembly
 
-        public ulong Keywords { get; set; }
-
         public static IEnumerable<ProviderInfo> Merge(IEnumerable<ProviderInfo> info)
         {
             Dictionary<Guid, UserProviderInfo> userInfo = new Dictionary<Guid, UserProviderInfo>();
             KernelProviderInfo kernelInfo = new KernelProviderInfo();
+            Dictionary<string, CpuCounterInfo> cpuInfo = new Dictionary<string, CpuCounterInfo>();
 
             foreach (var i in info)
-                i.MergeInto(userInfo, kernelInfo);
+                i.MergeInto(userInfo, kernelInfo, cpuInfo);
 
             if (kernelInfo.Keywords != 0)
                 yield return kernelInfo;
 
             foreach (var i in userInfo.Values)
                 yield return i;
+
+            foreach (var i in cpuInfo.Values)
+                yield return i;
         }
 
-        protected abstract void MergeInto(Dictionary<Guid, UserProviderInfo> userInfo, KernelProviderInfo kernelInfo);
+        internal abstract void MergeInto(Dictionary<Guid, UserProviderInfo> userInfo, KernelProviderInfo kernelInfo, Dictionary<string, CpuCounterInfo> cpuInfo);
     }
 }

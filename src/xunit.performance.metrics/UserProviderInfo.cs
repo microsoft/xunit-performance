@@ -12,9 +12,11 @@ namespace Microsoft.Xunit.Performance
     public sealed class UserProviderInfo : ProviderInfo
     {
         public Guid ProviderGuid { get; set; }
+        public ulong Keywords { get; set; }
+
         public TraceEventLevel Level { get; set; } = TraceEventLevel.Verbose;
 
-        protected override void MergeInto(Dictionary<Guid, UserProviderInfo> userInfo, KernelProviderInfo kernelInfo)
+        internal override void MergeInto(Dictionary<Guid, UserProviderInfo> userInfo, KernelProviderInfo kernelInfo, Dictionary<string, CpuCounterInfo> cpuInfo)
         {
             UserProviderInfo current;
             if (!userInfo.TryGetValue(ProviderGuid, out current))
@@ -23,9 +25,12 @@ namespace Microsoft.Xunit.Performance
             }
             else
             {
-                current.Keywords |= Keywords;
-                if (Level > current.Level)
-                    current.Level = Level;
+                userInfo[ProviderGuid] = new UserProviderInfo()
+                {
+                    ProviderGuid = this.ProviderGuid,
+                    Keywords = current.Keywords | this.Keywords,
+                    Level = (this.Level > current.Level) ? this.Level : current.Level
+                };
             }
         }
     }

@@ -63,6 +63,8 @@
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="BenchmarkMetricDiscoverer.cs" />
+    <Compile Include="CpuCounterInfo.cs" />
+    <Compile Include="InstructionsRetiredMetricDiscoverer.cs" />
     <Compile Include="GCCountMetricDiscoverer.cs" />
     <Compile Include="PerformanceMetric.cs" />
     <Compile Include="IPerformanceMetricDiscoverer.cs" />
