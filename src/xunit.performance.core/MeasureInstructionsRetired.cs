@@ -8,7 +8,7 @@ namespace Microsoft.Xunit.Performance
 {
     /// <summary>
     /// An attribute that is applied to a method, class, or assembly, to indicate that the performance test framework
-    /// should collect and report GC counts for the given test(s).
+    /// should collect and report the number of instructions retired per test iteration.
     /// </summary>
     [PerformanceMetricDiscoverer("Microsoft.Xunit.Performance.InstructionsRetiredMetricDiscoverer", "xunit.performance.metrics")]
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Assembly)]
