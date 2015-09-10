@@ -4,6 +4,7 @@
 using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Parsers.Kernel;
+using Microsoft.Diagnostics.Tracing.Session;
 using Microsoft.Xunit.Performance.Sdk;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,11 +15,15 @@ namespace Microsoft.Xunit.Performance
     internal class InstructionsRetiredMetricDiscoverer : IPerformanceMetricDiscoverer
     {
         const int DefaultInterval = 100000; // Instructions per event.
+        const string CounterName = "InstructionRetired";
 
         public IEnumerable<PerformanceMetric> GetMetrics(IAttributeInfo metricAttribute)
         {
-            var interval = (int)(metricAttribute.GetConstructorArguments().FirstOrDefault() ?? DefaultInterval);
-            yield return new InstructionsRetiredMetric(interval);
+            if (TraceEventProfileSources.GetInfo().ContainsKey(CounterName))
+            {
+                var interval = (int)(metricAttribute.GetConstructorArguments().FirstOrDefault() ?? DefaultInterval);
+                yield return new InstructionsRetiredMetric(interval);
+            }
         }
 
         private class InstructionsRetiredMetric : PerformanceMetric
@@ -42,7 +47,7 @@ namespace Microsoft.Xunit.Performance
                     };
                     yield return new CpuCounterInfo()
                     {
-                        CounterName = "InstructionRetired",
+                        CounterName = CounterName,
                         Interval = _interval,
                     };
                 }

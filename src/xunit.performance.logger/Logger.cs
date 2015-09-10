@@ -35,14 +35,18 @@ namespace Microsoft.Xunit.Performance
         private static bool s_unloadHandlerRegistered;
         private static ConcurrentDictionary<string, Sessions> s_sessions = new ConcurrentDictionary<string, Sessions>();
 
-        public static bool NeedSeparateKernelSession
+        private static bool NeedSeparateKernelSession(ulong kernelKeywords)
         {
-            get
-            {
-                // Prior to Windows 8 (NT 6.2) kernel events needed the special kernel session.
-                var os = Environment.OSVersion;
-                return os.Platform == PlatformID.Win32NT && os.Version.Major <= 6 && os.Version.Minor < 2;
-            }
+            // Prior to Windows 8 (NT 6.2), all kernel events needed the special kernel session.
+            var os = Environment.OSVersion;
+            if (os.Platform == PlatformID.Win32NT && os.Version.Major <= 6 && os.Version.Minor < 2)
+                return true;
+
+            // CPU counters need the special kernel session
+            if (((KernelTraceEventParser.Keywords)kernelKeywords & KernelTraceEventParser.Keywords.PMCProfile) != 0)
+                return true;
+
+            return false;
         }
 
         private static void EnsureUnloadHandlerRegistered()
@@ -93,7 +97,8 @@ namespace Microsoft.Xunit.Performance
                 if (cpuCounterIds.Count > 0)
                     TraceEventProfileSources.Set(cpuCounterIds.ToArray(), cpuCounterIntervals.ToArray());
 
-                if (cpuCounterIds.Count > 0 || NeedSeparateKernelSession)
+                var kernelInfo = mergedProviderInfo.OfType<KernelProviderInfo>().FirstOrDefault();
+                if (kernelInfo != null && NeedSeparateKernelSession(kernelInfo.Keywords))
                 {
                     sessions.KernelSession = new TraceEventSession(KernelTraceEventParser.KernelSessionName, sessions.KernelFileName);
                     sessions.KernelSession.BufferSizeMB = bufferSizeMB;
@@ -104,7 +109,6 @@ namespace Microsoft.Xunit.Performance
                     sessions.KernelSession = sessions.UserSession;
                 }
 
-                var kernelInfo = mergedProviderInfo.OfType<KernelProviderInfo>().FirstOrDefault();
                 if (kernelInfo != null)
                 {
                     var kernelKeywords = (KernelTraceEventParser.Keywords)kernelInfo.Keywords;
