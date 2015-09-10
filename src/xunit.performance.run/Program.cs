@@ -121,11 +121,11 @@ namespace Microsoft.Xunit.Performance
                     RunTestBatch(methodBatch, assemblyFileBatch, runnerHost, runnerCommand, runnerArgs, runId, outputOption);
             }
 
-
-            using (var source = new ETWTraceEventSource(pathBase + ".etl"))
+            var etlPath = pathBase + ".etl";
+            using (var source = new ETWTraceEventSource(etlPath))
             {
                 if (source.EventsLost > 0)
-                    throw new Exception($"Events were lost in trace '{pathBase}'");
+                    throw new Exception($"Events were lost in trace '{etlPath}'");
 
                 using (var evaluationContext = new PerformanceMetricEvaluationContextImpl(source, tests, runId))
                 {
@@ -136,7 +136,7 @@ namespace Microsoft.Xunit.Performance
                     {
                         var testName = testElem.Attribute("name").Value;
 
-                        var perfElem = new XElement("performance", new XAttribute("runid", runId), new XAttribute("etl", Path.GetFullPath(pathBase)));
+                        var perfElem = new XElement("performance", new XAttribute("runid", runId), new XAttribute("etl", Path.GetFullPath(etlPath)));
                         testElem.Add(perfElem);
 
                         var metrics = evaluationContext.GetMetrics(testName);
