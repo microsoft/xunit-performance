@@ -19,8 +19,8 @@ bump the build number on BuildSemanticVersion below.
 :main
 setlocal
 
-set BuildAssemblyVersion=1.0.0.12
-set BuildSemanticVersion=1.0.0-alpha-build0012
+set BuildAssemblyVersion=1.0.0.13
+set BuildSemanticVersion=1.0.0-alpha-build0013
 
 echo Building version %BuildSemanticVersion% NuGet packages.
 echo WARNING: Some source files will be modified during this build.
