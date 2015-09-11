@@ -75,6 +75,7 @@
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="Microsoft-Xunit-Benchmark.manifest.cs" />
     <Compile Include="PerformanceMetricEvaluationContextImpl.cs" />
+    <Compile Include="IPerformanceMetricReader.cs" />
     <Compile Include="PerformanceTestInfo.cs" />
     <Compile Include="ConsoleDiagnosticsMessageVisitor.cs" />
     <Compile Include="ETWLogging.cs" />

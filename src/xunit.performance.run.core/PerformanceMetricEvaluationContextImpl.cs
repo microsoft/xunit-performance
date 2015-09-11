@@ -12,7 +12,7 @@ using Microsoft.Xunit.Performance.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class PerformanceMetricEvaluationContextImpl : PerformanceMetricEvaluationContext, IDisposable, IPerformanceMetricReader
+    internal class PerformanceMetricEvaluationContextImpl : PerformanceMetricEvaluationContext, IDisposable
     {
         private readonly Dictionary<string, List<KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>>> _evaluators = new Dictionary<string, List<KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>>>();
         private readonly Dictionary<string, List<Dictionary<string, double>>> _metricValues = new Dictionary<string, List<Dictionary<string, double>>>();
@@ -22,12 +22,12 @@ namespace Microsoft.Xunit.Performance
         private string _currentTestCase;
         private int _currentIteration;
 
-        public IEnumerable<PerformanceMetric> GetMetrics(string testCase)
+        internal IEnumerable<PerformanceMetric> GetMetrics(string testCase)
         {
             return _evaluators.GetOrDefault(testCase)?.Select(kvp => kvp.Key);
         }
 
-        public List<Dictionary<string, double>> GetValues(string testCase)
+        internal List<Dictionary<string, double>> GetValues(string testCase)
         {
             return _metricValues.GetOrDefault(testCase);
         }

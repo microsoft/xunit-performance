@@ -10,7 +10,7 @@ namespace Microsoft.Xunit.Performance.Sdk
     /// <summary>
     /// Base type for types which provide metrics for performance tests.
     /// </summary>
-    public abstract class PerformanceMetric
+    public abstract class PerformanceMetric : PerformanceMetricInfo
     {
         public PerformanceMetric(string id, string displayName, string unit)
         {
@@ -18,10 +18,6 @@ namespace Microsoft.Xunit.Performance.Sdk
             DisplayName = displayName;
             Unit = unit;
         }
-
-        public string Id { get; }
-        public string DisplayName { get; }
-        public string Unit { get; }
 
         public virtual IEnumerable<ProviderInfo> ProviderInfo => Enumerable.Empty<ProviderInfo>();
 

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Microsoft.Diagnostics.Tracing;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -15,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class Program
+    internal class ProgramCore
     {
         private class ConsoleReporter : IMessageSink
         {
@@ -26,10 +25,16 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
-        private static bool s_nologo = false;
-        private static bool s_verbose = false;
+        private readonly IPerformanceServices _services;
+        private bool _nologo = false;
+        private bool _verbose = false;
 
-        private static int Main(string[] args)
+        public ProgramCore(IPerformanceServices services)
+        {
+            _services = services;
+        }
+
+        public int Run(string[] args)
         {
             if (args.Length == 0 || args[0] == "-?")
             {
@@ -41,7 +46,7 @@ namespace Microsoft.Xunit.Performance
             try
             {
                 var project = ParseCommandLine(args);
-                if (!s_nologo)
+                if (!_nologo)
                 {
                     PrintHeader();
                 }
@@ -69,49 +74,12 @@ namespace Microsoft.Xunit.Performance
             return 0;
         }
 
-        private static IDisposable StartTracing(IEnumerable<PerformanceTestInfo> tests, string pathBase)
-        {
-            PrintIfVerbose($"Starting ETW tracing. Logging to {pathBase}");
-
-            var allEtwProviders =
-                from test in tests
-                from metric in test.Metrics
-                from provider in metric.ProviderInfo
-                select provider;
-
-            var mergedEtwProviders = ProviderInfo.Merge(allEtwProviders);
-
-            return ETWLogging.StartAsync(pathBase, mergedEtwProviders).GetAwaiter().GetResult();
-        }
-
-        private static PerformanceMetricEvaluationContextImpl GetPerformanceMetricEvaluationContext(IEnumerable<PerformanceTestInfo> tests, string etlPath, string runId)
-        {
-            using (var source = new ETWTraceEventSource(etlPath))
-            {
-                if (source.EventsLost > 0)
-                    throw new Exception($"Events were lost in trace '{etlPath}'");
-
-                var evaluationContext = new PerformanceMetricEvaluationContextImpl(source, tests, runId);
-                try
-                {
-                    source.Process();
-
-                    return evaluationContext;
-                }
-                catch
-                {
-                    evaluationContext.Dispose();
-                    throw;
-                }
-            }
-        }
-
-        private static void RunTests(IEnumerable<PerformanceTestInfo> tests, string runnerHost, string runnerCommand, string runnerArgs, string runId, string outDir)
+        private void RunTests(IEnumerable<PerformanceTestInfo> tests, string runnerHost, string runnerCommand, string runnerArgs, string runId, string outDir)
         {
             string pathBase = Path.Combine(outDir, runId);
             string xmlPath = pathBase + ".xml";
 
-            using (StartTracing(tests, pathBase))
+            using (_services.StartTracing(tests, pathBase))
             {
                 const int maxCommandLineLength = 32767;
 
@@ -149,7 +117,7 @@ namespace Microsoft.Xunit.Performance
             }
 
             var etlPath = pathBase + ".etl";
-            using (var evaluationContext = GetPerformanceMetricEvaluationContext(tests, etlPath, runId))
+            using (var evaluationContext = _services.GetPerformanceMetricEvaluationContext(tests, etlPath, runId))
             {
                 var xmlDoc = XDocument.Load(xmlPath);
                 foreach (var testElem in xmlDoc.Descendants("test"))
@@ -189,11 +157,13 @@ namespace Microsoft.Xunit.Performance
                         }
                     }
                 }
-                xmlDoc.Save(xmlPath);
+
+                using (var xmlFile = File.Create(xmlPath))
+                    xmlDoc.Save(xmlFile);
             }
         }
 
-        private static void RunTestBatch(IEnumerable<string> methods, IEnumerable<string> assemblyFiles, string runnerHost, string runnerCommand, string runnerArgs, string runId, string outputOption)
+        private void RunTestBatch(IEnumerable<string> methods, IEnumerable<string> assemblyFiles, string runnerHost, string runnerCommand, string runnerArgs, string runId, string outputOption)
         {
             var commandLineArgs = new StringBuilder();
 
@@ -249,20 +219,20 @@ Arguments: {startInfo.Arguments}");
                     proc.WaitForExit();
                 }
             }
-            catch (Win32Exception ex)
+            catch (Exception ex)
             {
                 throw new Exception($"Could not launch the test runner, {startInfo.FileName}", innerException: ex);
             }
         }
 
-        private static IEnumerable<PerformanceTestInfo> DiscoverTests(IEnumerable<XunitProjectAssembly> assemblies, XunitFilters filters, IMessageSink diagnosticMessageSink)
+        private IEnumerable<PerformanceTestInfo> DiscoverTests(IEnumerable<XunitProjectAssembly> assemblies, XunitFilters filters, IMessageSink diagnosticMessageSink)
         {
             var tests = new List<PerformanceTestInfo>();
 
             foreach (var assembly in assemblies)
             {
                 PrintIfVerbose($"Discovering tests for {assembly.AssemblyFilename}.");
-
+                
                 // Note: We do not use shadowCopy because that creates a new AppDomain which can cause
                 // assembly load failures with delay-signed or "fake signed" assemblies.
                 using (var controller = new Xunit2(
@@ -284,7 +254,7 @@ Arguments: {startInfo.Arguments}");
             return tests;
         }
 
-        private static XunitPerformanceProject ParseCommandLine(string[] args)
+        private XunitPerformanceProject ParseCommandLine(string[] args)
         {
             var arguments = new Stack<string>();
             for (var i = args.Length - 1; i >= 0; i--)
@@ -337,11 +307,11 @@ Arguments: {startInfo.Arguments}");
                 switch (optionName)
                 {
                     case "nologo":
-                        s_nologo = true;
+                        _nologo = true;
                         break;
 
                     case "verbose":
-                        s_verbose = true;
+                        _verbose = true;
                         break;
 
                     case "trait":
@@ -525,16 +495,16 @@ Arguments: {startInfo.Arguments}");
             ReportException(ex, Console.Error);
         }
 
-        private static void PrintHeader()
+        private void PrintHeader()
         {
-            Console.WriteLine($"xunit.performance Console Runner ({IntPtr.Size * 8}-bit .NET {Environment.Version})");
+            Console.WriteLine($"xunit.performance Console Runner ({IntPtr.Size * 8}-bit .NET {_services.RuntimeVersion})");
             Console.WriteLine("Copyright (C) 2015 Microsoft Corporation.");
             Console.WriteLine();
         }
 
-        private static void PrintIfVerbose(string message)
+        private void PrintIfVerbose(string message)
         {
-            if (s_verbose)
+            if (_verbose)
             {
                 Console.ForegroundColor = ConsoleColor.DarkGray;
                 Console.WriteLine(message);

@@ -79,6 +79,12 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\xunit.performance.core\xunit.performance.core.csproj">
+      <Project>{d8820889-cc47-42b6-bac1-01d16d241ece}</Project>
+      <Name>xunit.performance.core</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
