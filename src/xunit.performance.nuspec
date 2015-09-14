@@ -17,6 +17,7 @@
     <language>en-US</language>
     <projectUrl>https://github.com/Microsoft/xunit-performance</projectUrl>
     <licenseUrl>https://github.com/Microsoft/xunit-performance/blob/master/LICENSE</licenseUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <dependencies>
       <group targetFramework="dotnet">
