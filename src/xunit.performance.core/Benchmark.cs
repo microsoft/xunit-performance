@@ -48,7 +48,7 @@ namespace Microsoft.Xunit.Performance
             {
                 using (var measurement = iteration.StartMeasurement())
                 {
-                    await asyncMeasuredOperation.Invoke().ConfigureAwait(false);
+                    await asyncMeasuredOperation.Invoke();
                 }
             }
         }
