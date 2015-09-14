@@ -17,7 +17,7 @@ namespace Microsoft.Xunit.Performance
         const int DefaultInterval = 100000; // Instructions per event.
         const string CounterName = "InstructionRetired";
 
-        public IEnumerable<PerformanceMetric> GetMetrics(IAttributeInfo metricAttribute)
+        public IEnumerable<PerformanceMetricInfo> GetMetrics(IAttributeInfo metricAttribute)
         {
             if (TraceEventProfileSources.GetInfo().ContainsKey(CounterName))
             {

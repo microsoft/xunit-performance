@@ -73,9 +73,8 @@
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="DictionaryExtensions.cs" />
-    <Compile Include="IPerformanceServices.cs" />
     <Compile Include="Microsoft-Xunit-Benchmark.manifest.cs" />
-    <Compile Include="EtwPerformanceMetricEvaluationContextImpl.cs" />
+    <Compile Include="EtwPerformanceMetricEvaluationContext.cs" />
     <Compile Include="IPerformanceMetricReader.cs" />
     <Compile Include="PerformanceTestInfo.cs" />
     <Compile Include="ConsoleDiagnosticsMessageVisitor.cs" />

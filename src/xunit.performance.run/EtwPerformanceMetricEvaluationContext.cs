@@ -50,7 +50,7 @@ namespace Microsoft.Xunit.Performance
 
             foreach (var info in testInfo)
             {
-                var evaluators = info.Metrics.Select(m => new KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>(m, m.CreateEvaluator(this))).ToList();
+                var evaluators = info.Metrics.Cast<PerformanceMetric>().Select(m => new KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>(m, m.CreateEvaluator(this))).ToList();
                 _evaluators[info.TestCase.DisplayName] = evaluators;
             }
         }

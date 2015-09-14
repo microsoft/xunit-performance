@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Microsoft.Xunit.Performance.Sdk;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -14,7 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class ProgramCore
+    public abstract class ProgramCore
     {
         private class ConsoleReporter : IMessageSink
         {
@@ -25,14 +26,14 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
-        private readonly IPerformanceServices _services;
         private bool _nologo = false;
         private bool _verbose = false;
 
-        public ProgramCore(IPerformanceServices services)
-        {
-            _services = services;
-        }
+        protected abstract IPerformanceMetricReader GetPerformanceMetricEvaluationContext(IEnumerable<PerformanceTestInfo> tests, string etlPath, string runId);
+
+        protected abstract IDisposable StartTracing(IEnumerable<PerformanceTestInfo> tests, string pathBase);
+
+        protected abstract string GetRuntimeVersion();
 
         public int Run(string[] args)
         {
@@ -79,7 +80,7 @@ namespace Microsoft.Xunit.Performance
             string pathBase = Path.Combine(outDir, runId);
             string xmlPath = pathBase + ".xml";
 
-            using (_services.StartTracing(tests, pathBase))
+            using (StartTracing(tests, pathBase))
             {
                 const int maxCommandLineLength = 32767;
 
@@ -117,7 +118,7 @@ namespace Microsoft.Xunit.Performance
             }
 
             var etlPath = pathBase + ".etl";
-            using (var evaluationContext = _services.GetPerformanceMetricReader(tests, etlPath, runId))
+            using (var evaluationContext = GetPerformanceMetricEvaluationContext(tests, etlPath, runId))
             {
                 var xmlDoc = XDocument.Load(xmlPath);
                 foreach (var testElem in xmlDoc.Descendants("test"))
@@ -497,12 +498,12 @@ Arguments: {startInfo.Arguments}");
 
         private void PrintHeader()
         {
-            Console.WriteLine($"xunit.performance Console Runner ({IntPtr.Size * 8}-bit .NET {_services.RuntimeVersion})");
+            Console.WriteLine($"xunit.performance Console Runner ({IntPtr.Size * 8}-bit .NET {GetRuntimeVersion()})");
             Console.WriteLine("Copyright (C) 2015 Microsoft Corporation.");
             Console.WriteLine();
         }
 
-        private void PrintIfVerbose(string message)
+        protected void PrintIfVerbose(string message)
         {
             if (_verbose)
             {

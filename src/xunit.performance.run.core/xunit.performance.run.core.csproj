@@ -61,9 +61,6 @@
     <Compile Include="..\xunit.performance.run\IPerformanceMetricReader.cs">
       <Link>IPerformanceMetricReader.cs</Link>
     </Compile>
-    <Compile Include="..\xunit.performance.run\IPerformanceServices.cs">
-      <Link>IPerformanceServices.cs</Link>
-    </Compile>
     <Compile Include="..\xunit.performance.run\PerformanceTestDisoveryVisitor.cs">
       <Link>PerformanceTestDisoveryVisitor.cs</Link>
     </Compile>
