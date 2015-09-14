@@ -233,7 +233,7 @@ Arguments: {startInfo.Arguments}");
             foreach (var assembly in assemblies)
             {
                 PrintIfVerbose($"Discovering tests for {assembly.AssemblyFilename}.");
-                
+
                 // Note: We do not use shadowCopy because that creates a new AppDomain which can cause
                 // assembly load failures with delay-signed or "fake signed" assemblies.
                 using (var controller = new Xunit2(
