@@ -23,7 +23,7 @@ namespace Microsoft.Xunit.Performance
             return new Program().Run(args);
         }
 
-        protected override IPerformanceMetricReader GetPerformanceMetricEvaluationContext(IEnumerable<PerformanceTestInfo> tests, string etlPath, string runId)
+        protected override IPerformanceMetricReader GetPerformanceMetricReader(IEnumerable<PerformanceTestInfo> tests, string etlPath, string runId)
         {
             using (var source = new ETWTraceEventSource(etlPath))
             {

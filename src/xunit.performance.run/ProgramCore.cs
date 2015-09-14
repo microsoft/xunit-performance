@@ -29,7 +29,7 @@ namespace Microsoft.Xunit.Performance
         private bool _nologo = false;
         private bool _verbose = false;
 
-        protected abstract IPerformanceMetricReader GetPerformanceMetricEvaluationContext(IEnumerable<PerformanceTestInfo> tests, string etlPath, string runId);
+        protected abstract IPerformanceMetricReader GetPerformanceMetricReader(IEnumerable<PerformanceTestInfo> tests, string etlPath, string runId);
 
         protected abstract IDisposable StartTracing(IEnumerable<PerformanceTestInfo> tests, string pathBase);
 
@@ -118,7 +118,7 @@ namespace Microsoft.Xunit.Performance
             }
 
             var etlPath = pathBase + ".etl";
-            using (var evaluationContext = GetPerformanceMetricEvaluationContext(tests, etlPath, runId))
+            using (var evaluationContext = GetPerformanceMetricReader(tests, etlPath, runId))
             {
                 var xmlDoc = XDocument.Load(xmlPath);
                 foreach (var testElem in xmlDoc.Descendants("test"))
