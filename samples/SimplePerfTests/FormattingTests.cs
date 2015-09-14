@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Xunit.Performance;
 using Xunit;
 
@@ -20,6 +21,12 @@ namespace SimplePerfTests
         public void Format()
         {
             _text = _text.ToUpper();
+        }
+
+        public Task FormatAsync()
+        {
+            Format();
+            return Task.CompletedTask;
         }
 
         public override string ToString()
@@ -43,9 +50,14 @@ namespace SimplePerfTests
         [MemberData(nameof(FormatCurlyBracesMemberData))]
         public static void FormatCurlyBracesTest(Document document)
         {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    document.Format();
+            Benchmark.Iterate(document.Format);
+        }
+
+        [Benchmark]
+        [MemberData(nameof(FormatCurlyBracesMemberData))]
+        public static async Task FormatCurlyBracesTestAsync(Document document)
+        {
+            await Benchmark.IterateAsync(() => document.FormatAsync());
         }
     }
 }

@@ -22,5 +22,35 @@ namespace Microsoft.Xunit.Performance
         /// </remarks>
         /// <returns></returns>
         public static IEnumerable<BenchmarkIteration> Iterations => BenchmarkIterator.Current.Iterations;
+
+        /// <summary>
+        /// Automatically iterate over a measured operation.
+        /// </summary>
+        /// <param name="measuredOperation">The operation to measure and iterate over.</param>
+        public static void Iterate(Action measuredOperation)
+        {
+            foreach(var iteration in BenchmarkIterator.Current.Iterations)
+            {
+                using (var measurement = iteration.StartMeasurement())
+                {
+                    measuredOperation.Invoke();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Automatically iterate over an asynchronous measured operation.
+        /// </summary>
+        /// <param name="asyncMeasuredOperation">The operation to measure and iterate over.</param>
+        public static async Task IterateAsync(Func<Task> asyncMeasuredOperation)
+        {
+            foreach (var iteration in BenchmarkIterator.Current.Iterations)
+            {
+                using (var measurement = iteration.StartMeasurement())
+                {
+                    await asyncMeasuredOperation.Invoke();
+                }
+            }
+        }
     }
 }
