@@ -14,6 +14,44 @@ Provides extensions over xUnit to author performance tests.
 3. Add a reference to xunit.performance.dll
 4. Tag your test methods with [Benchmark] instead of [Fact]
 
+Each [Benchmark]-annotated test must contain a loop of this form:
+
+```csharp
+[Benchmark]
+void TestMethod()
+{
+  // Any per-test-case setup can go here.
+  
+  foreach (var iteration in Benchmark.Iterations)
+  {
+    // Any per-iteration setup can go here.
+    
+    using (iteration.StartMeasurement())
+    {
+      // Code to be measured goes here.
+    }
+    
+    // ...per-iteration cleanup
+  }
+  
+  // ...per-test-case cleanup
+}
+```
+
+The simplest possible benchmark is therefore:
+
+```csharp
+[Benchmark]
+void EmptyBenchmark()
+{
+  foreach (var iteration in Benchmark.Iterations)
+    using (iteration.StartMeasurement())
+      ; //do nothing
+}
+```
+
+The first iteration is the "warmup" iteration; all performance metrics are discarded by the result analyzer.  Subsequent iterations are measured. 
+
 ## Running benchmarks
 
 The normal xUnit runners will run Benchmarks as normal unit tests.  The test execution times reported in the normal xUnit test results are for a single iteration, and so do not tell you much about the methods' performance.
