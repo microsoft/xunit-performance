@@ -12,7 +12,7 @@ using Microsoft.Xunit.Performance.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class PerformanceMetricEvaluationContextImpl : PerformanceMetricEvaluationContext, IDisposable
+    public class EtwPerformanceMetricEvaluationContext : PerformanceMetricEvaluationContext, IDisposable, IPerformanceMetricReader
     {
         private readonly Dictionary<string, List<KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>>> _evaluators = new Dictionary<string, List<KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>>>();
         private readonly Dictionary<string, List<Dictionary<string, double>>> _metricValues = new Dictionary<string, List<Dictionary<string, double>>>();
@@ -22,12 +22,12 @@ namespace Microsoft.Xunit.Performance
         private string _currentTestCase;
         private int _currentIteration;
 
-        internal IEnumerable<PerformanceMetric> GetMetrics(string testCase)
+        public IEnumerable<PerformanceMetricInfo> GetMetrics(string testCase)
         {
             return _evaluators.GetOrDefault(testCase)?.Select(kvp => kvp.Key);
         }
 
-        internal List<Dictionary<string, double>> GetValues(string testCase)
+        public List<Dictionary<string, double>> GetValues(string testCase)
         {
             return _metricValues.GetOrDefault(testCase);
         }
@@ -36,7 +36,7 @@ namespace Microsoft.Xunit.Performance
 
         public override bool IsTestEvent(TraceEvent traceEvent) => _currentProcesses.Contains(traceEvent.ProcessID);
 
-        internal PerformanceMetricEvaluationContextImpl(TraceEventSource traceEventSource, IEnumerable<PerformanceTestInfo> testInfo, string runid)
+        internal EtwPerformanceMetricEvaluationContext(TraceEventSource traceEventSource, IEnumerable<PerformanceTestInfo> testInfo, string runid)
         {
             _traceEventSource = traceEventSource;
             _runid = runid;

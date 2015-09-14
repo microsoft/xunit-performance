@@ -117,7 +117,7 @@ namespace Microsoft.Xunit.Performance
             }
 
             var etlPath = pathBase + ".etl";
-            using (var evaluationContext = _services.GetPerformanceMetricEvaluationContext(tests, etlPath, runId))
+            using (var evaluationContext = _services.GetPerformanceMetricReader(tests, etlPath, runId))
             {
                 var xmlDoc = XDocument.Load(xmlPath);
                 foreach (var testElem in xmlDoc.Descendants("test"))

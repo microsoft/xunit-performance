@@ -67,7 +67,6 @@
     <Compile Include="InstructionsRetiredMetricDiscoverer.cs" />
     <Compile Include="GCCountMetricDiscoverer.cs" />
     <Compile Include="PerformanceMetric.cs" />
-    <Compile Include="IPerformanceMetricDiscoverer.cs" />
     <Compile Include="KernelProviderInfo.cs" />
     <Compile Include="PerformanceMetricEvaluationContext.cs" />
     <Compile Include="PerformanceMetricEvaluator.cs" />

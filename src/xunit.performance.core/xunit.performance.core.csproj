@@ -57,6 +57,7 @@
     <Compile Include="BenchmarkIterationMeasurement.cs" />
     <Compile Include="BenchmarkIterator.cs" />
     <Compile Include="IPerformanceMetricAttribute.cs" />
+    <Compile Include="IPerformanceMetricDiscoverer.cs" />
     <Compile Include="MeasureInstructionsRetired.cs" />
     <Compile Include="MeasureGCCountsAttribute.cs" />
     <Compile Include="PerformanceMetricDiscovererAttribute.cs" />

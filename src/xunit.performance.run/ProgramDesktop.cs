@@ -84,14 +84,14 @@ namespace Microsoft.Xunit.Performance
             return ETWLogging.StartAsync(pathBase, mergedEtwProviders).GetAwaiter().GetResult();
         }
 
-        private static PerformanceMetricEvaluationContextImpl GetPerformanceMetricEvaluationContext(IEnumerable<PerformanceTestInfo> tests, string etlPath, string runId)
+        private static EtwPerformanceMetricEvaluationContext GetPerformanceMetricEvaluationContext(IEnumerable<PerformanceTestInfo> tests, string etlPath, string runId)
         {
             using (var source = new ETWTraceEventSource(etlPath))
             {
                 if (source.EventsLost > 0)
                     throw new Exception($"Events were lost in trace '{etlPath}'");
 
-                var evaluationContext = new PerformanceMetricEvaluationContextImpl(source, tests, runId);
+                var evaluationContext = new EtwPerformanceMetricEvaluationContext(source, tests, runId);
                 try
                 {
                     source.Process();

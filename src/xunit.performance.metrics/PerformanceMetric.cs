@@ -13,10 +13,8 @@ namespace Microsoft.Xunit.Performance.Sdk
     public abstract class PerformanceMetric : PerformanceMetricInfo
     {
         public PerformanceMetric(string id, string displayName, string unit)
+            : base(id, displayName, unit)
         {
-            Id = id;
-            DisplayName = displayName;
-            Unit = unit;
         }
 
         public virtual IEnumerable<ProviderInfo> ProviderInfo => Enumerable.Empty<ProviderInfo>();
