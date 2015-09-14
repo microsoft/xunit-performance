@@ -100,7 +100,7 @@ namespace Microsoft.Xunit.Performance
                     {
                         context.TraceEventSource.Kernel.PerfInfoCollectionStart += PerfInfoCollectionStart;
                         context.TraceEventSource.Kernel.PerfInfoPMCSample += PerfInfoPMCSample;
-                _context = context;
+                        _context = context;
                         _profileSource = profileSource;
                     }
                     else
@@ -114,7 +114,7 @@ namespace Microsoft.Xunit.Performance
             private void PerfInfoCollectionStart(SampledProfileIntervalTraceData ev)
             {
                 if (ev.SampleSource == _profileSource)
-                _interval = ev.NewInterval;
+                    _interval = ev.NewInterval;
             }
 
             private void PerfInfoPMCSample(PMCCounterProfTraceData ev)
