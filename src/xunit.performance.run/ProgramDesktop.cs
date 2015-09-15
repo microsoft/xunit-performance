@@ -23,14 +23,15 @@ namespace Microsoft.Xunit.Performance
             return new Program().Run(args);
         }
 
-        protected override IPerformanceMetricReader GetPerformanceMetricReader(IEnumerable<PerformanceTestInfo> tests, string etlPath, string runId)
+        protected override IPerformanceMetricReader GetPerformanceMetricReader(IEnumerable<PerformanceTestInfo> tests, string pathBase, string runId)
         {
+            string etlPath = pathBase + ".etl";
             using (var source = new ETWTraceEventSource(etlPath))
             {
                 if (source.EventsLost > 0)
                     throw new Exception($"Events were lost in trace '{etlPath}'");
 
-                var evaluationContext = new EtwPerformanceMetricEvaluationContext(source, tests, runId);
+                var evaluationContext = new EtwPerformanceMetricEvaluationContext(etlPath, source, tests, runId);
                 try
                 {
                     source.Process();

@@ -22,6 +22,8 @@ namespace Microsoft.Xunit.Performance
         private string _currentTestCase;
         private int _currentIteration;
 
+        public string LogPath { get; }
+
         public IEnumerable<PerformanceMetricInfo> GetMetrics(string testCase)
         {
             return _evaluators.GetOrDefault(testCase)?.Select(kvp => kvp.Key);
@@ -36,8 +38,9 @@ namespace Microsoft.Xunit.Performance
 
         public override bool IsTestEvent(TraceEvent traceEvent) => _currentProcesses.Contains(traceEvent.ProcessID);
 
-        internal EtwPerformanceMetricEvaluationContext(TraceEventSource traceEventSource, IEnumerable<PerformanceTestInfo> testInfo, string runid)
+        internal EtwPerformanceMetricEvaluationContext(string logPath, TraceEventSource traceEventSource, IEnumerable<PerformanceTestInfo> testInfo, string runid)
         {
+            LogPath = logPath;
             _traceEventSource = traceEventSource;
             _runid = runid;
 

@@ -73,6 +73,7 @@
     <Compile Include="..\xunit.performance.run\XunitPerformanceProject.cs">
       <Link>XunitPerformanceProject.cs</Link>
     </Compile>
+    <Compile Include="PortableMetricReader.cs" />
     <Compile Include="ProgramPortable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

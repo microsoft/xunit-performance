@@ -62,6 +62,7 @@
     <Compile Include="MeasureGCCountsAttribute.cs" />
     <Compile Include="PerformanceMetricDiscovererAttribute.cs" />
     <Compile Include="PerformanceMetricInfo.cs" />
+    <Compile Include="PerformanceMetricUnits.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
