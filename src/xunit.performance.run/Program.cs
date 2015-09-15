@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Xml.Linq;
 using Xunit;
@@ -246,11 +247,10 @@ Arguments: {startInfo.Arguments}");
 
                 // Note: We do not use shadowCopy because that creates a new AppDomain which can cause
                 // assembly load failures with delay-signed or "fake signed" assemblies.
-                using (var controller = new Xunit2(
-                    useAppDomain: false,
-                    sourceInformationProvider: new NullSourceInformationProvider(),
+                using (var controller = new XunitFrontController(
                     assemblyFileName: assembly.AssemblyFilename,
                     shadowCopy: false,
+                    appDomainSupport: AppDomainSupport.Denied,
                     diagnosticMessageSink: new ConsoleDiagnosticsMessageVisitor())
                     )
                 using (var discoveryVisitor = new PerformanceTestDiscoveryVisitor(assembly, filters, diagnosticMessageSink))
@@ -451,7 +451,6 @@ Arguments: {startInfo.Arguments}");
                 {
                     AssemblyFilename = Path.GetFullPath(assembly.Item1),
                     ConfigFilename = assembly.Item2 != null ? Path.GetFullPath(assembly.Item2) : null,
-                    ShadowCopy = true
                 });
 
             return result;
@@ -462,7 +461,6 @@ Arguments: {startInfo.Arguments}");
             project.AddBaseline(new XunitProjectAssembly
             {
                 AssemblyFilename = Path.GetFullPath(assembly),
-                ShadowCopy = true,
             });
         }
 

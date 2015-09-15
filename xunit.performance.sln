@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.execution
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.core", "src\xunit.performance.core\xunit.performance.core.csproj", "{D8820889-CC47-42B6-BAC1-01D16D241ECE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.execution.DotNetCore", "src\xunit.performance.execution.DotNetCore\xunit.performance.execution.DotNetCore.csproj", "{B67EB81A-F0DE-495A-96FA-C5482E8FB58F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.execution.dotnet", "src\xunit.performance.execution.DotNetCore\xunit.performance.execution.dotnet.csproj", "{B67EB81A-F0DE-495A-96FA-C5482E8FB58F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "execution", "execution", "{6D71B976-46EE-42E0-877E-69080B49F903}"
 EndProject
