@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.Xunit.Performance.Sdk
 {
-    public interface IPerformanceMetricReader : IDisposable
+    internal interface IPerformanceMetricReader : IDisposable
     {
         string LogPath { get; }
         IEnumerable<PerformanceMetricInfo> GetMetrics(string testCase);

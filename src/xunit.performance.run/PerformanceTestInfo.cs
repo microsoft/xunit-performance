@@ -8,7 +8,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
-    public class PerformanceTestInfo
+    internal class PerformanceTestInfo
     {
         public XunitProjectAssembly Assembly;
         public ITestCase TestCase;

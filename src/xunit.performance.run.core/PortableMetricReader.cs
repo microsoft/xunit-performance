@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Xunit.Performance
 {
-    class PortableMetricReader : IPerformanceMetricReader
+    internal class PortableMetricReader : IPerformanceMetricReader
     {
         private Dictionary<string, List<Dictionary<string, double>>> _values = new Dictionary<string, List<Dictionary<string, double>>>();
 

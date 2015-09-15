@@ -23,7 +23,7 @@ namespace Microsoft.Xunit.Performance
             return new Program().Run(args);
         }
 
-        protected override IPerformanceMetricReader GetPerformanceMetricReader(IEnumerable<PerformanceTestInfo> tests, string pathBase, string runId)
+        internal override IPerformanceMetricReader GetPerformanceMetricReader(IEnumerable<PerformanceTestInfo> tests, string pathBase, string runId)
         {
             string etlPath = pathBase + ".etl";
             using (var source = new ETWTraceEventSource(etlPath))
@@ -46,7 +46,7 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
-        protected override IDisposable StartTracing(IEnumerable<PerformanceTestInfo> tests, string pathBase)
+        internal override IDisposable StartTracing(IEnumerable<PerformanceTestInfo> tests, string pathBase)
         {
             PrintIfVerbose($"Starting ETW tracing. Logging to {pathBase}");
 
@@ -61,7 +61,7 @@ namespace Microsoft.Xunit.Performance
             return ETWLogging.StartAsync(pathBase, mergedEtwProviders).GetAwaiter().GetResult();
         }
 
-        protected override string GetRuntimeVersion()
+        internal override string GetRuntimeVersion()
         {
             return Environment.Version.ToString();
         }

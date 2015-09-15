@@ -10,7 +10,7 @@ using Microsoft.Xunit.Performance.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    public class ProgramPortable : ProgramCore
+    internal class ProgramPortable : ProgramCore
     {
         public static int Main(string[] args)
         {
@@ -19,17 +19,17 @@ namespace Microsoft.Xunit.Performance
 
         private static string GetCSVPath(string pathBase) => pathBase + ".csv";
 
-        protected override IPerformanceMetricReader GetPerformanceMetricReader(IEnumerable<PerformanceTestInfo> tests, string pathBase, string runId)
+        internal override IPerformanceMetricReader GetPerformanceMetricReader(IEnumerable<PerformanceTestInfo> tests, string pathBase, string runId)
         {
             return new PortableMetricReader(GetCSVPath(pathBase));
         }
 
-        protected override string GetRuntimeVersion()
+        internal override string GetRuntimeVersion()
         {
             return "Portable";
         }
 
-        protected override IDisposable StartTracing(IEnumerable<PerformanceTestInfo> tests, string pathBase)
+        internal override IDisposable StartTracing(IEnumerable<PerformanceTestInfo> tests, string pathBase)
         {
             Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_FILE_LOG_PATH", GetCSVPath(pathBase));
             return null;

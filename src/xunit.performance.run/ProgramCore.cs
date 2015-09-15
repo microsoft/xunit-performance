@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
-    public abstract class ProgramCore
+    internal abstract class ProgramCore
     {
         private class ConsoleReporter : IMessageSink
         {
@@ -29,13 +29,13 @@ namespace Microsoft.Xunit.Performance
         private bool _nologo = false;
         private bool _verbose = false;
 
-        protected abstract IPerformanceMetricReader GetPerformanceMetricReader(IEnumerable<PerformanceTestInfo> tests, string pathBase, string runId);
+        internal abstract IPerformanceMetricReader GetPerformanceMetricReader(IEnumerable<PerformanceTestInfo> tests, string pathBase, string runId);
 
-        protected abstract IDisposable StartTracing(IEnumerable<PerformanceTestInfo> tests, string pathBase);
+        internal abstract IDisposable StartTracing(IEnumerable<PerformanceTestInfo> tests, string pathBase);
 
-        protected abstract string GetRuntimeVersion();
+        internal abstract string GetRuntimeVersion();
 
-        public int Run(string[] args)
+        internal int Run(string[] args)
         {
             if (args.Length == 0 || args[0] == "-?")
             {
