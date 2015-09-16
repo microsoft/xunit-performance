@@ -40,7 +40,7 @@ namespace Microsoft.Xunit.Performance
                 List<PerformanceMetricInfo> metrics = new List<PerformanceMetricInfo>();
                 foreach (var metricAttr in GetMetricAttributes(testMethod))
                 {
-                    var discovererAttr = metricAttr.GetCustomAttributes(typeof(PerformanceMetricDiscovererAttribute)).First();
+                    var discovererAttr = metricAttr.GetCustomAttributes(typeof(PerformanceMetricDiscovererAttribute).AssemblyQualifiedName).First();
                     var discoverer = GetPerformanceMetricDiscoverer(discovererAttr);
                     metrics.AddRange(discoverer.GetMetrics(metricAttr));
                 }
@@ -54,9 +54,9 @@ namespace Microsoft.Xunit.Performance
 
         private IEnumerable<IAttributeInfo> GetMetricAttributes(ITestMethod testMethod)
         {
-            return testMethod.Method.GetCustomAttributes(typeof(IPerformanceMetricAttribute))
-                .Concat(testMethod.TestClass.Class.GetCustomAttributes(typeof(IPerformanceMetricAttribute)))
-                .Concat(testMethod.TestClass.Class.Assembly.GetCustomAttributes(typeof(IPerformanceMetricAttribute)));
+            return testMethod.Method.GetCustomAttributes(typeof(IPerformanceMetricAttribute).AssemblyQualifiedName)
+                .Concat(testMethod.TestClass.Class.GetCustomAttributes(typeof(IPerformanceMetricAttribute).AssemblyQualifiedName))
+                .Concat(testMethod.TestClass.Class.Assembly.GetCustomAttributes(typeof(IPerformanceMetricAttribute).AssemblyQualifiedName));
         }
 
         private Type GetType(string assemblyName, string typeName)
@@ -86,7 +86,7 @@ namespace Microsoft.Xunit.Performance
             if (discovererType == null)
                 return null;
 
-            return ExtensibilityPointFactory.Get<IPerformanceMetricDiscoverer>(_diagnosticMessageSink, discovererType);
+            return (IPerformanceMetricDiscoverer)Activator.CreateInstance(discovererType);
         }
     }
 }

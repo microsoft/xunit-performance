@@ -228,30 +228,33 @@ Arguments: {startInfo.Arguments}");
 
         private IEnumerable<PerformanceTestInfo> DiscoverTests(IEnumerable<XunitProjectAssembly> assemblies, XunitFilters filters, IMessageSink diagnosticMessageSink)
         {
-            var tests = new List<PerformanceTestInfo>();
-
-            foreach (var assembly in assemblies)
+            using (AssemblyHelper.SubscribeResolve())
             {
-                PrintIfVerbose($"Discovering tests for {assembly.AssemblyFilename}.");
+                var tests = new List<PerformanceTestInfo>();
 
-                // Note: We do not use shadowCopy because that creates a new AppDomain which can cause
-                // assembly load failures with delay-signed or "fake signed" assemblies.
-                using (var controller = new XunitFrontController(
-                    assemblyFileName: assembly.AssemblyFilename,
-                    shadowCopy: false,
-                    appDomainSupport: AppDomainSupport.Denied,
-                    diagnosticMessageSink: new ConsoleDiagnosticsMessageVisitor())
-                    )
-                using (var discoveryVisitor = new PerformanceTestDiscoveryVisitor(assembly, filters, diagnosticMessageSink))
+                foreach (var assembly in assemblies)
                 {
-                    controller.Find(includeSourceInformation: false, messageSink: discoveryVisitor, discoveryOptions: TestFrameworkOptions.ForDiscovery());
-                    discoveryVisitor.Finished.WaitOne();
-                    tests.AddRange(discoveryVisitor.Tests);
-                }
-            }
+                    PrintIfVerbose($"Discovering tests for {assembly.AssemblyFilename}.");
 
-            PrintIfVerbose($"Discovered a total of {tests.Count} tests.");
-            return tests;
+                    // Note: We do not use shadowCopy because that creates a new AppDomain which can cause
+                    // assembly load failures with delay-signed or "fake signed" assemblies.
+                    using (var controller = new XunitFrontController(
+                        assemblyFileName: assembly.AssemblyFilename,
+                        shadowCopy: false,
+                        appDomainSupport: AppDomainSupport.Denied,
+                        diagnosticMessageSink: new ConsoleDiagnosticsMessageVisitor())
+                        )
+                    using (var discoveryVisitor = new PerformanceTestDiscoveryVisitor(assembly, filters, diagnosticMessageSink))
+                    {
+                        controller.Find(includeSourceInformation: false, messageSink: discoveryVisitor, discoveryOptions: TestFrameworkOptions.ForDiscovery());
+                        discoveryVisitor.Finished.WaitOne();
+                        tests.AddRange(discoveryVisitor.Tests);
+                    }
+                }
+
+                PrintIfVerbose($"Discovered a total of {tests.Count} tests.");
+                return tests;
+            }
         }
 
         private XunitPerformanceProject ParseCommandLine(string[] args)
