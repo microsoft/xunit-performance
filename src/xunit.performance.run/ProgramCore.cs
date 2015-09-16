@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Microsoft.Diagnostics.Tracing;
+using Microsoft.Xunit.Performance.Sdk;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class Program
+    internal abstract class ProgramCore
     {
         private class ConsoleReporter : IMessageSink
         {
@@ -26,10 +26,16 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
-        private static bool s_nologo = false;
-        private static bool s_verbose = false;
+        private bool _nologo = false;
+        private bool _verbose = false;
 
-        private static int Main(string[] args)
+        internal abstract IPerformanceMetricReader GetPerformanceMetricReader(IEnumerable<PerformanceTestInfo> tests, string pathBase, string runId);
+
+        internal abstract IDisposable StartTracing(IEnumerable<PerformanceTestInfo> tests, string pathBase);
+
+        internal abstract string GetRuntimeVersion();
+
+        internal int Run(string[] args)
         {
             if (args.Length == 0 || args[0] == "-?")
             {
@@ -41,7 +47,7 @@ namespace Microsoft.Xunit.Performance
             try
             {
                 var project = ParseCommandLine(args);
-                if (!s_nologo)
+                if (!_nologo)
                 {
                     PrintHeader();
                 }
@@ -69,22 +75,12 @@ namespace Microsoft.Xunit.Performance
             return 0;
         }
 
-        private static void RunTests(IEnumerable<PerformanceTestInfo> tests, string runnerHost, string runnerCommand, string runnerArgs, string runId, string outDir)
+        private void RunTests(IEnumerable<PerformanceTestInfo> tests, string runnerHost, string runnerCommand, string runnerArgs, string runId, string outDir)
         {
             string pathBase = Path.Combine(outDir, runId);
             string xmlPath = pathBase + ".xml";
 
-            PrintIfVerbose($"Starting ETW tracing. Logging to {pathBase}");
-
-            var allEtwProviders =
-                from test in tests
-                from metric in test.Metrics
-                from provider in metric.ProviderInfo
-                select provider;
-
-            var mergedEtwProviders = ProviderInfo.Merge(allEtwProviders);
-
-            using (ETWLogging.StartAsync(pathBase, mergedEtwProviders).Result)
+            using (StartTracing(tests, pathBase))
             {
                 const int maxCommandLineLength = 32767;
 
@@ -121,60 +117,53 @@ namespace Microsoft.Xunit.Performance
                     RunTestBatch(methodBatch, assemblyFileBatch, runnerHost, runnerCommand, runnerArgs, runId, outputOption);
             }
 
-            var etlPath = pathBase + ".etl";
-            using (var source = new ETWTraceEventSource(etlPath))
+            using (var evaluationContext = GetPerformanceMetricReader(tests, pathBase, runId))
             {
-                if (source.EventsLost > 0)
-                    throw new Exception($"Events were lost in trace '{etlPath}'");
-
-                using (var evaluationContext = new PerformanceMetricEvaluationContextImpl(source, tests, runId))
+                var xmlDoc = XDocument.Load(xmlPath);
+                foreach (var testElem in xmlDoc.Descendants("test"))
                 {
-                    source.Process();
+                    var testName = testElem.Attribute("name").Value;
 
-                    var xmlDoc = XDocument.Load(xmlPath);
-                    foreach (var testElem in xmlDoc.Descendants("test"))
+                    var perfElem = new XElement("performance", new XAttribute("runid", runId), new XAttribute("etl", Path.GetFullPath(evaluationContext.LogPath)));
+                    testElem.Add(perfElem);
+
+                    var metrics = evaluationContext.GetMetrics(testName);
+                    if (metrics != null)
                     {
-                        var testName = testElem.Attribute("name").Value;
+                        var metricsElem = new XElement("metrics");
+                        perfElem.Add(metricsElem);
 
-                        var perfElem = new XElement("performance", new XAttribute("runid", runId), new XAttribute("etl", Path.GetFullPath(etlPath)));
-                        testElem.Add(perfElem);
+                        foreach (var metric in metrics)
+                            metricsElem.Add(new XElement(metric.Id, new XAttribute("displayName", metric.DisplayName), new XAttribute("unit", metric.Unit)));
+                    }
 
-                        var metrics = evaluationContext.GetMetrics(testName);
-                        if (metrics != null)
+                    var iterations = evaluationContext.GetValues(testName);
+                    if (iterations != null)
+                    {
+                        var iterationsElem = new XElement("iterations");
+                        perfElem.Add(iterationsElem);
+
+                        for (int i = 0; i < iterations.Count; i++)
                         {
-                            var metricsElem = new XElement("metrics");
-                            perfElem.Add(metricsElem);
-
-                            foreach (var metric in metrics)
-                                metricsElem.Add(new XElement(metric.Id, new XAttribute("displayName", metric.DisplayName), new XAttribute("unit", metric.Unit)));
-                        }
-
-                        var iterations = evaluationContext.GetValues(testName);
-                        if (iterations != null)
-                        {
-                            var iterationsElem = new XElement("iterations");
-                            perfElem.Add(iterationsElem);
-
-                            for (int i = 0; i < iterations.Count; i++)
+                            var iteration = iterations[i];
+                            if (iteration != null)
                             {
-                                var iteration = iterations[i];
-                                if (iteration != null)
-                                {
-                                    var iterationElem = new XElement("iteration", new XAttribute("index", i));
-                                    iterationsElem.Add(iterationElem);
+                                var iterationElem = new XElement("iteration", new XAttribute("index", i));
+                                iterationsElem.Add(iterationElem);
 
-                                    foreach (var value in iteration)
-                                        iterationElem.Add(new XAttribute(value.Key, value.Value.ToString("R")));
-                                }
+                                foreach (var value in iteration)
+                                    iterationElem.Add(new XAttribute(value.Key, value.Value.ToString("R")));
                             }
                         }
                     }
-                    xmlDoc.Save(xmlPath);
                 }
+
+                using (var xmlFile = File.Create(xmlPath))
+                    xmlDoc.Save(xmlFile);
             }
         }
 
-        private static void RunTestBatch(IEnumerable<string> methods, IEnumerable<string> assemblyFiles, string runnerHost, string runnerCommand, string runnerArgs, string runId, string outputOption)
+        private void RunTestBatch(IEnumerable<string> methods, IEnumerable<string> assemblyFiles, string runnerHost, string runnerCommand, string runnerArgs, string runId, string outputOption)
         {
             var commandLineArgs = new StringBuilder();
 
@@ -230,13 +219,13 @@ Arguments: {startInfo.Arguments}");
                     proc.WaitForExit();
                 }
             }
-            catch (Win32Exception ex)
+            catch (Exception ex)
             {
                 throw new Exception($"Could not launch the test runner, {startInfo.FileName}", innerException: ex);
             }
         }
 
-        private static IEnumerable<PerformanceTestInfo> DiscoverTests(IEnumerable<XunitProjectAssembly> assemblies, XunitFilters filters, IMessageSink diagnosticMessageSink)
+        private IEnumerable<PerformanceTestInfo> DiscoverTests(IEnumerable<XunitProjectAssembly> assemblies, XunitFilters filters, IMessageSink diagnosticMessageSink)
         {
             var tests = new List<PerformanceTestInfo>();
 
@@ -265,7 +254,7 @@ Arguments: {startInfo.Arguments}");
             return tests;
         }
 
-        private static XunitPerformanceProject ParseCommandLine(string[] args)
+        private XunitPerformanceProject ParseCommandLine(string[] args)
         {
             var arguments = new Stack<string>();
             for (var i = args.Length - 1; i >= 0; i--)
@@ -318,11 +307,11 @@ Arguments: {startInfo.Arguments}");
                 switch (optionName)
                 {
                     case "nologo":
-                        s_nologo = true;
+                        _nologo = true;
                         break;
 
                     case "verbose":
-                        s_verbose = true;
+                        _verbose = true;
                         break;
 
                     case "trait":
@@ -506,16 +495,16 @@ Arguments: {startInfo.Arguments}");
             ReportException(ex, Console.Error);
         }
 
-        private static void PrintHeader()
+        private void PrintHeader()
         {
-            Console.WriteLine($"xunit.performance Console Runner ({IntPtr.Size * 8}-bit .NET {Environment.Version})");
+            Console.WriteLine($"xunit.performance Console Runner ({IntPtr.Size * 8}-bit .NET {GetRuntimeVersion()})");
             Console.WriteLine("Copyright (C) 2015 Microsoft Corporation.");
             Console.WriteLine();
         }
 
-        private static void PrintIfVerbose(string message)
+        protected void PrintIfVerbose(string message)
         {
-            if (s_verbose)
+            if (_verbose)
             {
                 Console.ForegroundColor = ConsoleColor.DarkGray;
                 Console.WriteLine(message);

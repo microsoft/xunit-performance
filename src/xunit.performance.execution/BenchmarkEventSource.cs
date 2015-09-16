@@ -2,7 +2,12 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.Tracing;
+using System.Globalization;
+using System.IO;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Microsoft.Xunit.Performance
 {
@@ -17,11 +22,47 @@ namespace Microsoft.Xunit.Performance
             public const EventTask BenchmarkIterationStop = (EventTask)4;
         }
 
-        public static BenchmarkEventSource Log = new BenchmarkEventSource();
+        public static readonly BenchmarkEventSource Log = new BenchmarkEventSource();
+
+        private static readonly StreamWriter _csvWriter = OpenCSV();
+
+        private static StreamWriter OpenCSV()
+        {
+            var logPath = BenchmarkConfiguration.FileLogPath;
+            if (logPath == null)
+                return null;
+
+            return new StreamWriter(File.Open(logPath, FileMode.Create), encoding: Encoding.UTF8);
+        }
+
+        internal void Flush()
+        {
+            if (_csvWriter != null)
+                _csvWriter.Flush();
+        }
+
+        private double GetTimestamp()
+        {
+            return 1000.0 * (double)Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency;
+        }
+
+        private void WriteCSV(
+            string benchmarkName, 
+            [CallerMemberName]string eventName = null,
+            string stopReason = "",
+            int? iteration = null,
+            bool? success = null)
+        { 
+            // TODO: this is going to add a lot of overhead; it's just here to get us running while we wait for an ETW-equivalent on Linux.
+            _csvWriter.WriteLine($"{GetTimestamp()},{benchmarkName},{eventName},{iteration?.ToString(CultureInfo.InvariantCulture) ?? ""},{success?.ToString() ?? ""},{stopReason}");
+        }
 
         [Event(1, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkStart)]
         public unsafe void BenchmarkStart(string RunId, string BenchmarkName)
         {
+            if (_csvWriter != null)
+                WriteCSV(BenchmarkName);
+
             if (IsEnabled())
             {
                 if (RunId == null)
@@ -62,11 +103,17 @@ namespace Microsoft.Xunit.Performance
                     WriteEventCore(2, 3, data);
                 }
             }
+
+            if (_csvWriter != null)
+                WriteCSV(BenchmarkName, stopReason: StopReason);
         }
 
         [Event(3, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkIterationStart)]
         public unsafe void BenchmarkIterationStart(string RunId, string BenchmarkName, int Iteration)
         {
+            if (_csvWriter != null)
+                WriteCSV(BenchmarkName, iteration: Iteration);
+
             if (IsEnabled())
             {
                 if (RunId == null)
@@ -111,6 +158,9 @@ namespace Microsoft.Xunit.Performance
                     WriteEventCore(4, 4, data);
                 }
             }
+
+            if (_csvWriter != null)
+                WriteCSV(BenchmarkName, iteration: Iteration, success: Success);
         }
     }
 }

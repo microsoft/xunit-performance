@@ -12,7 +12,7 @@ namespace Microsoft.Xunit.Performance
 {
     internal class GCCountMetricDiscoverer : IPerformanceMetricDiscoverer
     {
-        public IEnumerable<PerformanceMetric> GetMetrics(IAttributeInfo metricAttribute)
+        public IEnumerable<PerformanceMetricInfo> GetMetrics(IAttributeInfo metricAttribute)
         {
             yield return new GCCountMetric();
         }
