@@ -1,21 +1,21 @@
-﻿{
-  "version": "1.0.0-*",
-  "description": "DNXLibrary Class Library",
-  "authors": [ "pharring" ],
-  "tags": [ "" ],
-  "projectUrl": "",
-  "licenseUrl": "",
+{
+    "version": "1.0.0-*",
+    "description": "DNXLibrary Class Library",
+    "authors": [ "pharring" ],
+    "tags": [ "" ],
+    "projectUrl": "",
+    "licenseUrl": "",
 
-  "dependencies": {
-    "xunit": "2.1.0-beta4-*",
-    "xunit.runner.dnx": "2.1.0-beta4-*",
-    "Microsoft.DotNet.xunit.performance": "99.99.99-dev"
-  },
-  "commands": {
-    "test": "xunit.runner.dnx"
-  },
-  "frameworks": {
-    "dnx451": { },
-    "dnxcore50": { }
-  }
+    "dependencies": {
+      "xunit": "2.1.0-rc1-build3168",
+      "xunit.runner.dnx": "2.1.0-beta5-build169",
+      "Microsoft.DotNet.xunit.performance": "99.99.99-dev"
+    },
+    "commands": {
+        "test": "xunit.runner.dnx"
+    },
+    "frameworks": {
+        "dnx451": { },
+        "dnxcore50": { }
+    }
 }
