@@ -12,6 +12,6 @@ namespace Microsoft.Xunit.Performance
     {
         public XunitProjectAssembly Assembly;
         public ITestCase TestCase;
-        public IEnumerable<PerformanceMetric> Metrics;
+        public IEnumerable<PerformanceMetricInfo> Metrics;
     }
 }

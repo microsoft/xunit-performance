@@ -74,11 +74,13 @@
     </Compile>
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="Microsoft-Xunit-Benchmark.manifest.cs" />
-    <Compile Include="PerformanceMetricEvaluationContextImpl.cs" />
+    <Compile Include="EtwPerformanceMetricEvaluationContext.cs" />
+    <Compile Include="IPerformanceMetricReader.cs" />
     <Compile Include="PerformanceTestInfo.cs" />
     <Compile Include="ConsoleDiagnosticsMessageVisitor.cs" />
     <Compile Include="ETWLogging.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="ProgramCore.cs" />
+    <Compile Include="ProgramDesktop.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PerformanceTestDisoveryVisitor.cs" />
     <Compile Include="XunitPerformanceProject.cs" />

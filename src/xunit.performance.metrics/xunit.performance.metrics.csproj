@@ -70,17 +70,21 @@
     <Compile Include="InstructionsRetiredMetricDiscoverer.cs" />
     <Compile Include="GCCountMetricDiscoverer.cs" />
     <Compile Include="PerformanceMetric.cs" />
-    <Compile Include="IPerformanceMetricDiscoverer.cs" />
     <Compile Include="KernelProviderInfo.cs" />
     <Compile Include="PerformanceMetricEvaluationContext.cs" />
     <Compile Include="PerformanceMetricEvaluator.cs" />
-    <Compile Include="PerformanceMetricUnits.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProviderInfo.cs" />
     <Compile Include="UserProviderInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\xunit.performance.core\xunit.performance.core.csproj">
+      <Project>{d8820889-cc47-42b6-bac1-01d16d241ece}</Project>
+      <Name>xunit.performance.core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

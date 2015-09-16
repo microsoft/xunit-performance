@@ -30,7 +30,7 @@ namespace Microsoft.Xunit.Performance
                 _profileSource = -1;
         }
 
-        public IEnumerable<PerformanceMetric> GetMetrics(IAttributeInfo metricAttribute)
+        public IEnumerable<PerformanceMetricInfo> GetMetrics(IAttributeInfo metricAttribute)
         {
             if (_profileSource != -1)
             {

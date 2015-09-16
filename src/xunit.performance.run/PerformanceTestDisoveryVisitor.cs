@@ -37,7 +37,7 @@ namespace Microsoft.Xunit.Performance
                 // Get the performance metrics for this method
                 //
                 var testMethod = testCaseDiscovered.TestMethod;
-                List<PerformanceMetric> metrics = new List<PerformanceMetric>();
+                List<PerformanceMetricInfo> metrics = new List<PerformanceMetricInfo>();
                 foreach (var metricAttr in GetMetricAttributes(testMethod))
                 {
                     var discovererAttr = metricAttr.GetCustomAttributes(typeof(PerformanceMetricDiscovererAttribute)).First();
