@@ -41,7 +41,7 @@
       <TestAssemblies Include="Samples\SimplePerfTests\bin\$(Configuration)\SimplePerfTests.dll" />
     </ItemGroup>
 
-    <Exec Command="packages\xunit.runner.console.2.1.0-beta4-build3109\tools\xunit.console.exe @(TestAssemblies, ' ')" />
+    <Exec Command="packages\xunit.runner.console.2.1.0-rc1-build3168\tools\xunit.console.exe @(TestAssemblies, ' ')" />
   </Target>
 
   <Target Name="Clean">
