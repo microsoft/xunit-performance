@@ -53,18 +53,21 @@ namespace Microsoft.Xunit.Performance
                     PrintHeader();
                 }
 
-                var tests = DiscoverTests(project.Assemblies, project.Filters, new ConsoleReporter());
-                PrintIfVerbose($"Creating output directory: {project.OutputDir}");
-                if (!Directory.Exists(project.OutputDir))
-                    Directory.CreateDirectory(project.OutputDir);
+                using (AssemblyHelper.SubscribeResolve())
+                {
+                    var tests = DiscoverTests(project.Assemblies, project.Filters, new ConsoleReporter());
+                    PrintIfVerbose($"Creating output directory: {project.OutputDir}");
+                    if (!Directory.Exists(project.OutputDir))
+                        Directory.CreateDirectory(project.OutputDir);
 
-                if (!tests.Any())
-                {
-                    Console.WriteLine("Could not find any suitable tests.");
-                }
-                else
-                {
-                    RunTests(tests, project.RunnerHost, project.RunnerCommand, project.RunnerArgs, project.RunId, project.OutputDir);
+                    if (!tests.Any())
+                    {
+                        Console.WriteLine("Could not find any suitable tests.");
+                    }
+                    else
+                    {
+                        RunTests(tests, project.RunnerHost, project.RunnerCommand, project.RunnerArgs, project.RunId, project.OutputDir);
+                    }
                 }
             }
             catch (Exception ex)
@@ -228,33 +231,30 @@ Arguments: {startInfo.Arguments}");
 
         private IEnumerable<PerformanceTestInfo> DiscoverTests(IEnumerable<XunitProjectAssembly> assemblies, XunitFilters filters, IMessageSink diagnosticMessageSink)
         {
-            using (AssemblyHelper.SubscribeResolve())
+            var tests = new List<PerformanceTestInfo>();
+
+            foreach (var assembly in assemblies)
             {
-                var tests = new List<PerformanceTestInfo>();
+                PrintIfVerbose($"Discovering tests for {assembly.AssemblyFilename}.");
 
-                foreach (var assembly in assemblies)
+                // Note: We do not use shadowCopy because that creates a new AppDomain which can cause
+                // assembly load failures with delay-signed or "fake signed" assemblies.
+                using (var controller = new XunitFrontController(
+                    assemblyFileName: assembly.AssemblyFilename,
+                    shadowCopy: false,
+                    appDomainSupport: AppDomainSupport.Denied,
+                    diagnosticMessageSink: new ConsoleDiagnosticsMessageVisitor())
+                    )
+                using (var discoveryVisitor = new PerformanceTestDiscoveryVisitor(assembly, filters, diagnosticMessageSink))
                 {
-                    PrintIfVerbose($"Discovering tests for {assembly.AssemblyFilename}.");
-
-                    // Note: We do not use shadowCopy because that creates a new AppDomain which can cause
-                    // assembly load failures with delay-signed or "fake signed" assemblies.
-                    using (var controller = new XunitFrontController(
-                        assemblyFileName: assembly.AssemblyFilename,
-                        shadowCopy: false,
-                        appDomainSupport: AppDomainSupport.Denied,
-                        diagnosticMessageSink: new ConsoleDiagnosticsMessageVisitor())
-                        )
-                    using (var discoveryVisitor = new PerformanceTestDiscoveryVisitor(assembly, filters, diagnosticMessageSink))
-                    {
-                        controller.Find(includeSourceInformation: false, messageSink: discoveryVisitor, discoveryOptions: TestFrameworkOptions.ForDiscovery());
-                        discoveryVisitor.Finished.WaitOne();
-                        tests.AddRange(discoveryVisitor.Tests);
-                    }
+                    controller.Find(includeSourceInformation: false, messageSink: discoveryVisitor, discoveryOptions: TestFrameworkOptions.ForDiscovery());
+                    discoveryVisitor.Finished.WaitOne();
+                    tests.AddRange(discoveryVisitor.Tests);
                 }
-
-                PrintIfVerbose($"Discovered a total of {tests.Count} tests.");
-                return tests;
             }
+
+            PrintIfVerbose($"Discovered a total of {tests.Count} tests.");
+            return tests;
         }
 
         private XunitPerformanceProject ParseCommandLine(string[] args)
