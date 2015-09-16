@@ -8,6 +8,7 @@
     "NuSpec.ReferenceGenerator": "1.2.0",
     "System.Console": "4.0.0-beta-23225",
     "System.Diagnostics.Process": "4.0.0-beta-23225",
+    "xunit.extensibility.core": "2.1.0-rc1-build3168",
     "xunit.runner.utility": "2.1.0-rc1-build3168"
   },
   "frameworks": {
