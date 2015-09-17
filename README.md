@@ -50,6 +50,16 @@ void EmptyBenchmark()
 }
 ```
 
+This may also be written as:
+
+```csharp
+[Benchmark]
+void EmptyBenchmark()
+{
+  Benchmark.Iterate(() => { /*do nothing*/ });
+}
+```
+
 The first iteration is the "warmup" iteration; all performance metrics are discarded by the result analyzer.  Subsequent iterations are measured. 
 
 ## Running benchmarks
