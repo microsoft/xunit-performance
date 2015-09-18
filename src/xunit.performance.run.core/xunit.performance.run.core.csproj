@@ -5,11 +5,11 @@
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B67EB81A-F0DE-495A-96FA-C5482E8FB58F}</ProjectGuid>
+    <ProjectGuid>{55595E8A-EB17-41B4-82BD-BF26FDAD618B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.Xunit.Performance</RootNamespace>
-    <AssemblyName>xunit.performance.execution.DotNetCore</AssemblyName>
+    <AssemblyName>xunit.performance.run.core</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -22,19 +22,21 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;DOTNETCORE</DefineConstants>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;DOTNETCORE</DefineConstants>
+    <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DocumentationFile>
+    </DocumentationFile>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -47,44 +49,39 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\common\GlobalAssemblyInfo.cs">
+      <Link>Properties\GlobalAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.performance.run\ConsoleDiagnosticsMessageVisitor.cs">
+      <Link>ConsoleDiagnosticsMessageVisitor.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.performance.run\DictionaryExtensions.cs">
+      <Link>DictionaryExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.performance.run\IPerformanceMetricReader.cs">
+      <Link>IPerformanceMetricReader.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.performance.run\PerformanceTestDisoveryVisitor.cs">
+      <Link>PerformanceTestDisoveryVisitor.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.performance.run\PerformanceTestInfo.cs">
+      <Link>PerformanceTestInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.performance.run\ProgramCore.cs">
+      <Link>ProgramCore.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.performance.run\XunitPerformanceProject.cs">
+      <Link>XunitPerformanceProject.cs</Link>
+    </Compile>
+    <Compile Include="PortableMetricReader.cs" />
+    <Compile Include="ProgramPortable.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\xunit.performance.core\xunit.performance.core.csproj">
       <Project>{d8820889-cc47-42b6-bac1-01d16d241ece}</Project>
       <Name>xunit.performance.core</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\common\GlobalAssemblyInfo.cs">
-      <Link>Properties\GlobalAssemblyInfo.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.performance.execution\BenchmarkConfiguration.cs">
-      <Link>BenchmarkConfiguration.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.performance.execution\BenchmarkDiscoverer.cs">
-      <Link>BenchmarkDiscoverer.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.performance.execution\BenchmarkEventSource.cs">
-      <Link>BenchmarkEventSource.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.performance.execution\BenchmarkTestCase.cs">
-      <Link>BenchmarkTestCase.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.performance.execution\BenchmarkTestCaseRunner.cs">
-      <Link>BenchmarkTestCaseRunner.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.performance.execution\BenchmarkTestInvoker.cs">
-      <Link>BenchmarkTestInvoker.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.performance.execution\BenchmarkTestRunner.cs">
-      <Link>BenchmarkTestRunner.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.performance.execution\Properties\AssemblyInfo.cs">
-      <Link>Properties\AssemblyInfo.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <NuSpecFile Include="..\xunit.performance.nuspec">
-      <InProject>false</InProject>
-    </NuSpecFile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.execution
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.core", "src\xunit.performance.core\xunit.performance.core.csproj", "{D8820889-CC47-42B6-BAC1-01D16D241ECE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.execution.DotNetCore", "src\xunit.performance.execution.DotNetCore\xunit.performance.execution.DotNetCore.csproj", "{B67EB81A-F0DE-495A-96FA-C5482E8FB58F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.execution.dotnet", "src\xunit.performance.execution.dotnet\xunit.performance.execution.dotnet.csproj", "{B67EB81A-F0DE-495A-96FA-C5482E8FB58F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "execution", "execution", "{6D71B976-46EE-42E0-877E-69080B49F903}"
 EndProject
@@ -53,6 +53,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "analysis", "analysis", "{FFA0DF6D-DF10-4E29-97B3-B78F66990325}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.metrics", "src\xunit.performance.metrics\xunit.performance.metrics.csproj", "{517B6982-4F98-417F-9987-9C6B64EE6E1C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.run.core", "src\xunit.performance.run.core\xunit.performance.run.core.csproj", "{55595E8A-EB17-41B4-82BD-BF26FDAD618B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -96,6 +98,10 @@ Global
 		{517B6982-4F98-417F-9987-9C6B64EE6E1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{517B6982-4F98-417F-9987-9C6B64EE6E1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{517B6982-4F98-417F-9987-9C6B64EE6E1C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55595E8A-EB17-41B4-82BD-BF26FDAD618B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55595E8A-EB17-41B4-82BD-BF26FDAD618B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55595E8A-EB17-41B4-82BD-BF26FDAD618B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55595E8A-EB17-41B4-82BD-BF26FDAD618B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -116,5 +122,6 @@ Global
 		{F5C85B5B-B786-454C-BB24-822826881735} = {694DAB50-E5DA-4ADC-AD63-591F2FC8EB35}
 		{FFA0DF6D-DF10-4E29-97B3-B78F66990325} = {694DAB50-E5DA-4ADC-AD63-591F2FC8EB35}
 		{517B6982-4F98-417F-9987-9C6B64EE6E1C} = {F5C85B5B-B786-454C-BB24-822826881735}
+		{55595E8A-EB17-41B4-82BD-BF26FDAD618B} = {F5C85B5B-B786-454C-BB24-822826881735}
 	EndGlobalSection
 EndGlobal

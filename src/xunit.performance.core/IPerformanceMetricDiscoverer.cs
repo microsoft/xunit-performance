@@ -16,6 +16,6 @@ namespace Microsoft.Xunit.Performance.Sdk
         /// </summary>
         /// <param name="metricAttribute"></param>
         /// <returns></returns>
-        IEnumerable<PerformanceMetric> GetMetrics(IAttributeInfo metricAttribute);
+        IEnumerable<PerformanceMetricInfo> GetMetrics(IAttributeInfo metricAttribute);
     }
 }

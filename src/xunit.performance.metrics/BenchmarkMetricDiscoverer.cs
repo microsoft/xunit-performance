@@ -11,7 +11,7 @@ namespace Microsoft.Xunit.Performance
 {
     internal class BenchmarkMetricDiscoverer : IPerformanceMetricDiscoverer
     {
-        public IEnumerable<PerformanceMetric> GetMetrics(IAttributeInfo metricAttribute)
+        public IEnumerable<PerformanceMetricInfo> GetMetrics(IAttributeInfo metricAttribute)
         {
             yield return new BenchmarkDurationMetric();
         }
