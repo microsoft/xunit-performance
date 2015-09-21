@@ -11,7 +11,7 @@ Contains the core portable functionality used by xunit.performance.run.
     </description>
     <language>en-US</language>
     <projectUrl>https://github.com/Microsoft/xunit-performance</projectUrl>
-    <licenseUrl>https://github.com/Microsoft/xunit-performance/blob/master/LICENSE</licenseUrl>
+    <licenseUrl>https://raw.githubusercontent.com/Microsoft/xunit-performance/master/LICENSE</licenseUrl>
     <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <dependencies>
