@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "xunit.performance.run.dnx": {
+      "commandName": "xunit.performance.run.dnx",
+      "sdkVersion": "dnx-coreclr-win-x86.1.0.0-beta7"
+    }
+  }
+}

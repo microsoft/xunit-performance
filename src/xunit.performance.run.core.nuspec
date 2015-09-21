@@ -34,9 +34,9 @@ Contains the core portable functionality used by xunit.performance.run.
     </dependencies>
   </metadata>
   <files>
-    <file src="xunit.performance.run.core\bin\Release\xunit.performance.core.dll" target="lib\" />
-    <file src="xunit.performance.run.core\bin\Release\xunit.performance.run.core.dll" target="lib\" />
-    <file src="xunit.performance.run.core\bin\Release\xunit.performance.run.core.pdb" target="lib\" />
-    <file src="xunit.performance.run.core\bin\Release\xunit.performance.core.pdb" target="lib\" />
+    <file src="xunit.performance.run.core\bin\Release\xunit.performance.core.dll" target="lib\dotnet\" />
+    <file src="xunit.performance.run.core\bin\Release\xunit.performance.run.core.dll" target="lib\dotnet\" />
+    <file src="xunit.performance.run.core\bin\Release\xunit.performance.run.core.pdb" target="lib\dotnet\" />
+    <file src="xunit.performance.run.core\bin\Release\xunit.performance.core.pdb" target="lib\dotnet\" />
   </files>
 </package>
