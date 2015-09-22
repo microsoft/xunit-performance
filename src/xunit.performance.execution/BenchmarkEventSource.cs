@@ -50,6 +50,12 @@ namespace Microsoft.Xunit.Performance
         }
 
         [NonEvent]
+        private static string Escape(string s)
+        {
+            return s.Replace(@"\", @"\\").Replace(",", @"\_").Replace("\n", @"\n");
+        }
+
+        [NonEvent]
         private void WriteCSV(
             string benchmarkName, 
             [CallerMemberName]string eventName = null,
@@ -58,7 +64,7 @@ namespace Microsoft.Xunit.Performance
             bool? success = null)
         { 
             // TODO: this is going to add a lot of overhead; it's just here to get us running while we wait for an ETW-equivalent on Linux.
-            _csvWriter.WriteLine($"{GetTimestamp()},{benchmarkName},{eventName},{iteration?.ToString(CultureInfo.InvariantCulture) ?? ""},{success?.ToString() ?? ""},{stopReason}");
+            _csvWriter.WriteLine($"{GetTimestamp()},{EscapeCommas(benchmarkName)},{eventName},{iteration?.ToString(CultureInfo.InvariantCulture) ?? ""},{success?.ToString() ?? ""},{stopReason}");
         }
 
         [Event(1, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkStart)]
