@@ -65,13 +65,6 @@ namespace Microsoft.Xunit.Performance
         {
             string xmlPath = Path.Combine(project.OutputDir, project.RunId + ".xml");
 
-            Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_RUN_ID", project.RunId);
-            Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_ITERATION", 1000.ToString());
-            Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS", 1000.ToString());
-
-            Environment.SetEnvironmentVariable("COMPLUS_gcConcurrent", "0");
-            Environment.SetEnvironmentVariable("COMPLUS_gcServer", "0");
-
             var commandLineArgs = new StringBuilder();
 
             if (!string.IsNullOrEmpty(project.RunnerHost))
@@ -143,6 +136,13 @@ Arguments: {startInfo.Arguments}");
 
                 try
                 {
+                    Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_RUN_ID", project.RunId);
+                    Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_ITERATION", 1000.ToString());
+                    Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS", 1000.ToString());
+
+                    Environment.SetEnvironmentVariable("COMPLUS_gcConcurrent", "0");
+                    Environment.SetEnvironmentVariable("COMPLUS_gcServer", "0");
+
                     using (var proc = Process.Start(startInfo))
                     {
                         proc.EnableRaisingEvents = true;
