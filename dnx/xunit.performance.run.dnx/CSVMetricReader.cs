@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class PortableMetricReader : IPerformanceMetricReader
+    internal class CSVMetricReader : IPerformanceMetricReader
     {
         private Dictionary<string, List<Dictionary<string, double>>> _values = new Dictionary<string, List<Dictionary<string, double>>>();
 
-        public PortableMetricReader(string csvPath)
+        public CSVMetricReader(string csvPath)
         {
             LogPath = csvPath;
 

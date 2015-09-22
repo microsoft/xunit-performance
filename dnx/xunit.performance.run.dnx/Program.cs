@@ -21,7 +21,7 @@ namespace Microsoft.Xunit.Performance
 
         protected override IPerformanceMetricReader GetPerformanceMetricReader(IEnumerable<PerformanceTestInfo> tests, string pathBase, string runId)
         {
-            return new PortableMetricReader(GetCSVPath(pathBase));
+            return new CSVMetricReader(GetCSVPath(pathBase));
         }
 
         protected override string GetRuntimeVersion()
