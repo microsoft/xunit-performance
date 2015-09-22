@@ -23,42 +23,9 @@ namespace Microsoft.Xunit.Performance
             return new Program().Run(args);
         }
 
-        protected override IPerformanceMetricReader GetPerformanceMetricReader(IEnumerable<PerformanceTestInfo> tests, string pathBase, string runId)
+        protected override IPerformanceMetricLogger GetPerformanceMetricLogger(XunitPerformanceProject project)
         {
-            string etlPath = pathBase + ".etl";
-            using (var source = new ETWTraceEventSource(etlPath))
-            {
-                if (source.EventsLost > 0)
-                    throw new Exception($"Events were lost in trace '{etlPath}'");
-
-                var evaluationContext = new EtwPerformanceMetricEvaluationContext(etlPath, source, tests, runId);
-                try
-                {
-                    source.Process();
-
-                    return evaluationContext;
-                }
-                catch
-                {
-                    evaluationContext.Dispose();
-                    throw;
-                }
-            }
-        }
-
-        protected override IDisposable StartTracing(IEnumerable<PerformanceTestInfo> tests, string pathBase)
-        {
-            PrintIfVerbose($"Starting ETW tracing. Logging to {pathBase}");
-
-            var allEtwProviders =
-                from test in tests
-                from metric in test.Metrics.Cast<PerformanceMetric>()
-                from provider in metric.ProviderInfo
-                select provider;
-
-            var mergedEtwProviders = ProviderInfo.Merge(allEtwProviders);
-
-            return ETWLogging.StartAsync(pathBase, mergedEtwProviders).GetAwaiter().GetResult();
+            return new EtwPerformanceMetricLogger(project, this);
         }
 
         protected override string GetRuntimeVersion()

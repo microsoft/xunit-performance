@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class XunitPerformanceProject : XunitProject
+    public class XunitPerformanceProject : XunitProject
     {
         private List<XunitProjectAssembly> _baselineAssemblies = new List<XunitProjectAssembly>();
         private string _baselineRunnerCommand;
