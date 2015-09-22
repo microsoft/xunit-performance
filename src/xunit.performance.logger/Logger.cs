@@ -19,7 +19,6 @@ namespace Microsoft.Xunit.Performance
             public string UserFileName;
             public string KernelFileName;
             public string MergedFileName;
-            public string ArchiveFileName;
             public TraceEventSession UserSession;
             public TraceEventSession KernelSession;
 
@@ -65,14 +64,13 @@ namespace Microsoft.Xunit.Performance
         }
 
         [ProcDomainExport]
-        public static string Start(string pathBase, IEnumerable<ProviderInfo> providerInfo, int bufferSizeMB = 64)
+        public static string Start(string etlPath, IEnumerable<ProviderInfo> providerInfo, int bufferSizeMB = 64)
         {
             var userSessionName = "xunit.performance.logger." + Guid.NewGuid().ToString();
             Sessions sessions = new Sessions();
-            sessions.UserFileName = pathBase + ".user.etl";
-            sessions.KernelFileName = pathBase + ".kernel.etl";
-            sessions.MergedFileName = pathBase + ".etl";
-            sessions.ArchiveFileName = pathBase + ".etl.zip";
+            sessions.UserFileName = Path.ChangeExtension(etlPath, ".user.etl");
+            sessions.KernelFileName = Path.ChangeExtension(etlPath, ".kernel.etl");
+            sessions.MergedFileName = etlPath;
 
             var mergedProviderInfo = ProviderInfo.Merge(providerInfo);
 

@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class PortableMetricReader : IPerformanceMetricReader
+    internal class CSVMetricReader : IPerformanceMetricReader
     {
         private Dictionary<string, List<Dictionary<string, double>>> _values = new Dictionary<string, List<Dictionary<string, double>>>();
 
-        public PortableMetricReader(string csvPath)
+        public CSVMetricReader(string csvPath)
         {
             LogPath = csvPath;
 
@@ -26,7 +26,7 @@ namespace Microsoft.Xunit.Performance
                 var parts = line.Split(',');
 
                 var timestamp = double.Parse(parts[0]);
-                var benchmarkName = parts[1];
+                var benchmarkName = parts[1].Replace(@"\_", ",").Replace(@"\n", "\n").Replace(@"\r", "\r").Replace(@"\\", @"\");
                 var eventName = parts[2];
                 switch (eventName)
                 {

@@ -16,27 +16,17 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal abstract class ProgramCore
+    public abstract class ProgramCore
     {
-        private class ConsoleReporter : IMessageSink
-        {
-            public bool OnMessage(IMessageSinkMessage message)
-            {
-                Console.WriteLine(message.ToString());
-                return true;
-            }
-        }
 
         private bool _nologo = false;
         private bool _verbose = false;
 
-        internal abstract IPerformanceMetricReader GetPerformanceMetricReader(IEnumerable<PerformanceTestInfo> tests, string pathBase, string runId);
+        protected abstract IPerformanceMetricLogger GetPerformanceMetricLogger(XunitPerformanceProject project);
 
-        internal abstract IDisposable StartTracing(IEnumerable<PerformanceTestInfo> tests, string pathBase);
+        protected abstract string GetRuntimeVersion();
 
-        internal abstract string GetRuntimeVersion();
-
-        internal int Run(string[] args)
+        public int Run(string[] args)
         {
             if (args.Length == 0 || args[0] == "-?")
             {
@@ -55,19 +45,11 @@ namespace Microsoft.Xunit.Performance
 
                 using (AssemblyHelper.SubscribeResolve())
                 {
-                    var tests = DiscoverTests(project.Assemblies, project.Filters, new ConsoleReporter());
                     PrintIfVerbose($"Creating output directory: {project.OutputDir}");
                     if (!Directory.Exists(project.OutputDir))
                         Directory.CreateDirectory(project.OutputDir);
 
-                    if (!tests.Any())
-                    {
-                        Console.WriteLine("Could not find any suitable tests.");
-                    }
-                    else
-                    {
-                        RunTests(tests, project.RunnerHost, project.RunnerCommand, project.RunnerArgs, project.RunId, project.OutputDir);
-                    }
+                    RunTests(project);
                 }
             }
             catch (Exception ex)
@@ -79,56 +61,108 @@ namespace Microsoft.Xunit.Performance
             return 0;
         }
 
-        private void RunTests(IEnumerable<PerformanceTestInfo> tests, string runnerHost, string runnerCommand, string runnerArgs, string runId, string outDir)
+        private void RunTests(XunitPerformanceProject project)
         {
-            string pathBase = Path.Combine(outDir, runId);
-            string xmlPath = pathBase + ".xml";
+            string xmlPath = Path.Combine(project.OutputDir, project.RunId + ".xml");
 
-            using (StartTracing(tests, pathBase))
+            var commandLineArgs = new StringBuilder();
+
+            if (!string.IsNullOrEmpty(project.RunnerHost))
             {
-                const int maxCommandLineLength = 32767;
-
-                var outputOption = "-xml " + xmlPath;
-
-                var allMethods = new HashSet<string>();
-
-                var assemblyFileBatch = new HashSet<string>();
-                var methodBatch = new HashSet<string>();
-                var commandLineLength = (runnerHost?.Length ?? 0) + runnerCommand.Length + " ".Length + (runnerArgs?.Length ?? 0) + " ".Length + outputOption.Length;
-
-                foreach (var currentTestInfo in tests)
-                {
-                    var methodName = currentTestInfo.TestCase.TestMethod.TestClass.Class.Name + "." + currentTestInfo.TestCase.TestMethod.Method.Name;
-                    if (allMethods.Add(methodName))
-                    {
-                        var currentTestInfoCommandLineLength = "-method ".Length + methodName.Length + " ".Length;
-                        if (!assemblyFileBatch.Contains(currentTestInfo.Assembly.AssemblyFilename))
-                            currentTestInfoCommandLineLength += "\"".Length + currentTestInfo.Assembly.AssemblyFilename.Length + "\" ".Length;
-
-                        if (commandLineLength + currentTestInfoCommandLineLength > maxCommandLineLength)
-                        {
-                            RunTestBatch(methodBatch, assemblyFileBatch, runnerHost, runnerCommand, runnerArgs, runId, outputOption);
-                            methodBatch.Clear();
-                            assemblyFileBatch.Clear();
-                        }
-
-                        methodBatch.Add(methodName);
-                        assemblyFileBatch.Add(currentTestInfo.Assembly.AssemblyFilename);
-                    }
-                }
-
-                if (methodBatch.Count > 0)
-                    RunTestBatch(methodBatch, assemblyFileBatch, runnerHost, runnerCommand, runnerArgs, runId, outputOption);
+                commandLineArgs.Append(project.RunnerCommand);
+                commandLineArgs.Append(" ");
             }
 
-            using (var evaluationContext = GetPerformanceMetricReader(tests, pathBase, runId))
+            foreach (var assembly in project.Assemblies)
+            {
+                commandLineArgs.Append(assembly.AssemblyFilename);
+                commandLineArgs.Append(" ");
+            }
+
+            foreach (var testClass in project.Filters.IncludedClasses)
+            {
+                commandLineArgs.Append("-class ");
+                commandLineArgs.Append(testClass);
+                commandLineArgs.Append(" ");
+            }
+
+            foreach (var testMethod in project.Filters.IncludedMethods)
+            {
+                commandLineArgs.Append("-method ");
+                commandLineArgs.Append(testMethod);
+                commandLineArgs.Append(" ");
+            }
+
+            foreach (var trait in project.Filters.IncludedTraits)
+            {
+                commandLineArgs.Append("-trait \"");
+                commandLineArgs.Append(trait.Key);
+                commandLineArgs.Append("=");
+                commandLineArgs.Append(trait.Value);
+                commandLineArgs.Append("\" ");
+            }
+
+            foreach (var trait in project.Filters.ExcludedTraits)
+            {
+                commandLineArgs.Append("-notrait \"");
+                commandLineArgs.Append(trait.Key);
+                commandLineArgs.Append("=");
+                commandLineArgs.Append(trait.Value);
+                commandLineArgs.Append("\" ");
+            }
+
+            if (!string.IsNullOrEmpty(project.RunnerArgs))
+            {
+                commandLineArgs.Append(project.RunnerArgs);
+                commandLineArgs.Append(" ");
+            }
+
+            commandLineArgs.Append("-xml ");
+            commandLineArgs.Append(xmlPath);
+
+            ProcessStartInfo startInfo = new ProcessStartInfo()
+            {
+                FileName = project.RunnerHost ?? project.RunnerCommand,
+                Arguments = commandLineArgs.ToString(),
+                UseShellExecute = false,
+            };
+
+            var logger = GetPerformanceMetricLogger(project);
+            using (logger.StartLogging())
+            {
+                PrintIfVerbose($@"Launching runner:
+Runner:    {startInfo.FileName}
+Arguments: {startInfo.Arguments}");
+
+                try
+                {
+                    Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_RUN_ID", project.RunId);
+                    Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_ITERATION", 1000.ToString());
+                    Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS", 1000.ToString());
+
+                    Environment.SetEnvironmentVariable("COMPLUS_gcConcurrent", "0");
+                    Environment.SetEnvironmentVariable("COMPLUS_gcServer", "0");
+
+                    using (var proc = Process.Start(startInfo))
+                    {
+                        proc.EnableRaisingEvents = true;
+                        proc.WaitForExit();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Could not launch the test runner, {startInfo.FileName}", innerException: ex);
+                }
+            }
+
+            using (var evaluationContext = logger.GetReader())
             {
                 var xmlDoc = XDocument.Load(xmlPath);
                 foreach (var testElem in xmlDoc.Descendants("test"))
                 {
                     var testName = testElem.Attribute("name").Value;
 
-                    var perfElem = new XElement("performance", new XAttribute("runid", runId), new XAttribute("etl", Path.GetFullPath(evaluationContext.LogPath)));
+                    var perfElem = new XElement("performance", new XAttribute("runid", project.RunId), new XAttribute("etl", Path.GetFullPath(evaluationContext.LogPath)));
                     testElem.Add(perfElem);
 
                     var metrics = evaluationContext.GetMetrics(testName);
@@ -167,95 +201,7 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
-        private void RunTestBatch(IEnumerable<string> methods, IEnumerable<string> assemblyFiles, string runnerHost, string runnerCommand, string runnerArgs, string runId, string outputOption)
-        {
-            var commandLineArgs = new StringBuilder();
 
-            if (!string.IsNullOrEmpty(runnerHost))
-            {
-                commandLineArgs.Append(runnerCommand);
-                commandLineArgs.Append(" ");
-            }
-
-            foreach (var assemblyFile in assemblyFiles)
-            {
-                commandLineArgs.Append(assemblyFile);
-                commandLineArgs.Append(" ");
-            }
-            foreach (var method in methods)
-            {
-                commandLineArgs.Append("-method ");
-                commandLineArgs.Append(method);
-                commandLineArgs.Append(" ");
-            }
-
-            if (!string.IsNullOrEmpty(runnerArgs))
-            {
-                commandLineArgs.Append(runnerArgs);
-                commandLineArgs.Append(" ");
-            }
-
-            commandLineArgs.Append(outputOption);
-
-            Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_RUN_ID", runId);
-            Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_ITERATION", 1000.ToString());
-            Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS", 1000.ToString());
-
-            Environment.SetEnvironmentVariable("COMPLUS_gcConcurrent", "0");
-            Environment.SetEnvironmentVariable("COMPLUS_gcServer", "0");
-
-            ProcessStartInfo startInfo = new ProcessStartInfo()
-            {
-                FileName = runnerHost ?? runnerCommand,
-                Arguments = commandLineArgs.ToString(),
-                UseShellExecute = false,
-            };
-
-            PrintIfVerbose($@"Launching runner:
-Runner:    {startInfo.FileName}
-Arguments: {startInfo.Arguments}");
-
-            try
-            {
-                using (var proc = Process.Start(startInfo))
-                {
-                    proc.EnableRaisingEvents = true;
-                    proc.WaitForExit();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Could not launch the test runner, {startInfo.FileName}", innerException: ex);
-            }
-        }
-
-        private IEnumerable<PerformanceTestInfo> DiscoverTests(IEnumerable<XunitProjectAssembly> assemblies, XunitFilters filters, IMessageSink diagnosticMessageSink)
-        {
-            var tests = new List<PerformanceTestInfo>();
-
-            foreach (var assembly in assemblies)
-            {
-                PrintIfVerbose($"Discovering tests for {assembly.AssemblyFilename}.");
-
-                // Note: We do not use shadowCopy because that creates a new AppDomain which can cause
-                // assembly load failures with delay-signed or "fake signed" assemblies.
-                using (var controller = new XunitFrontController(
-                    assemblyFileName: assembly.AssemblyFilename,
-                    shadowCopy: false,
-                    appDomainSupport: AppDomainSupport.Denied,
-                    diagnosticMessageSink: new ConsoleDiagnosticsMessageVisitor())
-                    )
-                using (var discoveryVisitor = new PerformanceTestDiscoveryVisitor(assembly, filters, diagnosticMessageSink))
-                {
-                    controller.Find(includeSourceInformation: false, messageSink: discoveryVisitor, discoveryOptions: TestFrameworkOptions.ForDiscovery());
-                    discoveryVisitor.Finished.WaitOne();
-                    tests.AddRange(discoveryVisitor.Tests);
-                }
-            }
-
-            PrintIfVerbose($"Discovered a total of {tests.Count} tests.");
-            return tests;
-        }
 
         private XunitPerformanceProject ParseCommandLine(string[] args)
         {
@@ -503,7 +449,7 @@ Arguments: {startInfo.Arguments}");
             Console.WriteLine();
         }
 
-        protected void PrintIfVerbose(string message)
+        public void PrintIfVerbose(string message)
         {
             if (_verbose)
             {

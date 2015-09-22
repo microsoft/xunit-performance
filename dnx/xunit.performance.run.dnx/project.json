@@ -1,0 +1,29 @@
+{
+  "version": "1.0.0-*",
+  "description": "xunit.performance.run.dnx Console Application",
+  "authors": [ "ericeil" ],
+  "tags": [ "" ],
+  "projectUrl": "",
+  "licenseUrl": "",
+
+  "dependencies": {
+    "Microsoft.DotNet.xunit.performance.run.core": "1.0.0-alpha-build0015",
+    "xunit.extensibility.execution": "2.1.0-rc2-build3176"
+  },
+
+  "commands": {
+    "run": "xunit.performance.run.dnx"
+  },
+
+  "frameworks": {
+    "dnxcore50": {
+      "dependencies": {
+        "Microsoft.CSharp": "4.0.1-beta-23225",
+        "System.Collections": "4.0.11-beta-23225",
+        "System.Console": "4.0.0-beta-23225",
+        "System.Linq": "4.0.1-beta-23225",
+        "System.Threading": "4.0.11-beta-23225"
+      }
+    }
+  }
+}
