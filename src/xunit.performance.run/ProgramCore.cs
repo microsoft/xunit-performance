@@ -36,7 +36,7 @@ namespace Microsoft.Xunit.Performance
 
         protected abstract string GetRuntimeVersion();
 
-        internal int Run(string[] args)
+        public int Run(string[] args)
         {
             if (args.Length == 0 || args[0] == "-?")
             {
