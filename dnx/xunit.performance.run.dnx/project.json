@@ -7,7 +7,12 @@
   "licenseUrl": "",
 
   "dependencies": {
-    "Microsoft.DotNet.xunit.performance.run.core": "1.0.0-alpha-build0015"
+    "Microsoft.DotNet.xunit.performance.run.core": "1.0.0-alpha-build0015",
+    "xunit.extensibility.execution": "2.1.0-rc2-build3176"
+  },
+
+  "commands": {
+    "run": "xunit.performance.run.dnx"
   },
 
   "frameworks": {
