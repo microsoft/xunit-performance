@@ -26,6 +26,7 @@ namespace Microsoft.Xunit.Performance
 
         private static readonly StreamWriter _csvWriter = OpenCSV();
 
+        [NonEvent]
         private static StreamWriter OpenCSV()
         {
             var logPath = BenchmarkConfiguration.FileLogPath;
@@ -35,17 +36,20 @@ namespace Microsoft.Xunit.Performance
             return new StreamWriter(File.Open(logPath, FileMode.Create), encoding: Encoding.UTF8);
         }
 
+        [NonEvent]
         internal void Flush()
         {
             if (_csvWriter != null)
                 _csvWriter.Flush();
         }
 
+        [NonEvent]
         private double GetTimestamp()
         {
             return 1000.0 * (double)Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency;
         }
 
+        [NonEvent]
         private void WriteCSV(
             string benchmarkName, 
             [CallerMemberName]string eventName = null,
