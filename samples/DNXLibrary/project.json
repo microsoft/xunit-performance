@@ -9,13 +9,12 @@
     "dependencies": {
       "xunit": "2.1.0-rc1-build3168",
       "xunit.runner.dnx": "2.1.0-beta5-build169",
-      "Microsoft.DotNet.xunit.performance": "99.99.99-dev"
+      "Microsoft.DotNet.xunit.performance": "1.0.0-alpha-build0015"
     },
     "commands": {
         "test": "xunit.runner.dnx"
     },
     "frameworks": {
-        "dnx451": { },
         "dnxcore50": { }
     }
 }
