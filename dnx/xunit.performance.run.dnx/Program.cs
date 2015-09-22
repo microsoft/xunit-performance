@@ -17,22 +17,14 @@ namespace Microsoft.Xunit.Performance
             return new Program().Run(args);
         }
 
-        private static string GetCSVPath(string pathBase) => pathBase + ".csv";
-
-        protected override IPerformanceMetricReader GetPerformanceMetricReader(IEnumerable<PerformanceTestInfo> tests, string pathBase, string runId)
+        protected override IPerformanceMetricLogger GetPerformanceMetricLogger(XunitPerformanceProject project)
         {
-            return new CSVMetricReader(GetCSVPath(pathBase));
+            return new CSVMetricLogger(project);
         }
 
         protected override string GetRuntimeVersion()
         {
             return "Portable";
-        }
-
-        protected override IDisposable StartTracing(IEnumerable<PerformanceTestInfo> tests, string pathBase)
-        {
-            Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_FILE_LOG_PATH", GetCSVPath(pathBase));
-            return null;
         }
     }
 }
