@@ -26,7 +26,7 @@ namespace Microsoft.Xunit.Performance
                 var parts = line.Split(',');
 
                 var timestamp = double.Parse(parts[0]);
-                var benchmarkName = parts[1].Replace(@"\_", ",").Replace(@"\n", "\n").Replace(@"\\", @"\");
+                var benchmarkName = parts[1].Replace(@"\_", ",").Replace(@"\n", "\n").Replace(@"\r", "\r").Replace(@"\\", @"\");
                 var eventName = parts[2];
                 switch (eventName)
                 {

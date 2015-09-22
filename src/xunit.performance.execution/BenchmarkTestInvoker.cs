@@ -64,6 +64,7 @@ namespace Microsoft.Xunit.Performance
                 {
                     var stopReason = success ? iterator.IterationStopReason : "TestFailed";
                     BenchmarkEventSource.Log.BenchmarkStop(BenchmarkConfiguration.RunId, DisplayName, stopReason);
+                    BenchmarkEventSource.Log.Flush();
                 }
             });
         }
