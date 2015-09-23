@@ -12,7 +12,7 @@
   },
 
   "commands": {
-    "run": "xunit.performance.run.dnx"
+    "xunit.performance.run": "xunit.performance.run.dnx"
   },
 
   "frameworks": {
