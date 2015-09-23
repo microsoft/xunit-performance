@@ -22,6 +22,7 @@ namespace DNXLibrary
         [Benchmark]
         public void Benchmark1()
         {
+            Benchmark.Iterate(() => { });
         }
 
         [Benchmark]
@@ -30,6 +31,7 @@ namespace DNXLibrary
         [InlineData(3)]
         public void Benchmark2(int x)
         {
+            Benchmark.Iterate(() => { });
         }
     }
 }
