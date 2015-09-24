@@ -474,13 +474,13 @@ Valid options:
                          : if specified more than once, acts as an OR operation
   -method ""name""         : run a given test method (should be fully specified;
                          : i.e., 'MyNamespace.MyClass.MyTestMethod')
-  -runnerhost ""name""   : use the given CLR host to launch the runner program.
+  -runnerhost ""name""     : use the given CLR host to launch the runner program.
   -runner ""name""         : use the specified runner to excecute tests. Defaults
                          : to xunit.console.exe
-  -runnerargs ""args""   : append the given args to the end of the xunit runner's command-line
-                           : a quoted group of arguments, 
-                           : e.g. -runnerargs ""-verbose -nologo -parallel none""
-  -runid ""name""        : a run identifier used to create unique output filenames.
+  -runnerargs ""args""     : append the given args to the end of the xunit runner's command-line
+                         : a quoted group of arguments, 
+                         : e.g. -runnerargs ""-verbose -nologo -parallel none""
+  -runid ""name""          : a run identifier used to create unique output filenames.
   -outdir  ""name""        : folder for output files.
   -verbose               : verbose logging
 ");
