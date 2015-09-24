@@ -36,6 +36,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packages", "Packages", "{21
 	ProjectSection(SolutionItems) = preProject
 		src\xunit.performance.analysis.nuspec = src\xunit.performance.analysis.nuspec
 		src\xunit.performance.nuspec = src\xunit.performance.nuspec
+		src\xunit.performance.run.core.nuspec = src\xunit.performance.run.core.nuspec
 		src\xunit.performance.runner.Windows.nuspec = src\xunit.performance.runner.Windows.nuspec
 	EndProjectSection
 EndProject

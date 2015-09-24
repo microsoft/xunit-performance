@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata minClientVersion="2.8.5">
+    <id>Microsoft.DotNet.xunit.performance.run.core</id>
+    <version>99.99.99-dev</version>
+    <title>xUnit Performance Runner core implementation</title>
+    <authors>ericeil@microsoft.com;pharring@microsoft.com</authors>
+    <owners>Microsoft</owners>
+    <description>
+Contains the core portable functionality used by xunit.performance.run.
+    </description>
+    <language>en-US</language>
+    <projectUrl>https://github.com/Microsoft/xunit-performance</projectUrl>
+    <licenseUrl>https://raw.githubusercontent.com/Microsoft/xunit-performance/master/LICENSE</licenseUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <dependencies>
+      <group targetFramework="dotnet">
+        <dependency id="System.Diagnostics.Debug" version="4.0.10" />
+        <dependency id="System.Threading" version="4.0.10" />
+        <dependency id="System.Collections" version="4.0.10" />
+        <dependency id="System.Console" version="4.0.0-beta-23225" />
+        <dependency id="System.Diagnostics.Process" version="4.0.0-beta-23225" />
+        <dependency id="System.IO" version="4.0.10" />
+        <dependency id="System.IO.FileSystem" version="4.0.0" />
+        <dependency id="System.Linq" version="4.0.0" />
+        <dependency id="System.Reflection" version="4.0.10" />
+        <dependency id="System.Runtime" version="4.0.20" />
+        <dependency id="System.Runtime.Extensions" version="4.0.10" />
+        <dependency id="System.Xml.XDocument" version="4.0.10" />
+        <dependency id="xunit.abstractions" version="2.0.0" />
+        <dependency id="xunit.runner.utility" version="2.1.0-rc1-build3168" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="xunit.performance.run.core\bin\Release\xunit.performance.core.dll" target="lib\dotnet\" />
+    <file src="xunit.performance.run.core\bin\Release\xunit.performance.run.core.dll" target="lib\dotnet\" />
+    <file src="xunit.performance.run.core\bin\Release\xunit.performance.run.core.pdb" target="lib\dotnet\" />
+    <file src="xunit.performance.run.core\bin\Release\xunit.performance.core.pdb" target="lib\dotnet\" />
+  </files>
+</package>

@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "xunit.performance.run.dnx": {
+      "commandName": "run",
+      "commandLineArgs": "c:\\src\\xunit-performance-ericeil\\samples\\SimplePerfTests\\bin\\Release\\SimplePerfTests.dll -runner c:\\src\\xunit-performance-ericeil\\packages\\xunit.runner.console.2.1.0-rc1-build3168\\tools\\xunit.console.exe -runid test",
+      "sdkVersion": "dnx-coreclr-win-x86.1.0.0-beta7"
+    }
+  }
+}

@@ -1,10 +1,5 @@
 {
     "version": "1.0.0-*",
-    "description": "DNXLibrary Class Library",
-    "authors": [ "pharring" ],
-    "tags": [ "" ],
-    "projectUrl": "",
-    "licenseUrl": "",
 
     "dependencies": {
       "xunit": "2.1.0-rc1-build3168",
@@ -15,7 +10,6 @@
         "test": "xunit.runner.dnx"
     },
     "frameworks": {
-        "dnx451": { },
         "dnxcore50": { }
     }
 }
