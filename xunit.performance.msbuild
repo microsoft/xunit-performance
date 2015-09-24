@@ -47,7 +47,7 @@
 
   <Target Name="Clean">
     <ItemGroup>
-      <CleanFileList Include="*.html;*.xml;$(NugetPackageOutputDirectory)\*.nupkg;.nuget\NuGet.exe"/>
+      <CleanFileList Include="*.html;*.xml;.nuget\NuGet.exe"/>
     </ItemGroup>
     <MSBuild
         Projects="$(SolutionName)"
@@ -55,6 +55,7 @@
         Properties="Configuration=$(Configuration);TrackFileAccess=$(TrackFileAccess)"/>
     <Delete Files="@(CleanFileList)"/>
     <RemoveDir Directories="@(CleanFolderList)" ContinueOnError="true"/>
+    <RemoveDir Directories="$(NugetPackageOutputDirectory)" ContinueOnError="true"/>
   </Target>
 
   <Target Name="PackageRestore" DependsOnTargets="_DownloadNuGet">
