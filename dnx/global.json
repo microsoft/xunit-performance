@@ -1,0 +1,7 @@
+{
+  "projects": [ 
+    "src/Microsoft.DotNet.xunit.performance.runner.dnx",
+    "test/SimplePerfTests.dnx"
+  ],
+  "packages": "../packages"
+}

@@ -16,7 +16,8 @@
   </PropertyGroup>
   <ItemGroup>
     <NuspecFiles Include="src\*.nuspec" />
-    <!--<ProjectJsonFiles Include="src\*\project.json" />-->
+    <ProjectJsonFiles Include="src\*\project.json" />
+    <ProjectJsonFiles Include="dnx\*\*\project.json" />
   </ItemGroup>
   <ItemGroup Condition=" '$(PackageSources)' == '' ">
     <PackageSource Include="https://nuget.org/api/v2/" />
@@ -46,7 +47,7 @@
 
   <Target Name="Clean">
     <ItemGroup>
-      <CleanFileList Include="*.html;*.xml;$(NugetPackageOutputDirectory)\*.nupkg;.nuget\NuGet.exe"/>
+      <CleanFileList Include="*.html;*.xml;.nuget\NuGet.exe"/>
     </ItemGroup>
     <MSBuild
         Projects="$(SolutionName)"
@@ -54,6 +55,7 @@
         Properties="Configuration=$(Configuration);TrackFileAccess=$(TrackFileAccess)"/>
     <Delete Files="@(CleanFileList)"/>
     <RemoveDir Directories="@(CleanFolderList)" ContinueOnError="true"/>
+    <RemoveDir Directories="$(NugetPackageOutputDirectory)" ContinueOnError="true"/>
   </Target>
 
   <Target Name="PackageRestore" DependsOnTargets="_DownloadNuGet">
@@ -79,7 +81,12 @@
         Pattern='AssemblyInformationalVersion\("99\.99\.99-dev"\)'
         Replacement='AssemblyInformationalVersion("$(BuildSemanticVersion)")'
         Files='src\common\GlobalAssemblyInfo.cs'
-        Condition=" '$(BuildAssemblyVersion)' != '' "/>
+        Condition=" '$(BuildSemanticVersion)' != '' "/>
+    <RegexReplace
+        Pattern='"99\.99\.99-dev"'
+        Replacement='"$(BuildSemanticVersion)"'
+        Files='@(ProjectJsonFiles)'
+        Condition=" '$(BuildSemanticVersion)' != '' "/>
   </Target>
 
   <Target Name='Packages' Condition="'$(Configuration)' == 'Release'">

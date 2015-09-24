@@ -127,6 +127,12 @@ namespace Microsoft.Xunit.Performance
                 UseShellExecute = false,
             };
 
+            startInfo.Environment["XUNIT_PERFORMANCE_RUN_ID"] = project.RunId;
+            startInfo.Environment["XUNIT_PERFORMANCE_MAX_ITERATION"] = "1000";
+            startInfo.Environment["XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS"] = "1000";
+            startInfo.Environment["COMPLUS_gcConcurrent"] = "0";
+            startInfo.Environment["COMPLUS_gcServer"] = "0";
+
             var logger = GetPerformanceMetricLogger(project);
             using (logger.StartLogging())
             {
@@ -136,13 +142,6 @@ Arguments: {startInfo.Arguments}");
 
                 try
                 {
-                    Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_RUN_ID", project.RunId);
-                    Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_ITERATION", 1000.ToString());
-                    Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS", 1000.ToString());
-
-                    Environment.SetEnvironmentVariable("COMPLUS_gcConcurrent", "0");
-                    Environment.SetEnvironmentVariable("COMPLUS_gcServer", "0");
-
                     using (var proc = Process.Start(startInfo))
                     {
                         proc.EnableRaisingEvents = true;
@@ -237,9 +236,6 @@ Arguments: {startInfo.Arguments}");
 
                 assemblies.Add(Tuple.Create(assemblyFile, configFile));
             }
-
-            if (assemblies.Count == 0)
-                throw new ArgumentException("must specify at least one assembly");
 
             var project = GetProjectFile(assemblies);
 

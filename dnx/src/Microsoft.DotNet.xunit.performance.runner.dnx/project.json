@@ -1,0 +1,34 @@
+{
+  "version": "99.99.99-dev",
+  "title": "xUnit Performance Runner for DNX",
+  "description": "Contains the tools necessary for running xunit Performance tests on DNX (Windows, Linux, OSX, etc.)",
+  "authors": [ "ericeil@microsoft.com", "pharring@microsoft.com" ],
+  "owners": [ "Microsoft" ],
+  "language": "en-US",
+  "tags": [ "" ],
+  "projectUrl": "https://github.com/Microsoft/xunit-performance",
+  "licenseUrl": "https://raw.githubusercontent.com/Microsoft/xunit-performance/master/LICENSE",
+  "iconUrl": "http://go.microsoft.com/fwlink/?LinkID=288859",
+  "requireLicenseAcceptance": false,
+
+  "dependencies": {
+    "Microsoft.DotNet.xunit.performance.run.core": "99.99.99-dev",
+    "xunit.extensibility.execution": "2.1.0-rc2-build3176"
+  },
+
+  "commands": {
+    "xunit.performance.run": "Microsoft.DotNet.xunit.performance.runner.dnx"
+  },
+
+  "frameworks": {
+    "dnxcore50": {
+      "dependencies": {
+        "Microsoft.CSharp": "4.0.1-beta-23225",
+        "System.Collections": "4.0.11-beta-23225",
+        "System.Console": "4.0.0-beta-23225",
+        "System.Linq": "4.0.1-beta-23225",
+        "System.Threading": "4.0.11-beta-23225"
+      }
+    }
+  }
+}
