@@ -63,7 +63,7 @@ namespace Microsoft.Xunit.Performance
 
         private void RunTests(XunitPerformanceProject project)
         {
-            string xmlPath = Path.Combine(project.OutputDir, project.RunId + ".xml");
+            string xmlPath = Path.Combine(project.OutputDir, project.OutputBaseFileName + ".xml");
 
             var commandLineArgs = new StringBuilder();
 
@@ -362,6 +362,16 @@ Arguments: {startInfo.Arguments}");
                         project.OutputDir = option.Value;
                         break;
 
+                    case "outfile":
+                        if (option.Value == null)
+                            throw new ArgumentException("missing argument for -outfile");
+
+                        if (option.Value.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+                            throw new ArgumentException("outfile contains invalid characters.", optionName);
+
+                        project.OutputBaseFileName = option.Value;
+                        break;
+
                     default:
                         if (option.Value == null)
                             throw new ArgumentException($"missing filename for {option.Key}");
@@ -481,7 +491,9 @@ Valid options:
                          : a quoted group of arguments, 
                          : e.g. -runnerargs ""-verbose -nologo -parallel none""
   -runid ""name""          : a run identifier used to create unique output filenames.
-  -outdir  ""name""        : folder for output files.
+  -outdir ""name""         : folder for output files.
+  -outfile ""name""        : base file name (without extension) for output files.
+                         : Defaults to the same value as runid.
   -verbose               : verbose logging
 ");
         }
