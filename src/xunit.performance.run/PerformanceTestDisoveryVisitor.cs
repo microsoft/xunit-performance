@@ -12,7 +12,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class PerformanceTestDiscoveryVisitor : global::Xunit.TestMessageVisitor<IDiscoveryCompleteMessage>
+    public class PerformanceTestDiscoveryVisitor : global::Xunit.TestMessageVisitor<IDiscoveryCompleteMessage>
     {
         public readonly List<PerformanceTestInfo> Tests = new List<PerformanceTestInfo>();
         private XunitProjectAssembly _assembly;
