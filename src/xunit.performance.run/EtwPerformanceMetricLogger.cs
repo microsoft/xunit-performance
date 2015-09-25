@@ -23,7 +23,7 @@ namespace Microsoft.Xunit.Performance
 
         public EtwPerformanceMetricLogger(XunitPerformanceProject project, Program program)
         {
-            _etlPath = Path.Combine(project.OutputDir, project.RunId + ".etl");
+            _etlPath = Path.Combine(project.OutputDir, project.OutputBaseFileName + ".etl");
             _program = program;
             _project = project;
 
