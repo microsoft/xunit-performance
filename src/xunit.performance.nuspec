@@ -36,8 +36,8 @@
         <dependency id="System.Threading" version="4.0.10" />
         <dependency id="System.Threading.Tasks" version="4.0.10" />
         <dependency id="xunit.abstractions" version="2.0.0" />
-        <dependency id="xunit.extensibility.core" version="2.1.0-rc1-build3168" />
-        <dependency id="xunit.extensibility.execution" version="2.1.0-rc1-build3168" />
+        <dependency id="xunit.extensibility.core" version="2.1.0" />
+        <dependency id="xunit.extensibility.execution" version="2.1.0" />
       </group>
     </dependencies>
   </metadata>

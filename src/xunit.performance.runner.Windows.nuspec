@@ -15,7 +15,7 @@ Contains the tools necessary for running xunit Performance tests in Windows usin
     <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <dependencies>
-      <dependency id="xunit.runner.console" version="2.1.0-rc1-build3168" />
+      <dependency id="xunit.runner.console" version="2.1.0" />
     </dependencies>
   </metadata>
   <files>

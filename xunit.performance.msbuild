@@ -42,7 +42,7 @@
       <TestAssemblies Include="Samples\SimplePerfTests\bin\$(Configuration)\SimplePerfTests.dll" />
     </ItemGroup>
 
-    <Exec Command="packages\xunit.runner.console.2.1.0-rc1-build3168\tools\xunit.console.exe @(TestAssemblies, ' ')" />
+    <Exec Command="packages\xunit.runner.console.2.1.0\tools\xunit.console.exe @(TestAssemblies, ' ')" />
   </Target>
 
   <Target Name="Clean">
@@ -89,7 +89,7 @@
         Condition=" '$(BuildSemanticVersion)' != '' "/>
   </Target>
 
-  <Target Name='Packages' Condition="'$(Configuration)' == 'Release'">
+  <Target Name='Packages'>
     <Message Text="Creating NuGet packages..." Importance="High" />
     <MakeDir Directories="$(NugetPackageOutputDirectory)" />
     <Exec Condition="'$(BuildSemanticVersion)' == ''" Command='"$(NuGetExePath)" pack %(NuspecFiles.Identity) -OutputDirectory $(NugetPackageOutputDirectory) -NoPackageAnalysis -NonInteractive -Verbosity quiet' />
