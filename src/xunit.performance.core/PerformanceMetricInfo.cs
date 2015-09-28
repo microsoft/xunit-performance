@@ -14,8 +14,19 @@ namespace Microsoft.Xunit.Performance.Sdk
     /// </summary>
     public abstract class PerformanceMetricInfo
     {
+        /// <summary>
+        /// Gets a string that uniquely identifies this metric, and can be used as an element or attribute name in XML output.
+        /// </summary>
         public string Id { get; }
+
+        /// <summary>
+        /// Gets the human-readable name of the metric.
+        /// </summary>
         public string DisplayName { get; }
+
+        /// <summary>
+        /// Gets a string describing the units of measurement for this metric.  Use one of the pre-defined strings in <see cref="PerformanceMetricUnits"/>.
+        /// </summary>
         public string Unit { get; }
 
         /// <summary>
