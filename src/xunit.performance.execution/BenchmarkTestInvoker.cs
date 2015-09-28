@@ -59,6 +59,12 @@ namespace Microsoft.Xunit.Performance
                         else
                             Aggregator.Add(ex);
                     }
+
+                    if (iterator.IterationStopReason == "NoIterations")
+                    {
+                        success = false;
+                        throw new Exception("Benchmark did not execute any iterations.  Please use one of the iteration methods in Microsoft.Xunit.Performance.Benchmark");
+                    }
                 }
                 finally
                 {
@@ -85,6 +91,7 @@ namespace Microsoft.Xunit.Performance
                 _testName = testName;
                 _overallTimer = new Stopwatch();
                 _currentIteration = -1;
+                IterationStopReason = "NoIterations";
             }
 
             private bool DoneIterating
