@@ -14,7 +14,10 @@ public static class StringThroughput
     [Benchmark]
     public static void Foo()
     {
-
+        foreach (var iteration in Benchmark.Iterations)
+        {
+            iteration.StartMeasurement();
+        }
     }
 
     #region helpers

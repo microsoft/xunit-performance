@@ -137,8 +137,10 @@ namespace Microsoft.Xunit.Performance
 
                     yield return CreateIteration(_currentIteration);
 
-                    if (_currentIterationMeasurementStarted)
-                        StopMeasurement(_currentIteration);
+                    if (!_currentIterationMeasurementStarted)
+                        throw new Exception("Test iteration was not measured.  Use Microsoft.Xunit.Performance.BenchmarkIteration.StartMeasurement in each iteration.");
+
+                    StopMeasurement(_currentIteration);
 
                     if (_currentIteration == 0)
                         _overallTimer.Start();
