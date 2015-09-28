@@ -92,8 +92,8 @@
   <Target Name='Packages'>
     <Message Text="Creating NuGet packages..." Importance="High" />
     <MakeDir Directories="$(NugetPackageOutputDirectory)" />
-    <Exec Condition="'$(BuildSemanticVersion)' == ''" Command='"$(NuGetExePath)" pack %(NuspecFiles.Identity) -OutputDirectory $(NugetPackageOutputDirectory) -NoPackageAnalysis -NonInteractive -Verbosity quiet' />
-    <Exec Condition="'$(BuildSemanticVersion)' != ''" Command='"$(NuGetExePath)" pack %(NuspecFiles.Identity) -OutputDirectory $(NugetPackageOutputDirectory) -Version $(BuildSemanticVersion) -NoPackageAnalysis -NonInteractive -Verbosity quiet' />
+    <Exec Condition="'$(BuildSemanticVersion)' == ''" Command='"$(NuGetExePath)" pack %(NuspecFiles.Identity) -OutputDirectory $(NugetPackageOutputDirectory) -NoPackageAnalysis -NonInteractive -Verbosity quiet -Properties Configuration=$(Configuration)' />
+    <Exec Condition="'$(BuildSemanticVersion)' != ''" Command='"$(NuGetExePath)" pack %(NuspecFiles.Identity) -OutputDirectory $(NugetPackageOutputDirectory) -Version $(BuildSemanticVersion) -NoPackageAnalysis -NonInteractive -Verbosity quiet -Properties Configuration=$(Configuration)' />
   </Target>
 
   <Target Name="_DownloadNuGet">
