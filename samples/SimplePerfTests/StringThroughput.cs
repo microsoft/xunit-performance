@@ -11,15 +11,6 @@ using Xunit;
 [MeasureGCCounts]
 public static class StringThroughput
 {
-    [Benchmark]
-    public static void Foo()
-    {
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            iteration.StartMeasurement();
-        }
-    }
-
     #region helpers
     private static IEnumerable<object[]> MakeArgs(params object[] args)
     {
