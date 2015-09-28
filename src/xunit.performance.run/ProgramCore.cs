@@ -69,14 +69,16 @@ namespace Microsoft.Xunit.Performance
 
             if (!string.IsNullOrEmpty(project.RunnerHost))
             {
+                commandLineArgs.Append("\"");
                 commandLineArgs.Append(project.RunnerCommand);
-                commandLineArgs.Append(" ");
+                commandLineArgs.Append("\" ");
             }
 
             foreach (var assembly in project.Assemblies)
             {
+                commandLineArgs.Append("\"");
                 commandLineArgs.Append(assembly.AssemblyFilename);
-                commandLineArgs.Append(" ");
+                commandLineArgs.Append("\" ");
             }
 
             foreach (var testClass in project.Filters.IncludedClasses)
@@ -117,8 +119,9 @@ namespace Microsoft.Xunit.Performance
                 commandLineArgs.Append(" ");
             }
 
-            commandLineArgs.Append("-xml ");
+            commandLineArgs.Append("-xml \"");
             commandLineArgs.Append(xmlPath);
+            commandLineArgs.Append("\"");
 
             ProcessStartInfo startInfo = new ProcessStartInfo()
             {
