@@ -66,6 +66,8 @@ namespace Microsoft.Xunit.Performance
         [ProcDomainExport]
         public static string Start(string etlPath, IEnumerable<ProviderInfo> providerInfo, int bufferSizeMB = 64)
         {
+            EnsureUnloadHandlerRegistered();
+
             var userSessionName = "xunit.performance.logger." + Guid.NewGuid().ToString();
             Sessions sessions = new Sessions();
             sessions.UserFileName = Path.ChangeExtension(etlPath, ".user.etl");
