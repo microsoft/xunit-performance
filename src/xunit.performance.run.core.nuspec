@@ -16,10 +16,10 @@ Contains the core portable functionality used by xunit.performance.run.
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <dependencies>
       <group targetFramework="dotnet">
-        <dependency id="System.Diagnostics.Debug" version="4.0.10" />
         <dependency id="System.Threading" version="4.0.10" />
         <dependency id="System.Collections" version="4.0.10" />
         <dependency id="System.Console" version="4.0.0-beta-23225" />
+        <dependency id="System.Diagnostics.Debug" version="4.0.10" />
         <dependency id="System.Diagnostics.Process" version="4.0.0-beta-23225" />
         <dependency id="System.IO" version="4.0.10" />
         <dependency id="System.IO.FileSystem" version="4.0.0" />
@@ -29,14 +29,14 @@ Contains the core portable functionality used by xunit.performance.run.
         <dependency id="System.Runtime.Extensions" version="4.0.10" />
         <dependency id="System.Xml.XDocument" version="4.0.10" />
         <dependency id="xunit.abstractions" version="2.0.0" />
-        <dependency id="xunit.runner.utility" version="2.1.0-rc1-build3168" />
+        <dependency id="xunit.runner.utility" version="2.1.0" />
       </group>
     </dependencies>
   </metadata>
   <files>
-    <file src="xunit.performance.run.core\bin\Release\xunit.performance.core.dll" target="lib\dotnet\" />
-    <file src="xunit.performance.run.core\bin\Release\xunit.performance.run.core.dll" target="lib\dotnet\" />
-    <file src="xunit.performance.run.core\bin\Release\xunit.performance.run.core.pdb" target="lib\dotnet\" />
-    <file src="xunit.performance.run.core\bin\Release\xunit.performance.core.pdb" target="lib\dotnet\" />
+    <file src="xunit.performance.run.core\bin\$Configuration$\xunit.performance.core.dll" target="lib\dotnet\" />
+    <file src="xunit.performance.run.core\bin\$Configuration$\xunit.performance.run.core.dll" target="lib\dotnet\" />
+    <file src="xunit.performance.run.core\bin\$Configuration$\xunit.performance.run.core.pdb" target="lib\dotnet\" />
+    <file src="xunit.performance.run.core\bin\$Configuration$\xunit.performance.core.pdb" target="lib\dotnet\" />
   </files>
 </package>

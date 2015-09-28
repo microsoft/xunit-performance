@@ -13,7 +13,7 @@
 
   "dependencies": {
     "Microsoft.DotNet.xunit.performance.run.core": "99.99.99-dev",
-    "xunit.extensibility.execution": "2.1.0-rc2-build3176"
+    "xunit.extensibility.execution": "2.1.0"
   },
 
   "commands": {
