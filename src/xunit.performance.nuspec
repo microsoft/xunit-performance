@@ -46,8 +46,8 @@
     <file src="xunit.performance.core\bin\$Configuration$\xunit.performance.core.dll" target="lib\dotnet\" />
     <file src="xunit.performance.core\bin\$Configuration$\xunit.performance.core.pdb" target="lib\dotnet\" />
     <file src="xunit.performance.core\bin\$Configuration$\xunit.performance.core.xml" target="lib\dotnet\" />
-    <file src="xunit.performance.execution.dotnet\$Configuration$\Release\xunit.performance.execution.dotnet.dll" target="lib\dotnet\" />
-    <file src="xunit.performance.execution.dotnet\$Configuration$\Release\xunit.performance.execution.dotnet.pdb" target="lib\dotnet\" />
+    <file src="xunit.performance.execution.dotnet\bin\$Configuration$\xunit.performance.execution.dotnet.dll" target="lib\dotnet\" />
+    <file src="xunit.performance.execution.dotnet\bin\$Configuration$\xunit.performance.execution.dotnet.pdb" target="lib\dotnet\" />
     <!-- For desktop class library projects -->
     <file src="xunit.performance.core\bin\$Configuration$\xunit.performance.core.dll" target="lib\net46\" />
     <file src="xunit.performance.core\bin\$Configuration$\xunit.performance.core.pdb" target="lib\net46\" />
