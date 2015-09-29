@@ -97,20 +97,26 @@ namespace Microsoft.Xunit.Performance
 
             foreach (var trait in project.Filters.IncludedTraits)
             {
-                commandLineArgs.Append("-trait \"");
-                commandLineArgs.Append(trait.Key);
-                commandLineArgs.Append("=");
-                commandLineArgs.Append(trait.Value);
-                commandLineArgs.Append("\" ");
+                foreach (var traitValue in trait.Value)
+                {
+                    commandLineArgs.Append("-trait \"");
+                    commandLineArgs.Append(trait.Key);
+                    commandLineArgs.Append("=");
+                    commandLineArgs.Append(traitValue);
+                    commandLineArgs.Append("\" ");
+                }
             }
 
             foreach (var trait in project.Filters.ExcludedTraits)
             {
-                commandLineArgs.Append("-notrait \"");
-                commandLineArgs.Append(trait.Key);
-                commandLineArgs.Append("=");
-                commandLineArgs.Append(trait.Value);
-                commandLineArgs.Append("\" ");
+                foreach (var traitValue in trait.Value)
+                {
+                    commandLineArgs.Append("-notrait \"");
+                    commandLineArgs.Append(trait.Key);
+                    commandLineArgs.Append("=");
+                    commandLineArgs.Append(traitValue);
+                    commandLineArgs.Append("\" ");
+                }
             }
 
             if (!string.IsNullOrEmpty(project.RunnerArgs))
