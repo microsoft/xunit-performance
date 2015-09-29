@@ -150,8 +150,57 @@ namespace Microsoft.Xunit.Performance
                     GC.Collect(2, GCCollectionMode.Optimized);
                     GC.WaitForPendingFinalizers();
 
+                    RandomizeMeasurementStartTime();
+
                     BenchmarkEventSource.Log.BenchmarkIterationStart(BenchmarkConfiguration.RunId, _testName, iterationNumber);
                 }
+            }
+
+            static Random _randomDelayGenerator;
+            static int _randomDelaySpinLimit;
+
+            //
+            // Insert a small random delay, to ensure that any noise introduced due to system timer resolution has a nice random distribution.
+            //
+            private static void RandomizeMeasurementStartTime()
+            {
+                int spinCount;
+
+                lock (typeof(BenchmarkIteratorImpl))
+                {
+                    //
+                    // The first time we run this, we need to create a random number generator, and find a spin limit 
+                    // corresponding to a significant number of Stopwatch ticks.
+                    //
+                    if (_randomDelayGenerator == null)
+                    {
+                        _randomDelayGenerator = new Random();
+
+                        for (int calibrationSpinCount = 1024; ; calibrationSpinCount *= 2)
+                        {
+                            var calibrationStart = Stopwatch.GetTimestamp();
+                            SpinDelay(calibrationSpinCount);
+                            var calibrationEnd = Stopwatch.GetTimestamp();
+
+                            if (calibrationEnd - calibrationStart >= 100)
+                            {
+                                _randomDelaySpinLimit = calibrationSpinCount;
+                                break;
+                            }
+                        }
+                    }
+
+                    spinCount = _randomDelayGenerator.Next(_randomDelaySpinLimit);
+                }
+
+                SpinDelay(spinCount);
+            }
+
+            private static void SpinDelay(int spinCount)
+            {
+                // Spin for a bit.  The volatile read is just to make sure the compiler doesn't optimize away this loop.
+                for (int i = 0; i < spinCount; i++)
+                    Volatile.Read(ref _randomDelayGenerator);
             }
 
             protected override void StopMeasurement(int iterationNumber)
