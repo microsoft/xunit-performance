@@ -36,23 +36,23 @@
         <dependency id="System.Threading" version="4.0.10" />
         <dependency id="System.Threading.Tasks" version="4.0.10" />
         <dependency id="xunit.abstractions" version="2.0.0" />
-        <dependency id="xunit.extensibility.core" version="2.1.0-rc1-build3168" />
-        <dependency id="xunit.extensibility.execution" version="2.1.0-rc1-build3168" />
+        <dependency id="xunit.extensibility.core" version="2.1.0" />
+        <dependency id="xunit.extensibility.execution" version="2.1.0" />
       </group>
     </dependencies>
   </metadata>
   <files>
     <!-- For portable class library or DNX projects -->
-    <file src="xunit.performance.core\bin\Release\xunit.performance.core.dll" target="lib\dotnet\" />
-    <file src="xunit.performance.core\bin\Release\xunit.performance.core.pdb" target="lib\dotnet\" />
-    <file src="xunit.performance.core\bin\Release\xunit.performance.core.xml" target="lib\dotnet\" />
-    <file src="xunit.performance.execution.dotnet\bin\Release\xunit.performance.execution.dotnet.dll" target="lib\dotnet\" />
-    <file src="xunit.performance.execution.dotnet\bin\Release\xunit.performance.execution.dotnet.pdb" target="lib\dotnet\" />
+    <file src="xunit.performance.core\bin\$Configuration$\xunit.performance.core.dll" target="lib\dotnet\" />
+    <file src="xunit.performance.core\bin\$Configuration$\xunit.performance.core.pdb" target="lib\dotnet\" />
+    <file src="xunit.performance.core\bin\$Configuration$\xunit.performance.core.xml" target="lib\dotnet\" />
+    <file src="xunit.performance.execution.dotnet\bin\$Configuration$\xunit.performance.execution.dotnet.dll" target="lib\dotnet\" />
+    <file src="xunit.performance.execution.dotnet\bin\$Configuration$\xunit.performance.execution.dotnet.pdb" target="lib\dotnet\" />
     <!-- For desktop class library projects -->
-    <file src="xunit.performance.core\bin\Release\xunit.performance.core.dll" target="lib\net46\" />
-    <file src="xunit.performance.core\bin\Release\xunit.performance.core.pdb" target="lib\net46\" />
-    <file src="xunit.performance.core\bin\Release\xunit.performance.core.xml" target="lib\net46\" />
-    <file src="xunit.performance.execution.desktop\bin\Release\xunit.performance.execution.desktop.dll" target="lib\net46\" />
-    <file src="xunit.performance.execution.desktop\bin\Release\xunit.performance.execution.desktop.pdb" target="lib\net46\" />
+    <file src="xunit.performance.core\bin\$Configuration$\xunit.performance.core.dll" target="lib\net46\" />
+    <file src="xunit.performance.core\bin\$Configuration$\xunit.performance.core.pdb" target="lib\net46\" />
+    <file src="xunit.performance.core\bin\$Configuration$\xunit.performance.core.xml" target="lib\net46\" />
+    <file src="xunit.performance.execution.desktop\bin\$Configuration$\xunit.performance.execution.desktop.dll" target="lib\net46\" />
+    <file src="xunit.performance.execution.desktop\bin\$Configuration$\xunit.performance.execution.desktop.pdb" target="lib\net46\" />
   </files>
 </package>

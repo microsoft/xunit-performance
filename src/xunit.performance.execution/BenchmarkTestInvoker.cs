@@ -59,6 +59,12 @@ namespace Microsoft.Xunit.Performance
                         else
                             Aggregator.Add(ex);
                     }
+
+                    if (iterator.IterationStopReason == "NoIterations")
+                    {
+                        success = false;
+                        throw new Exception("Benchmark did not execute any iterations.  Please use one of the iteration methods in Microsoft.Xunit.Performance.Benchmark");
+                    }
                 }
                 finally
                 {
@@ -85,6 +91,7 @@ namespace Microsoft.Xunit.Performance
                 _testName = testName;
                 _overallTimer = new Stopwatch();
                 _currentIteration = -1;
+                IterationStopReason = "NoIterations";
             }
 
             private bool DoneIterating
@@ -130,8 +137,10 @@ namespace Microsoft.Xunit.Performance
 
                     yield return CreateIteration(_currentIteration);
 
-                    if (_currentIterationMeasurementStarted)
-                        StopMeasurement(_currentIteration);
+                    if (!_currentIterationMeasurementStarted)
+                        throw new Exception("Test iteration was not measured.  Use Microsoft.Xunit.Performance.BenchmarkIteration.StartMeasurement in each iteration.");
+
+                    StopMeasurement(_currentIteration);
 
                     if (_currentIteration == 0)
                         _overallTimer.Start();
@@ -150,8 +159,61 @@ namespace Microsoft.Xunit.Performance
                     GC.Collect(2, GCCollectionMode.Optimized);
                     GC.WaitForPendingFinalizers();
 
+                    RandomizeMeasurementStartTime();
+
                     BenchmarkEventSource.Log.BenchmarkIterationStart(BenchmarkConfiguration.RunId, _testName, iterationNumber);
                 }
+            }
+
+            static Random _randomDelayGenerator;
+            static int _randomDelaySpinLimit;
+
+            //
+            // Insert a small random delay, to ensure that any noise introduced due to system timer resolution has a nice random distribution.
+            //
+            private static void RandomizeMeasurementStartTime()
+            {
+                int spinCount;
+
+                lock (typeof(BenchmarkIteratorImpl))
+                {
+                    //
+                    // The first time we run this, we need to create a random number generator, and find a spin limit 
+                    // corresponding to a significant number of Stopwatch ticks.
+                    //
+                    if (_randomDelayGenerator == null)
+                    {
+                        _randomDelayGenerator = new Random();
+
+                        // Very short spin, just to "warm up" the spin loop.
+                        SpinDelay(10);
+
+                        for (int calibrationSpinCount = 1024; ; calibrationSpinCount *= 2)
+                        {
+                            var start = Stopwatch.GetTimestamp();
+                            SpinDelay(calibrationSpinCount);
+                            var elapsed = Stopwatch.GetTimestamp() - start;
+
+                            if (elapsed >= 1000)
+                            {
+                                // Set the limit at roughly 100 Stopwatch ticks.
+                                _randomDelaySpinLimit = (int)((100 * calibrationSpinCount) / elapsed);
+                                break;
+                            }
+                        }
+                    }
+
+                    spinCount = _randomDelayGenerator.Next(_randomDelaySpinLimit);
+                }
+
+                SpinDelay(spinCount);
+            }
+
+            private static void SpinDelay(int spinCount)
+            {
+                // Spin for a bit.  The volatile read is just to make sure the compiler doesn't optimize away this loop.
+                for (int i = 0; i < spinCount; i++)
+                    Volatile.Read(ref _randomDelayGenerator);
             }
 
             protected override void StopMeasurement(int iterationNumber)
