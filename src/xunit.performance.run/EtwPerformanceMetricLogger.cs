@@ -52,7 +52,7 @@ namespace Microsoft.Xunit.Performance
             program.PrintIfVerbose($"Discovered a total of {_tests.Count} tests.");
         }
 
-        public IDisposable StartLogging()
+        public IDisposable StartLogging(System.Diagnostics.ProcessStartInfo runnerStartInfo)
         {
             _program.PrintIfVerbose($"Starting ETW tracing. Logging to {_etlPath}");
 

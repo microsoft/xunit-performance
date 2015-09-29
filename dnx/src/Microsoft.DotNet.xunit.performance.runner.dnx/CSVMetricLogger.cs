@@ -20,9 +20,9 @@ namespace Microsoft.Xunit.Performance
             _csvPath = Path.GetFullPath(Path.Combine(project.OutputDir, project.RunId + ".csv"));
         }
 
-        public IDisposable StartLogging()
+        public IDisposable StartLogging(System.Diagnostics.ProcessStartInfo runnerStartInfo)
         {
-            Environment.SetEnvironmentVariable("XUNIT_PERFORMANCE_FILE_LOG_PATH", _csvPath);
+            runnerStartInfo.Environment["XUNIT_PERFORMANCE_FILE_LOG_PATH"] = _csvPath;
             return null;
         }
 

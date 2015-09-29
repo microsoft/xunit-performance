@@ -143,7 +143,7 @@ namespace Microsoft.Xunit.Performance
             startInfo.Environment["COMPLUS_gcServer"] = "0";
 
             var logger = GetPerformanceMetricLogger(project);
-            using (logger.StartLogging())
+            using (logger.StartLogging(startInfo))
             {
                 PrintIfVerbose($@"Launching runner:
 Runner:    {startInfo.FileName}
