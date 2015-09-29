@@ -176,15 +176,19 @@ namespace Microsoft.Xunit.Performance
                     {
                         _randomDelayGenerator = new Random();
 
+                        // Very short spin, just to "warm up" the spin loop.
+                        SpinDelay(10);
+
                         for (int calibrationSpinCount = 1024; ; calibrationSpinCount *= 2)
                         {
-                            var calibrationStart = Stopwatch.GetTimestamp();
+                            var start = Stopwatch.GetTimestamp();
                             SpinDelay(calibrationSpinCount);
-                            var calibrationEnd = Stopwatch.GetTimestamp();
+                            var elapsed = Stopwatch.GetTimestamp() - start;
 
-                            if (calibrationEnd - calibrationStart >= 100)
+                            if (elapsed >= 1000)
                             {
-                                _randomDelaySpinLimit = calibrationSpinCount;
+                                // Set the limit at roughly 100 Stopwatch ticks.
+                                _randomDelaySpinLimit = (int)((100 * calibrationSpinCount) / elapsed);
                                 break;
                             }
                         }
