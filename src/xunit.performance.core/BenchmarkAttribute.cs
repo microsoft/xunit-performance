@@ -14,8 +14,9 @@ namespace Microsoft.Xunit.Performance
     /// </summary>
     [XunitTestCaseDiscoverer("Microsoft.Xunit.Performance.BenchmarkDiscoverer", "xunit.performance.execution.{Platform}")]
     [PerformanceMetricDiscoverer("Microsoft.Xunit.Performance.BenchmarkMetricDiscoverer", "xunit.performance.metrics")]
+    [TraitDiscoverer("Microsoft.Xunit.Performance.BenchmarkDiscoverer", "xunit.performance.execution.{Platform}")]
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class BenchmarkAttribute : FactAttribute, IPerformanceMetricAttribute
+    public class BenchmarkAttribute : FactAttribute, IPerformanceMetricAttribute, ITraitAttribute
     {
     }
 }
