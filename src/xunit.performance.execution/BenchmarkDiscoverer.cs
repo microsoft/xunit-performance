@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class BenchmarkDiscoverer : TheoryDiscoverer
+    internal class BenchmarkDiscoverer : TheoryDiscoverer, ITraitDiscoverer
     {
         private IMessageSink _diagnosticMessageSink;
 
@@ -54,6 +55,11 @@ namespace Microsoft.Xunit.Performance
                     yield return new BenchmarkTestCase(_diagnosticMessageSink, defaultMethodDisplay, testMethod, benchmarkAttribute, theoryCase.TestMethodArguments);
                 }
             }
+        }
+
+        public IEnumerable<KeyValuePair<string, string>> GetTraits(IAttributeInfo traitAttribute)
+        {
+            return new[] { new KeyValuePair<string, string>("Benchmark", "true") };
         }
     }
 }
