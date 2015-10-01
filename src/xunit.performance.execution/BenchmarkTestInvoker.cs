@@ -156,6 +156,9 @@ namespace Microsoft.Xunit.Performance
 
                     _currentIterationMeasurementStarted = true;
 
+                    GC.Collect(2, GCCollectionMode.Optimized);
+                    GC.WaitForPendingFinalizers();
+
                     RandomizeMeasurementStartTime();
 
                     BenchmarkEventSource.Log.BenchmarkIterationStart(BenchmarkConfiguration.RunId, _testName, iterationNumber);
