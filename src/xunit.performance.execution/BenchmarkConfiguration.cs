@@ -11,5 +11,6 @@ namespace Microsoft.Xunit.Performance
         public static readonly int MaxIteration = int.Parse(Environment.GetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_ITERATION") ?? "0");
         public static readonly int MaxTotalMilliseconds = int.Parse(Environment.GetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS") ?? "0");
         public static readonly string FileLogPath = Environment.GetEnvironmentVariable("XUNIT_PERFORMANCE_FILE_LOG_PATH");
+        public static bool RunningAsPerfTest => RunId != null;
     }
 }
