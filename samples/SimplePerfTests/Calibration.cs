@@ -1,16 +1,14 @@
-﻿using Microsoft.Xunit.Performance;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using Microsoft.Xunit.Performance;
 using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
-[assembly:Xunit.CollectionBehavior(DisableTestParallelization = true)]
+
 namespace SimplePerfTests
 {
     [MeasureInstructionsRetired(1)]
-    public static class Experiments
+    public static class Calibration
     {
         [Benchmark]
         public static void Empty()
@@ -32,7 +30,7 @@ namespace SimplePerfTests
         [InlineData(10000)]
         [InlineData(100000)]
         [InlineData(1000000)]
-        public static int VolatileRead(int innerIterations)
+        public static int BusyWork(int innerIterations)
         {
             int sum = 0;
             foreach (var iteration in Benchmark.Iterations)

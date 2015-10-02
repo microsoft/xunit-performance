@@ -71,6 +71,9 @@
     <Compile Include="..\xunit.performance.execution\BenchmarkTestCaseRunner.cs">
       <Link>BenchmarkTestCaseRunner.cs</Link>
     </Compile>
+    <Compile Include="..\xunit.performance.execution\BenchmarkTestFramework.cs">
+      <Link>BenchmarkTestFramework.cs</Link>
+    </Compile>
     <Compile Include="..\xunit.performance.execution\BenchmarkTestInvoker.cs">
       <Link>BenchmarkTestInvoker.cs</Link>
     </Compile>
