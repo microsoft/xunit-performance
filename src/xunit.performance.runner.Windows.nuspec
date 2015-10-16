@@ -23,6 +23,7 @@ Contains the tools necessary for running xunit Performance tests in Windows usin
     <file src="xunit.performance.run\bin\$Configuration$\ProcDomain.dll" target="tools\" />
     <file src="xunit.performance.run\bin\$Configuration$\ProcDomain.pdb" target="tools\" />
     <file src="xunit.performance.run\bin\$Configuration$\xunit.abstractions.dll" target="tools\" />
+    <file src="xunit.performance.run\bin\$Configuration$\xunit.core.dll" target="tools\" />
     <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.core.dll" target="tools\" />
     <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.core.pdb" target="tools\" />
     <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.logger.exe" target="tools\" />
