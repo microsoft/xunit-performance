@@ -107,7 +107,8 @@ namespace Microsoft.Xunit.Performance
                         return true;
                     }
 
-                    if (_currentIteration > 1 && _overallTimer.ElapsedMilliseconds > BenchmarkConfiguration.MaxTotalMilliseconds)
+                    if (_currentIteration > BenchmarkConfiguration.MinIteration && 
+                        _overallTimer.ElapsedMilliseconds > BenchmarkConfiguration.MaxTotalMilliseconds)
                     {
                         IterationStopReason = "MaxTime";
                         return true;
