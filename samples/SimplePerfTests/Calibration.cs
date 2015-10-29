@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Microsoft.Xunit.Performance;
+using System;
 using System.Threading;
 using Xunit;
 
@@ -42,6 +43,19 @@ namespace SimplePerfTests
                 }
             }
             return sum;
+        }
+
+        [Benchmark]
+        [InlineData(1)]
+        [InlineData(10)]
+        [InlineData(100)]
+        public static void Sleep(int milliseconds)
+        {
+            var ev = new ManualResetEvent(initialState: false);
+
+            foreach (var iteration in Benchmark.Iterations)
+                using (iteration.StartMeasurement())
+                    ev.WaitOne(milliseconds);
         }
     }
 }
