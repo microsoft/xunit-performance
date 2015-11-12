@@ -1,11 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.Xunit.Performance.Sdk
 {
@@ -25,8 +20,8 @@ namespace Microsoft.Xunit.Performance.Sdk
         public const string Milliseconds = "msec";
 
         /// <summary>
-        /// Indicates that a performance metric's value is measured in megabytes (1,048,576 bytes).
+        /// Indicates that a performance metric's value is measured in bytes.
         /// </summary>
-        public const string Megabytes = "mbyte";
+        public const string Bytes = "bytes";
     }
 }
