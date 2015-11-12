@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using Xunit;
 
 [MeasureGCCounts]
+[MeasureGCAllocations]
 public static class StringThroughput
 {
     #region helpers
