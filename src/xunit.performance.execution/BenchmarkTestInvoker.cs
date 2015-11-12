@@ -131,6 +131,9 @@ namespace Microsoft.Xunit.Performance
 
             private IEnumerable<BenchmarkIteration> GetIterations()
             {
+                GC.Collect(2);
+                GC.WaitForPendingFinalizers();
+
                 for (_currentIteration = 0; !DoneIterating; _currentIteration++)
                 {
                     _currentIterationMeasurementStarted = false;
@@ -156,9 +159,6 @@ namespace Microsoft.Xunit.Performance
                         throw new InvalidOperationException("StartMeasurement already called for the current iteration");
 
                     _currentIterationMeasurementStarted = true;
-
-                    GC.Collect(2, GCCollectionMode.Optimized);
-                    GC.WaitForPendingFinalizers();
 
                     RandomizeMeasurementStartTime();
 

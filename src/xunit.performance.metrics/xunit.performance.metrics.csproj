@@ -55,6 +55,7 @@
     </Compile>
     <Compile Include="BenchmarkMetricDiscoverer.cs" />
     <Compile Include="CpuCounterInfo.cs" />
+    <Compile Include="GCAllocationsMetricDiscoverer.cs" />
     <Compile Include="InstructionsRetiredMetricDiscoverer.cs" />
     <Compile Include="GCCountMetricDiscoverer.cs" />
     <Compile Include="PerformanceMetric.cs" />
