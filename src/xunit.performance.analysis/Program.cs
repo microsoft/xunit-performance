@@ -17,6 +17,11 @@ namespace Microsoft.Xunit.Performance.Analysis
     {
         private const double ErrorConfidence = 0.95; // TODO: make configurable
 
+        /// <summary>
+        /// The name of the Duration metric, as provided by the XML.
+        /// </summary>
+        private const string DurationMetricName = "Duration";
+
         private static int Usage()
         {
             Console.Error.WriteLine(
@@ -121,14 +126,14 @@ namespace Microsoft.Xunit.Performance.Analysis
 
                     // Compute the standard error in the difference
                     var baselineCount = baselineTest.Iterations.Count;
-                    var baselineSum = baselineTest.Iterations.Sum(iteration => iteration.MetricValues["duration"]);
+                    var baselineSum = baselineTest.Iterations.Sum(iteration => iteration.MetricValues[DurationMetricName]);
                     var baselineSumSquared = baselineSum * baselineSum;
-                    var baselineSumOfSquares = baselineTest.Iterations.Sum(iteration => iteration.MetricValues["duration"] * iteration.MetricValues["duration"]);
+                    var baselineSumOfSquares = baselineTest.Iterations.Sum(iteration => iteration.MetricValues[DurationMetricName] * iteration.MetricValues[DurationMetricName]);
 
                     var comparisonCount = comparisonTest.Iterations.Count;
-                    var comparisonSum = comparisonTest.Iterations.Sum(iteration => iteration.MetricValues["duration"]);
+                    var comparisonSum = comparisonTest.Iterations.Sum(iteration => iteration.MetricValues[DurationMetricName]);
                     var comparisonSumSquared = comparisonSum * comparisonSum;
-                    var comparisonSumOfSquares = comparisonTest.Iterations.Sum(iteration => iteration.MetricValues["duration"] * iteration.MetricValues["duration"]);
+                    var comparisonSumOfSquares = comparisonTest.Iterations.Sum(iteration => iteration.MetricValues[DurationMetricName] * iteration.MetricValues[DurationMetricName]);
 
                     var stdErrorDiff = Math.Sqrt((baselineSumOfSquares - (baselineSumSquared / baselineCount) + comparisonSumOfSquares - (comparisonSumSquared / comparisonCount)) * (1.0 / baselineCount + 1.0 / comparisonCount) / (baselineCount + comparisonCount - 1));
                     var interval = stdErrorDiff * MathNet.Numerics.ExcelFunctions.TInv(1.0 - ErrorConfidence, baselineCount + comparisonCount - 2);
@@ -137,8 +142,8 @@ namespace Microsoft.Xunit.Performance.Analysis
                     comparisonResult.BaselineResult = baselineTest;
                     comparisonResult.ComparisonResult = comparisonTest;
                     comparisonResult.TestName = comparisonTest.TestName;
-                    comparisonResult.PercentChange = (comparisonTest.Stats["duration"].Mean - baselineTest.Stats["duration"].Mean) / baselineTest.Stats["duration"].Mean;
-                    comparisonResult.PercentChangeError = interval / baselineTest.Stats["duration"].Mean;
+                    comparisonResult.PercentChange = (comparisonTest.Stats[DurationMetricName].Mean - baselineTest.Stats[DurationMetricName].Mean) / baselineTest.Stats[DurationMetricName].Mean;
+                    comparisonResult.PercentChangeError = interval / baselineTest.Stats[DurationMetricName].Mean;
 
                     comparisonResults.Add(comparisonResult);
                 }
@@ -258,7 +263,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                     writer.WriteLine($"<tr><th>Test</th><th>Unit</th><th>Min</th><th>Mean</th><th>Max</th><th>Margin</th><th>StdDev</th></tr>");
                     foreach (var test in run.Value)
                     {
-                        var stats = test.Value.Stats["Duration"];
+                        var stats = test.Value.Stats[DurationMetricName];
                         writer.WriteLine($"<tr><td>{test.Value.TestName}</td><td>ms</td><td>{stats.Minimum.ToString("G3")}</td><td>{stats.Mean.ToString("G3")}</td><td>{stats.Maximum.ToString("G3")}</td><td>{stats.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{stats.StandardDeviation.ToString("G3")}</td></tr>");
                     }
                     writer.WriteLine($"</table>");
