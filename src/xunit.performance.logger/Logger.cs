@@ -7,6 +7,7 @@ using Microsoft.ProcessDomain;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -34,11 +35,25 @@ namespace Microsoft.Xunit.Performance
         private static bool s_unloadHandlerRegistered;
         private static ConcurrentDictionary<string, Sessions> s_sessions = new ConcurrentDictionary<string, Sessions>();
 
+        private static bool IsWin8OrGreater
+        {
+            get
+            {
+                var os = Environment.OSVersion;
+                Debug.Assert(os.Platform == PlatformID.Win32NT);
+                if (os.Version.Major < 6)
+                    return false;
+                if (os.Version.Major == 6 && os.Version.Minor < 2)
+                    return false;
+                return true;
+            }
+        }
+
         private static bool NeedSeparateKernelSession(ulong kernelKeywords)
         {
+
             // Prior to Windows 8 (NT 6.2), all kernel events needed the special kernel session.
-            var os = Environment.OSVersion;
-            if (os.Platform == PlatformID.Win32NT && os.Version.Major <= 6 && os.Version.Minor < 2)
+            if (!IsWin8OrGreater)
                 return true;
 
             // CPU counters need the special kernel session
@@ -81,21 +96,24 @@ namespace Microsoft.Xunit.Performance
                 sessions.UserSession = new TraceEventSession(userSessionName, sessions.UserFileName);
                 sessions.UserSession.BufferSizeMB = bufferSizeMB;
 
-                var availableCpuCounters = TraceEventProfileSources.GetInfo();
-                var cpuCounterIds = new List<int>();
-                var cpuCounterIntervals = new List<int>();
-                foreach (var cpuInfo in mergedProviderInfo.OfType<CpuCounterInfo>())
+                if (IsWin8OrGreater)
                 {
-                    ProfileSourceInfo profInfo;
-                    if (availableCpuCounters.TryGetValue(cpuInfo.CounterName, out profInfo))
+                    var availableCpuCounters = TraceEventProfileSources.GetInfo();
+                    var cpuCounterIds = new List<int>();
+                    var cpuCounterIntervals = new List<int>();
+                    foreach (var cpuInfo in mergedProviderInfo.OfType<CpuCounterInfo>())
                     {
-                        cpuCounterIds.Add(profInfo.ID);
-                        cpuCounterIntervals.Add(Math.Min(profInfo.MaxInterval, Math.Max(profInfo.MinInterval, cpuInfo.Interval)));
+                        ProfileSourceInfo profInfo;
+                        if (availableCpuCounters.TryGetValue(cpuInfo.CounterName, out profInfo))
+                        {
+                            cpuCounterIds.Add(profInfo.ID);
+                            cpuCounterIntervals.Add(Math.Min(profInfo.MaxInterval, Math.Max(profInfo.MinInterval, cpuInfo.Interval)));
+                        }
                     }
-                }
 
-                if (cpuCounterIds.Count > 0)
-                    TraceEventProfileSources.Set(cpuCounterIds.ToArray(), cpuCounterIntervals.ToArray());
+                    if (cpuCounterIds.Count > 0)
+                        TraceEventProfileSources.Set(cpuCounterIds.ToArray(), cpuCounterIntervals.ToArray());
+                }
 
                 var kernelInfo = mergedProviderInfo.OfType<KernelProviderInfo>().FirstOrDefault();
                 if (kernelInfo != null && NeedSeparateKernelSession(kernelInfo.Keywords))
