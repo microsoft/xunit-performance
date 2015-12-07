@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata minClientVersion="2.8.5">
+    <id>Microsoft.DotNet.xunit.performance.metrics</id>
+    <version>99.99.99-dev</version>
+    <title>xUnit Performance Metrics</title>
+    <authors>ericeil@microsoft.com;pharring@microsoft.com</authors>
+    <owners>Microsoft</owners>
+    <description>
+      Contains the tools necessary for defining custom metrics to be consumed by the xUnit Performance framework.
+      Only supports Desktop .NET 4.6 for now due to a dependency on TraceEvent.
+    </description>
+    <language>en-US</language>
+    <projectUrl>https://github.com/Microsoft/xunit-performance</projectUrl>
+    <licenseUrl>https://raw.githubusercontent.com/Microsoft/xunit-performance/master/LICENSE</licenseUrl>
+    <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <dependencies>
+      <dependency id="Microsoft.Diagnostics.Tracing.TraceEvent" version="1.0.39" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="xunit.performance.run\bin\$Configuration$\xunit.abstractions.dll" target="lib\net46" />
+    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.core.dll" target="lib\net46" />
+    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.core.pdb" target="lib\net46" />
+    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.metrics.dll" target="lib\net46" />
+    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.metrics.pdb" target="lib\net46" />
+  </files>
+</package>
