@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.analysis", "src\xunit.performance.analysis\xunit.performance.analysis.csproj", "{E114F722-0353-4BCE-A1BE-A6D729FDEACD}"
 EndProject
@@ -57,6 +57,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.metrics",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.run.core", "src\xunit.performance.run.core\xunit.performance.run.core.csproj", "{55595E8A-EB17-41B4-82BD-BF26FDAD618B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.performance.consumption", "src\xunit.performance.consumption\xunit.performance.consumption.csproj", "{663E1B15-8378-4A55-BCA2-85DF4FB059BB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -103,6 +105,10 @@ Global
 		{55595E8A-EB17-41B4-82BD-BF26FDAD618B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55595E8A-EB17-41B4-82BD-BF26FDAD618B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55595E8A-EB17-41B4-82BD-BF26FDAD618B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{663E1B15-8378-4A55-BCA2-85DF4FB059BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{663E1B15-8378-4A55-BCA2-85DF4FB059BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{663E1B15-8378-4A55-BCA2-85DF4FB059BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{663E1B15-8378-4A55-BCA2-85DF4FB059BB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -124,5 +130,6 @@ Global
 		{FFA0DF6D-DF10-4E29-97B3-B78F66990325} = {694DAB50-E5DA-4ADC-AD63-591F2FC8EB35}
 		{517B6982-4F98-417F-9987-9C6B64EE6E1C} = {F5C85B5B-B786-454C-BB24-822826881735}
 		{55595E8A-EB17-41B4-82BD-BF26FDAD618B} = {F5C85B5B-B786-454C-BB24-822826881735}
+		{663E1B15-8378-4A55-BCA2-85DF4FB059BB} = {FFA0DF6D-DF10-4E29-97B3-B78F66990325}
 	EndGlobalSection
 EndGlobal
