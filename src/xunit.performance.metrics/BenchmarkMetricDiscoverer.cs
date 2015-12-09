@@ -41,7 +41,7 @@ namespace Microsoft.Xunit.Performance
                 _iterationStartRelativeMSec = beginEvent.TimeStampRelativeMSec;
             }
 
-            public override double EndIteration(TraceEvent endEvent)
+            public override object EndIteration(TraceEvent endEvent)
             {
                 return endEvent.TimeStampRelativeMSec - _iterationStartRelativeMSec;
             }

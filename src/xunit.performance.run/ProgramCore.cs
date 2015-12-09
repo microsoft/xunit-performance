@@ -199,7 +199,36 @@ Arguments: {startInfo.Arguments}");
                                 iterationsElem.Add(iterationElem);
 
                                 foreach (var value in iteration)
-                                    iterationElem.Add(new XAttribute(value.Key, value.Value.ToString()));
+                                {
+                                    double result;
+                                    if (double.TryParse(value.Value.ToString(), out result)) { // result is a double, add it as an attribute
+                                        iterationElem.Add(new XAttribute(value.Key, result.ToString("R")));
+                                    }
+                                    else // result is a list, add the list as a new element
+                                    {
+                                        ListMetricInfo listMetricInfo = (ListMetricInfo)value.Value;
+                                        var listResult = new XElement("ListResult");
+                                        listResult.Add(new XAttribute("Name", value.Key));
+                                        listResult.Add(new XAttribute("Iteration", i));
+                                        iterationElem.Add(listResult);
+                                        foreach(ListMetricInfo.Metrics listMetric in listMetricInfo.MetricList)
+                                        {
+                                            var ListMetric = new XElement("ListMetric");
+                                            ListMetric.Add(new XAttribute("Name", listMetric.Name));
+                                            ListMetric.Add(new XAttribute("Unit", listMetric.Unit));
+                                            ListMetric.Add(new XAttribute("Type", listMetric.Type.Name));
+                                            listResult.Add(ListMetric);
+                                        }
+                                        foreach(var listItem in listMetricInfo.Items)
+                                        {
+                                            var ListItem = new XElement("ListItem");
+                                            ListItem.Add(new XAttribute("Name", listItem.Key));
+                                            ListItem.Add(new XAttribute("Size", listItem.Value.Size));
+                                            ListItem.Add(new XAttribute("Count", listItem.Value.Count));
+                                            listResult.Add(ListItem);
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

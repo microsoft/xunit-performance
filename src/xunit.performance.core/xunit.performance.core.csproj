@@ -66,6 +66,7 @@
     <Compile Include="Custom Metrics\MeasureExceptionsAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureFileIOReadAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureFileIOWriteAttribute.cs" />
+    <Compile Include="Custom Metrics\MeasureFilesReadAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureModuleLoadAttribute.cs" />
     <Compile Include="Custom Metrics\MeasureModuleUnloadAttribute.cs" />
     <Compile Include="IPerformanceMetricAttribute.cs" />

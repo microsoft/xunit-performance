@@ -11,7 +11,7 @@ namespace Microsoft.Xunit.Performance.Sdk
     {
         public abstract void BeginIteration(TraceEvent beginEvent);
 
-        public abstract double EndIteration(TraceEvent endEvent);
+        public abstract object EndIteration(TraceEvent endEvent);
 
         public void Dispose()
         {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
-using Microsoft.Diagnostics.Tracing.Parsers.Clr;
+using Microsoft.Diagnostics.Tracing.Parsers.Kernel;
 using Microsoft.Xunit.Performance.Sdk;
 using System.Collections.Generic;
 using Xunit.Abstractions;
@@ -62,7 +62,7 @@ namespace Microsoft.Xunit.Performance
                 _count = 0;
             }
 
-            public override double EndIteration(TraceEvent endEvent)
+            public override object EndIteration(TraceEvent endEvent)
             {
                 return _count;
             }

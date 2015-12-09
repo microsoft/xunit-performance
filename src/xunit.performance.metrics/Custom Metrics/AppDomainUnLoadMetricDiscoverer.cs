@@ -62,7 +62,7 @@ namespace Microsoft.Xunit.Performance
                 _count = 0;
             }
 
-            public override double EndIteration(TraceEvent endEvent)
+            public override object EndIteration(TraceEvent endEvent)
             {
                 return _count;
             }

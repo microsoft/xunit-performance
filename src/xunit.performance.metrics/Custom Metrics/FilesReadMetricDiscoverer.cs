@@ -1,23 +1,23 @@
 ﻿using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
-using Microsoft.Diagnostics.Tracing.Parsers.Clr;
+using Microsoft.Diagnostics.Tracing.Parsers.Kernel;
 using Microsoft.Xunit.Performance.Sdk;
 using System.Collections.Generic;
 using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class ModuleUnloadMetricDiscoverer : IPerformanceMetricDiscoverer
+    internal class FilesReadMetricDiscoverer : IPerformanceMetricDiscoverer
     {
         public IEnumerable<PerformanceMetricInfo> GetMetrics(IAttributeInfo metricAttribute)
         {
-            yield return new ModuleUnloadMetric();
+            yield return new FilesReadMetric();
         }
 
-        private class ModuleUnloadMetric : PerformanceMetric
+        private class FilesReadMetric : PerformanceMetric
         {
-            public ModuleUnloadMetric()
-                : base("ModuleUnload", "Modules Unloaded", PerformanceMetricUnits.Count)
+            public FilesReadMetric()
+                : base("FilesRead", "Files Read", PerformanceMetricUnits.List)
             {
             }
 
@@ -27,44 +27,44 @@ namespace Microsoft.Xunit.Performance
                 {
                     yield return new UserProviderInfo()
                     {
-                        ProviderGuid = ClrTraceEventParser.ProviderGuid,
+                        ProviderGuid = KernelTraceEventParser.ProviderGuid,
                         Level = TraceEventLevel.Verbose,
-                        Keywords = (ulong)ClrTraceEventParser.Keywords.Loader
+                        Keywords = (ulong)KernelTraceEventParser.Keywords.FileIO
                     };
                 }
             }
 
             public override PerformanceMetricEvaluator CreateEvaluator(PerformanceMetricEvaluationContext context)
             {
-                return new ModuleUnloadEvaluator(context);
+                return new FilesReadEvaluator(context);
             }
         }
 
-        private class ModuleUnloadEvaluator : PerformanceMetricEvaluator
+        private class FilesReadEvaluator : PerformanceMetricEvaluator
         {
             private readonly PerformanceMetricEvaluationContext _context;
-            private long _count;
+            private ListMetricInfo _files;
 
-            public ModuleUnloadEvaluator(PerformanceMetricEvaluationContext context)
+            public FilesReadEvaluator(PerformanceMetricEvaluationContext context)
             {
                 _context = context;
-                context.TraceEventSource.Clr.LoaderModuleUnload += Clr_ModuleUnload;
+                context.TraceEventSource.Kernel.FileIORead += Kernel_FileIORead;
             }
 
-            private void Clr_ModuleUnload(TraceEvent data)
+            private void Kernel_FileIORead(FileIOReadWriteTraceData data)
             {
                 if (_context.IsTestEvent(data))
-                    _count += 1;
+                    _files.addItem(data.FileName, data.IoSize);
             }
 
             public override void BeginIteration(TraceEvent beginEvent)
             {
-                _count = 0;
+                _files = new ListMetricInfo();
             }
 
             public override object EndIteration(TraceEvent endEvent)
             {
-                return _count;
+                return _files;
             }
         }
     }

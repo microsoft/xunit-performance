@@ -23,5 +23,10 @@ namespace Microsoft.Xunit.Performance.Sdk
         /// Indicates that a performance metric's value is measured in bytes.
         /// </summary>
         public const string Bytes = "bytes";
+
+        /// <summary>
+        /// Indicates that a performance metric's value is a list.
+        /// </summary>
+        public const string List = "list";
     }
 }

@@ -44,6 +44,10 @@ namespace xunit.performance.consumption
                     counterResult.Add(new XAttribute("Top", "false"));
                     counterResult.Add(new XAttribute("Iteration", counter.iteration));
                 }
+                foreach(var ListResult in test.ListResults)
+                {
+                    scenarioResult.Add(ListResult);
+                }
             }
             return mainFile;
         }
@@ -75,9 +79,22 @@ namespace xunit.performance.consumption
                 {
                     foreach (var metric in getMetrics(metrics))
                     {
-                        metric.value = iteration.Attribute(metric.name).Value;
-                        metric.iteration = iteration.Attribute("index").Value;
-                        testResult.metrics.Add(metric);
+                        if (metric.unit != "list")
+                        {
+                            metric.value = iteration.Attribute(metric.name).Value;
+                            metric.iteration = iteration.Attribute("index").Value;
+                            testResult.metrics.Add(metric);
+                        }
+                        else
+                        {
+                            foreach (var ListResult in iteration.Elements("ListResult"))
+                            {
+                                if(ListResult.Attribute("Name").Value == metric.name)
+                                {
+                                    testResult.ListResults.Add(ListResult);
+                                }
+                            }
+                        }
                     }
                 }
                 ret.Add(testResult);
@@ -138,6 +155,7 @@ namespace xunit.performance.consumption
             public string runID { get; set; }
             public string etlPath { get; set; }
             public List<Metric> metrics = new List<Metric>();
+            public List<XElement> ListResults = new List<XElement>();
         }
     }
 }

@@ -16,7 +16,7 @@ namespace FunctionalTests
         [Fact]
         public static void consumptionTest()
         {
-            FormatXML.formatXML(@"D:\PerfUnitTest\xunit-performance\src\xunit.performance.run\bin\Debug\test\telemetry 2015-12-09-00-04-57.xml");
+            FormatXML.formatXML(@"D:\PerfUnitTest\xunit-performance\src\xunit.performance.run\bin\Debug\test\2015-12-09-22-40-51.xml");
         }
 
         [Benchmark]
