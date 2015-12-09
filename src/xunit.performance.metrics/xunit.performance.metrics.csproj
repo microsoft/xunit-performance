@@ -55,6 +55,18 @@
     </Compile>
     <Compile Include="BenchmarkMetricDiscoverer.cs" />
     <Compile Include="CpuCounterInfo.cs" />
+    <Compile Include="Custom Metrics\AppDomainLoadMetricDiscoverer.cs" />
+    <Compile Include="Custom Metrics\AppDomainUnLoadMetricDiscoverer.cs" />
+    <Compile Include="Custom Metrics\AssemblyLoadMetricDiscoverer.cs" />
+    <Compile Include="Custom Metrics\AssemblyUnloadMetricDiscoverer.cs" />
+    <Compile Include="Custom Metrics\DiskIOReadMetricDiscoverer.cs" />
+    <Compile Include="Custom Metrics\DiskIOWriteMetricDiscoverer.cs" />
+    <Compile Include="Custom Metrics\ExceptionsMetricDiscoverer.cs" />
+    <None Include="Custom Metrics\Template.cs" />
+    <Compile Include="Custom Metrics\FileIOReadMetricDiscoverer.cs" />
+    <Compile Include="Custom Metrics\FileIOWriteMetricDiscoverer.cs" />
+    <Compile Include="Custom Metrics\ModuleLoadMetricDiscoverer.cs" />
+    <Compile Include="Custom Metrics\ModuleUnloadMetricDiscoverer.cs" />
     <Compile Include="GCAllocationsMetricDiscoverer.cs" />
     <Compile Include="InstructionsRetiredMetricDiscoverer.cs" />
     <Compile Include="GCCountMetricDiscoverer.cs" />

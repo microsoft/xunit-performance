@@ -10,6 +10,17 @@ using Xunit;
 
 [MeasureGCCounts]
 [MeasureGCAllocations]
+[MeasureExceptions]
+[MeasureFileIORead]
+[MeasureFileIOWrite]
+[MeasureDiskIORead]
+[MeasureDiskIOWrite]
+[MeasureAppDomainLoad]
+[MeasureAppDomainUnLoad]
+[MeasureAssemblyLoad]
+[MeasureAssemblyUnload]
+[MeasureModuleLoad]
+[MeasureModuleUnload]
 public static class StringThroughput
 {
     #region helpers

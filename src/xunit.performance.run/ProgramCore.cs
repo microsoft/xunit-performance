@@ -199,7 +199,7 @@ Arguments: {startInfo.Arguments}");
                                 iterationsElem.Add(iterationElem);
 
                                 foreach (var value in iteration)
-                                    iterationElem.Add(new XAttribute(value.Key, value.Value.ToString("R")));
+                                    iterationElem.Add(new XAttribute(value.Key, value.Value.ToString()));
                             }
                         }
                     }
