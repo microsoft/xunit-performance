@@ -58,9 +58,6 @@
       <HintPath>..\packages\xunit.extensibility.execution.2.1.0\lib\net45\xunit.execution.desktop.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="xunit.performance.core">
-      <HintPath>..\src\xunit.performance.core\bin\Debug\xunit.performance.core.dll</HintPath>
-    </Reference>
     <Reference Include="xunit.performance.execution.desktop">
       <HintPath>..\xunit.performance.execution.desktop\bin\Debug\xunit.performance.execution.desktop.dll</HintPath>
     </Reference>
@@ -75,6 +72,12 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\xunit.performance.core\xunit.performance.core.csproj">
+      <Project>{d8820889-cc47-42b6-bac1-01d16d241ece}</Project>
+      <Name>xunit.performance.core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

@@ -4,13 +4,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
-using xunit.performance.consumption;
+using Microsoft.Xunit.Performance.Consumption;
 using Microsoft.Xunit.Performance;
 
 namespace FunctionalTests
 {
     [MeasureGCCounts]
     [MeasureGCAllocations]
+    [MeasureExceptions]
+    [MeasureFileIORead]
+    [MeasureFileIOWrite]
+    [MeasureDiskIORead]
+    [MeasureDiskIOWrite]
+    [MeasureAppDomainLoad]
+    [MeasureAppDomainUnLoad]
+    [MeasureAssemblyLoad]
+    [MeasureAssemblyUnload]
+    [MeasureModuleLoad]
+    [MeasureModuleUnload]
+    [MeasureFilesRead]
     public static class ConsumptionTests
     {
         [Fact]
@@ -29,9 +41,9 @@ namespace FunctionalTests
                 {
                     for (int i = 0; i < iterations; i++)
                     {
-                        using (System.IO.StreamReader a = new System.IO.StreamReader(@"D:\PerfUnitTest\xunit-performance-master\src\xunit.performance.run\bin\Debug\test\2015-12-02-21-28-24.xml"))
+                        using (System.IO.StreamReader a = new System.IO.StreamReader(@"D:\PerfUnitTest\log2.txt"))
                         {
-
+                            a.Read();
                         }
                     }
                 }

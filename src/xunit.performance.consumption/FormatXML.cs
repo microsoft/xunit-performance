@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Xml.Linq;
 
-namespace xunit.performance.consumption
+namespace Microsoft.Xunit.Performance.Consumption
 {
 
     static class FormatXML
@@ -20,7 +16,8 @@ namespace xunit.performance.consumption
             XElement mainFile = XElement.Load(XMLPath);
             List<testResult> testResults = parseXML(mainFile);
             XElement formattedResults = writeResults(testResults);
-            formattedResults.Save(outPath);
+            FileStream outStream = new FileStream(outPath, FileMode.Create);
+            formattedResults.Save(outStream);
         }
 
         static XElement writeResults(List<testResult> testResults)

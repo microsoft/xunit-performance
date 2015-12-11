@@ -8,7 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Xunit;
 
-[MeasureGCCounts]
+/*[MeasureGCCounts]
 [MeasureGCAllocations]
 [MeasureExceptions]
 [MeasureFileIORead]
@@ -21,6 +21,7 @@ using Xunit;
 [MeasureAssemblyUnload]
 [MeasureModuleLoad]
 [MeasureModuleUnload]
+[MeasureFilesRead]*/
 public static class StringThroughput
 {
     #region helpers

@@ -137,8 +137,8 @@ namespace Microsoft.Xunit.Performance
             };
 
             startInfo.Environment["XUNIT_PERFORMANCE_RUN_ID"] = project.RunId;
-            startInfo.Environment["XUNIT_PERFORMANCE_MIN_ITERATION"] = "10";
-            startInfo.Environment["XUNIT_PERFORMANCE_MAX_ITERATION"] = "1000";
+            startInfo.Environment["XUNIT_PERFORMANCE_MIN_ITERATION"] = "2";
+            startInfo.Environment["XUNIT_PERFORMANCE_MAX_ITERATION"] = "10";
             startInfo.Environment["XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS"] = "1000";
             startInfo.Environment["COMPLUS_gcConcurrent"] = "0";
             startInfo.Environment["COMPLUS_gcServer"] = "0";
@@ -236,6 +236,7 @@ Arguments: {startInfo.Arguments}");
 
                 using (var xmlFile = File.Create(xmlPath))
                     xmlDoc.Save(xmlFile);
+                Consumption.FormatXML.formatXML(xmlPath);
             }
         }
 
