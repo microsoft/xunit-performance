@@ -52,8 +52,8 @@ namespace Microsoft.Xunit.Performance
             public ObjectsAllocatedEvaluator(PerformanceMetricEvaluationContext context)
             {
                 _context = context;
-                context.TraceEventSource.Dynamic.AddCallbackForEvent<TraceEvent>("ETWClrProfiler/ClassIDDefinition", Parser_ClassIDDefinition);
-                context.TraceEventSource.Dynamic.AddCallbackForEvent<TraceEvent>("ETWClrProfiler/ObjectAllocated", Parser_ObjectAllocated);
+                context.TraceEventSource.Dynamic.AddCallbackForProviderEvent("ETWClrProfiler","ClassIDDefinition", Parser_ClassIDDefinition);
+                context.TraceEventSource.Dynamic.AddCallbackForProviderEvent("ETWClrProfiler","ObjectAllocated", Parser_ObjectAllocated);
             }
 
             private void Parser_ClassIDDefinition(TraceEvent data)

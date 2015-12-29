@@ -8,8 +8,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Xunit;
 
-//[MeasureObjectsAllocated]
-//[MeasureDllsLoaded]
+[MeasureObjectsAllocated]
+[MeasureDllsLoaded]
 [MeasureGCCounts]
 [MeasureGCAllocations]
 [MeasureExceptions]
