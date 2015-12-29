@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Microsoft.Win32;
 
 namespace Microsoft.Xunit.Performance
 {
@@ -25,6 +26,7 @@ namespace Microsoft.Xunit.Performance
 
             public void Close()
             {
+                UninstallETWClrProfiler();
                 if (UserSession != null)
                     UserSession.Dispose();
                 if (KernelSession != null)
@@ -34,6 +36,27 @@ namespace Microsoft.Xunit.Performance
 
         private static bool s_unloadHandlerRegistered;
         private static ConcurrentDictionary<string, Sessions> s_sessions = new ConcurrentDictionary<string, Sessions>();
+        private static string s_ProcessArch;
+        private static string s_dotNetKey = @"Software\Microsoft\.NETFramework";
+
+        /// <summary>
+        /// Get the name of the architecture of the current process
+        /// </summary>
+        public static string ProcessArch
+        {
+            get
+            {
+                if (s_ProcessArch == null)
+                {
+                    s_ProcessArch = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE");
+                    // This should not be needed, but when I run PerfView under VS from an extension on an X64 machine
+                    // the environment variable is wrong.  
+                    if (s_ProcessArch == "AMD64" && System.Runtime.InteropServices.Marshal.SizeOf(typeof(IntPtr)) == 4)
+                        s_ProcessArch = "x86";
+                }
+                return s_ProcessArch;
+            }
+        }
 
         private static bool IsWin8OrGreater
         {
@@ -134,8 +157,17 @@ namespace Microsoft.Xunit.Performance
                     sessions.KernelSession.EnableKernelProvider(kernelKeywords, kernelStackKeywords);
                 }
 
+                ulong profilerKeywords = 0;
+
                 foreach (var userInfo in mergedProviderInfo.OfType<UserProviderInfo>())
+                {
                     sessions.UserSession.EnableProvider(userInfo.ProviderGuid, userInfo.Level, userInfo.Keywords);
+                    if (userInfo.ProviderGuid == ETWClrProfilerTraceEventParser.ProviderGuid)
+                        profilerKeywords |= userInfo.Keywords;
+                }
+
+                if(profilerKeywords != 0)
+                    InstallETWClrProfiler((int)profilerKeywords);
 
                 s_sessions[userSessionName] = sessions;
             }
@@ -165,6 +197,121 @@ namespace Microsoft.Xunit.Performance
                 if (File.Exists(sessions.KernelFileName))
                     File.Delete(sessions.KernelFileName);
             }
+        }
+
+        /// <summary>
+        /// Writes the contents to the temp folder.
+        /// </summary>
+        /// <param name="fileName">File name to use</param>
+        /// <param name="contents">Contents to write</param>
+        private static void CopyToTemp(string fileName, Stream contents)
+        {
+            string tempPath = Path.GetTempPath();
+            string file = Path.Combine(tempPath, fileName);
+            using (var fileStream = File.Create(file))
+            {
+                contents.CopyTo(fileStream);
+            }
+        }
+
+        private static void writeDllToTemp(bool native = false)
+        {
+            var arch = native ? Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432") : ProcessArch;
+            var resourceName = "Microsoft.Xunit.Performance.ETWClrProfiler." + arch.ToLower() + ".ETWClrProfiler.dll";
+            var fileName = "ETWClrProfiler_" + arch + ".dll";
+            var profilerDll = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
+            if(profilerDll == null)
+                throw new System.Exception($"ERROR do not have a ETWClrProfiler.dll for architecture {arch} {resourceName}");
+
+            CopyToTemp(fileName, profilerDll);
+        }
+
+        private static void InstallETWClrProfiler(int profilerKeywords)
+        {
+            // Ensuring that the .NET CLR Profiler is installed.
+
+            writeDllToTemp(false);
+            var profilerDll = Path.Combine(Path.GetTempPath(), "ETWClrProfiler_" + ProcessArch + ".dll");
+
+            // Adding HKLM\Software\Microsoft\.NETFramework\COR* registry keys
+            using (RegistryKey key = Registry.LocalMachine.CreateSubKey(s_dotNetKey))
+            {
+                var existingValue = key.GetValue("COR_PROFILER") as string;
+                if (existingValue != null && "{6652970f-1756-5d8d-0805-e9aad152aa84}" != existingValue)
+                {
+                    throw new System.Exception($"ERROR there is an existing CLR Profiler {existingValue}.  Doing nothing.");
+                }
+                key.SetValue("COR_PROFILER", "{6652970f-1756-5d8d-0805-e9aad152aa84}");
+                key.SetValue("COR_PROFILER_PATH", profilerDll);
+                key.SetValue("COR_ENABLE_PROFILING", 1);
+                key.SetValue("PerfView_Keywords", profilerKeywords);
+            }
+
+            // Set it up for X64.  
+            var nativeArch = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432");
+            if (nativeArch != null)
+            {
+                writeDllToTemp(true);
+                var profilerNativeDll = Path.Combine(Path.GetTempPath(), "ETWClrProfiler_" + nativeArch + ".dll");
+                // Detected 64 bit system, Adding 64 bit HKLM\Software\Microsoft\.NETFramework\COR* registry keys
+                using (RegistryKey hklm = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))
+                using (RegistryKey key = hklm.CreateSubKey(s_dotNetKey))
+                {
+                    var existingValue = key.GetValue("COR_PROFILER") as string;
+                    if (existingValue != null && "{6652970f-1756-5d8d-0805-e9aad152aa84}" != existingValue)
+                    {
+                        throw new System.Exception($"ERROR there is an existing CLR Profiler arch {nativeArch} {existingValue}.");
+                    }
+                    key.SetValue("COR_PROFILER", "{6652970f-1756-5d8d-0805-e9aad152aa84}");
+                    key.SetValue("COR_PROFILER_PATH", profilerNativeDll);
+                    key.SetValue("COR_ENABLE_PROFILING", 1);
+                    key.SetValue("PerfView_Keywords", profilerKeywords);
+
+                }
+            }
+
+            // Installed .NET CLR Profiler.
+        }
+
+        private static void UninstallETWClrProfiler()
+        {
+            // Ensuring .NET Allocation profiler not installed.
+
+            using (RegistryKey key = Registry.LocalMachine.CreateSubKey(s_dotNetKey))
+            {
+                string existingValue = key.GetValue("COR_PROFILER") as string;
+                if (existingValue == null)
+                    return;
+                if (existingValue != "{6652970f-1756-5d8d-0805-e9aad152aa84}")
+                {
+                    throw new System.Exception($"ERROR trying to remove EtwClrProfiler, found an existing Profiler {existingValue} doing nothing.");
+                }
+                key.DeleteValue("COR_PROFILER", false);
+                key.DeleteValue("COR_PROFILER_PATH", false);
+                key.DeleteValue("COR_ENABLE_PROFILING", false);
+                key.DeleteValue("PerfView_Keywords", false);
+
+            }
+            if (Environment.Is64BitOperatingSystem)
+            {
+                using (RegistryKey hklm = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))
+                using (RegistryKey key = hklm.CreateSubKey(s_dotNetKey))
+                {
+                    string existingValue = key.GetValue("COR_PROFILER") as string;
+                    if (existingValue == null)
+                        return;
+                    if (existingValue != "{6652970f-1756-5d8d-0805-e9aad152aa84}")
+                    {
+                        throw new System.Exception($"ERROR trying to remove EtwClrProfiler of X64, found an existing Profiler {existingValue} doing nothing.");
+                    }
+                    key.DeleteValue("COR_PROFILER", false);
+                    key.DeleteValue("COR_PROFILER_PATH", false);
+                    key.DeleteValue("COR_ENABLE_PROFILING", false);
+                    key.DeleteValue("PerfView_Keywords", false);
+                }
+            }
+
+            // Uninstalled .NET Allocation profiler.
         }
 
         private static void Main(string[] args)

@@ -69,5 +69,10 @@ namespace Microsoft.Xunit.Performance.Internal
         /// <param name="iterationNumber"></param>
         /// <returns></returns>
         protected BenchmarkIteration CreateIteration(int iterationNumber) => new BenchmarkIteration(this, iterationNumber);
+
+        /// <summary>
+        /// Gets the test name.
+        /// </summary>
+        protected internal abstract string testName { get; }
     }
 }

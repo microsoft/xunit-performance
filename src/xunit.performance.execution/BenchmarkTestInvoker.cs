@@ -85,7 +85,7 @@ namespace Microsoft.Xunit.Performance
             private bool _currentIterationMesaurementStopped;
 
             internal string IterationStopReason { get; private set; }
-
+            
             public BenchmarkIteratorImpl(string testName)
             {
                 _testName = testName;
@@ -229,6 +229,8 @@ namespace Microsoft.Xunit.Performance
                     BenchmarkEventSource.Log.BenchmarkIterationStop(BenchmarkConfiguration.RunId, _testName, iterationNumber, Success: true);
                 }
             }
+
+            protected override string testName { get { return _testName; } }
         }
     }
 }
