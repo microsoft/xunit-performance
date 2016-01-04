@@ -23,6 +23,8 @@ namespace FunctionalTests
     [MeasureModuleLoad]
     [MeasureModuleUnload]
     [MeasureFilesRead]
+    [MeasureObjectsAllocated]
+    [MeasureDllsLoaded]
     public static class ConsumptionTests
     {
         [Fact]

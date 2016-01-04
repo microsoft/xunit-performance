@@ -48,67 +48,78 @@ namespace Microsoft.Xunit.Performance
             private readonly PerformanceMetricEvaluationContext _context;
             private ListMetricInfo _objects;
             private static Dictionary<string, string> _objectModuleDict = new Dictionary<string, string>();
-            private static Dictionary<string, string> _objectNameDict = new Dictionary<string, string>();
+            private static Dictionary<string, string> _className_classIDDict = new Dictionary<string, string>();
             private static Dictionary<string, string> _moduleNameDict = new Dictionary<string, string>();
 
             public DllsLoadedEvaluator(PerformanceMetricEvaluationContext context)
             {
                 _context = context;
-                context.TraceEventSource.Dynamic.AddCallbackForProviderEvent("ETWClrProfiler", "ClassIDDefinition", Parser_ClassIDDefinition);
-                context.TraceEventSource.Dynamic.AddCallbackForProviderEvent("ETWClrProfiler","ModuleIDDefinition", Parser_ModuleIDDefinition);
-                context.TraceEventSource.Dynamic.AddCallbackForProviderEvent("ETWClrProfiler","ObjectAllocated", Parser_ObjectAllocated);
+                var etwClrProfilerTraceEventParser = new ETWClrProfilerTraceEventParser(context.TraceEventSource);
+                etwClrProfilerTraceEventParser.ClassIDDefintion += Parser_ClassIDDefinition;
+                etwClrProfilerTraceEventParser.ModuleIDDefintion += Parser_ModuleIDDefinition;
+                etwClrProfilerTraceEventParser.ObjectAllocated += Parser_ObjectAllocated;
             }
 
-            private void Parser_ModuleIDDefinition(TraceEvent data)
+            private void Parser_ModuleIDDefinition(Microsoft.Diagnostics.Tracing.Parsers.ETWClrProfiler.ModuleIDDefintionArgs data)
             {
-                if (_context.IsTestEvent(data))
-                {
-                    var moduleID = data.PayloadByName("ModuleID").ToString();
-                    var moduleName = data.PayloadByName("Path").ToString();
+                var moduleID = data.ModuleID.ToString();
+                var moduleName = data.Path;
 
-                    if (_moduleNameDict.ContainsKey(moduleID))
-                        throw new System.Exception($"Duplicate module ID found. Module ID: {moduleID} Module Name: {moduleName}");
-                    _moduleNameDict[moduleID] = moduleName;
+                if (_moduleNameDict.ContainsKey(moduleID))
+                    throw new System.Exception($"Duplicate module ID found. Module ID: {moduleID} Module Name: {moduleName}");
+                _moduleNameDict[moduleID] = moduleName;
+            }
+
+            private void Parser_ClassIDDefinition(Microsoft.Diagnostics.Tracing.Parsers.ETWClrProfiler.ClassIDDefintionArgs data)
+            {
+
+                var classID = data.ClassID.ToString();
+                var className = data.Name;
+                var moduleID = data.ModuleID.ToString();
+
+                if (moduleID != "0")
+                {
+                    if (_className_classIDDict.ContainsKey(classID) || _objectModuleDict.ContainsKey(classID))
+                        throw new System.Exception($"Duplicate class ID found. Class ID: {classID} Class Name: {className}");
+                    _className_classIDDict[className] = classID;
+                    _objectModuleDict[classID] = moduleID;
                 }
-            }
 
-            private void Parser_ClassIDDefinition(TraceEvent data)
-            {
-                if (_context.IsTestEvent(data))
+                else
                 {
-                    var classID = data.PayloadByName("ClassID").ToString();
-                    var className = data.PayloadByName("Name").ToString();
-                    var moduleID = data.PayloadByName("ModuleID").ToString();
-
-                    if (moduleID != "0x0")
+                    if (!className.EndsWith("[]"))
                     {
-                        if (_objectNameDict.ContainsKey(classID) || _objectModuleDict.ContainsKey(classID))
-                            throw new System.Exception($"Duplicate class ID found. Class ID: {classID} Class Name: {className}");
-                        _objectNameDict[classID] = className;
-                        _objectModuleDict[classID] = moduleID;
-                    }
-
-                    else
-                    {
+                        // lazy messy way to do handle commas. fix later
+                        className = className.Replace(",", "");
                         if (!className.EndsWith("[]"))
                             throw new System.Exception($"Cannot find module for class {className}.");
-                        var fixedClassName = className.Substring(0, className.Length - 2);
-                        if(!_objectModuleDict.TryGetValue(fixedClassName, out moduleID))
-                            throw new System.Exception($"Cannot find module for class {className}.");
-                        _objectModuleDict[classID] = moduleID;
                     }
+                    var fixedClassName = className;
+                    while (fixedClassName.EndsWith("[]"))
+                    {
+                        fixedClassName = fixedClassName.Substring(0, fixedClassName.Length - 2);
+                    }
+                    string fixedClassID;
+
+                    if (!_className_classIDDict.TryGetValue(fixedClassName, out fixedClassID))
+                    {
+                        throw new System.Exception($"Cannot find class ID for class {fixedClassName}");
+                    }
+
+                    if(!_objectModuleDict.TryGetValue(fixedClassID, out moduleID))
+                        throw new System.Exception($"Cannot find module for class {className}.");
+                    _objectModuleDict[classID] = moduleID;
                 }
             }
 
-            private void Parser_ObjectAllocated(TraceEvent data)
+            private void Parser_ObjectAllocated(Microsoft.Diagnostics.Tracing.Parsers.ETWClrProfiler.ObjectAllocatedArgs data)
             {
                 if (_context.IsTestEvent(data))
                 {
-                    //_objects.addItem(data.FileName, data.IoSize);
-                    var classID = data.PayloadByName("ClassID").ToString();
+                    var classID = data.ClassID.ToString();
                     var moduleID = _objectModuleDict[classID];
                     var moduleName = _moduleNameDict[moduleID];
-                    var size = (long)data.PayloadByName("Size");
+                    var size = data.Size;
                     _objects.addItem(moduleName, size);
                 }
             }

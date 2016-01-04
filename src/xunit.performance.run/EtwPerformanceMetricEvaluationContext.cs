@@ -48,8 +48,6 @@ namespace Microsoft.Xunit.Performance
             benchmarkParser.BenchmarkIterationStart += BenchmarkIterationStart;
             benchmarkParser.BenchmarkIterationStop += BenchmarkIterationStop;
 
-            var ETWClrProfilerParser = new ETWClrProfilerTraceEventParser(traceEventSource);
-
             traceEventSource.Kernel.ProcessStart += ProcessStart;
             traceEventSource.Kernel.ProcessStop += ProcessStop;
 

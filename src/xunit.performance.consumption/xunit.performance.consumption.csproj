@@ -61,6 +61,9 @@
     <Reference Include="xunit.performance.execution.desktop">
       <HintPath>..\xunit.performance.execution.desktop\bin\Debug\xunit.performance.execution.desktop.dll</HintPath>
     </Reference>
+    <Reference Include="xunit.performance.metrics">
+      <HintPath>..\xunit.performance.metrics\bin\Debug\xunit.performance.metrics.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FormatXML.cs" />
