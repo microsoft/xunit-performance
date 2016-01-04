@@ -46,7 +46,7 @@ namespace Microsoft.Xunit.Performance
         private class DllsLoadedEvaluator : PerformanceMetricEvaluator
         {
             private readonly PerformanceMetricEvaluationContext _context;
-            private ListMetricInfo _objects;
+            private static ListMetricInfo _objects = new ListMetricInfo();
             private static Dictionary<string, string> _objectModuleDict = new Dictionary<string, string>();
             private static Dictionary<string, string> _className_classIDDict = new Dictionary<string, string>();
             private static Dictionary<string, string> _moduleNameDict = new Dictionary<string, string>();
@@ -65,8 +65,8 @@ namespace Microsoft.Xunit.Performance
                 var moduleID = data.ModuleID.ToString();
                 var moduleName = data.Path;
 
-                if (_moduleNameDict.ContainsKey(moduleID))
-                    throw new System.Exception($"Duplicate module ID found. Module ID: {moduleID} Module Name: {moduleName}");
+                //if (_moduleNameDict.ContainsKey(moduleID))
+                //    throw new System.Exception($"Duplicate module ID found. Module ID: {moduleID} Module Name: {moduleName}");
                 _moduleNameDict[moduleID] = moduleName;
             }
 
@@ -79,8 +79,8 @@ namespace Microsoft.Xunit.Performance
 
                 if (moduleID != "0")
                 {
-                    if (_className_classIDDict.ContainsKey(classID) || _objectModuleDict.ContainsKey(classID))
-                        throw new System.Exception($"Duplicate class ID found. Class ID: {classID} Class Name: {className}");
+                    //if (_className_classIDDict.ContainsKey(classID) || _objectModuleDict.ContainsKey(classID))
+                    //    throw new System.Exception($"Duplicate class ID found. Class ID: {classID} Class Name: {className}");
                     _className_classIDDict[className] = classID;
                     _objectModuleDict[classID] = moduleID;
                 }
@@ -126,7 +126,7 @@ namespace Microsoft.Xunit.Performance
 
             public override void BeginIteration(TraceEvent beginEvent)
             {
-                _objects = new ListMetricInfo();
+                _objects.clear();
             }
 
             public override object EndIteration(TraceEvent endEvent)

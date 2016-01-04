@@ -46,7 +46,7 @@ namespace Microsoft.Xunit.Performance
         private class ObjectsAllocatedEvaluator : PerformanceMetricEvaluator
         {
             private readonly PerformanceMetricEvaluationContext _context;
-            private ListMetricInfo _objects;
+            private static ListMetricInfo _objects = new ListMetricInfo();
             private static Dictionary<string, string> _objectNameDict = new Dictionary<string, string>();
 
             public ObjectsAllocatedEvaluator(PerformanceMetricEvaluationContext context)
@@ -61,8 +61,8 @@ namespace Microsoft.Xunit.Performance
             {
                 var classID = data.ClassID.ToString();
                 var className = data.Name;
-                if (_objectNameDict.ContainsKey(classID))
-                    throw new System.Exception($"Duplicate class ID found. Class ID: {classID} Class Name: {className}");
+                //if (_objectNameDict.ContainsKey(classID))
+                //    throw new System.Exception($"Duplicate class ID found. Class ID: {classID} Class Name: {className}");
                 _objectNameDict[classID] = className;
             }
 
@@ -80,7 +80,7 @@ namespace Microsoft.Xunit.Performance
 
             public override void BeginIteration(TraceEvent beginEvent)
             {
-                _objects = new ListMetricInfo();
+                _objects.clear();
             }
 
             public override object EndIteration(TraceEvent endEvent)

@@ -33,6 +33,11 @@ namespace Microsoft.Xunit.Performance
             item.Count++;
         }
 
+        public void clear()
+        {
+            Items.Clear();
+        }
+
         void initializeMetrics()
         {
             Name.Name = "Name";
