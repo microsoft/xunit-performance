@@ -9,7 +9,7 @@ using Microsoft.Xunit.Performance;
 
 namespace FunctionalTests
 {
-    [MeasureGCCounts]
+    /*[MeasureGCCounts]
     [MeasureGCAllocations]
     [MeasureExceptions]
     [MeasureFileIORead]
@@ -24,13 +24,14 @@ namespace FunctionalTests
     [MeasureModuleUnload]
     [MeasureFilesRead]
     [MeasureObjectsAllocated]
-    [MeasureDllsLoaded]
+    [MeasureDllsLoaded]*/
+    [MeasureDefaultMetrics]
     public static class ConsumptionTests
     {
         [Fact]
         public static void consumptionTest()
         {
-            FormatXML.formatXML(@"D:\PerfUnitTest\xunit-performance\src\xunit.performance.run\bin\Debug\test\2015-12-09-22-40-51.xml");
+            //FormatXML.formatXML(@"D:\PerfUnitTest\xunit-performance\src\xunit.performance.run\bin\Debug\test\2015-12-09-22-40-51.xml");
         }
 
         [Benchmark]
