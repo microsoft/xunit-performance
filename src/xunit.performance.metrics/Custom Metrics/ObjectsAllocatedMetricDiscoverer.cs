@@ -46,7 +46,7 @@ namespace Microsoft.Xunit.Performance
         private class ObjectsAllocatedEvaluator : PerformanceMetricEvaluator
         {
             private readonly PerformanceMetricEvaluationContext _context;
-            private static ListMetricInfo _objects = new ListMetricInfo();
+            private static ListMetricInfo _objects;
             private static Dictionary<string, string> _objectNameDict = new Dictionary<string, string>();
 
             public ObjectsAllocatedEvaluator(PerformanceMetricEvaluationContext context)
@@ -80,6 +80,7 @@ namespace Microsoft.Xunit.Performance
 
             public override void BeginIteration(TraceEvent beginEvent)
             {
+                _objects = new ListMetricInfo();
                 _objects.clear();
             }
 

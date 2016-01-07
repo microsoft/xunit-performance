@@ -34,6 +34,7 @@ namespace FunctionalTests
         }
 
         [Benchmark]
+        [InlineData(10)]
         [InlineData(100)]
         public static void myPerfTest(int iterations)
         {
