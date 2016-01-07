@@ -30,7 +30,17 @@ namespace Microsoft.Xunit.Performance
 
         public string RunId { get; set; } = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss");
 
-        public string OutputDir { get; set; } = ".";
+        private string _outputDir;
+        public string OutputDir {
+            get
+            {
+                return _outputDir ?? System.IO.Path.Combine(".", OutputBaseFileName);
+            }
+            set
+            {
+                _outputDir = System.IO.Path.Combine(value, OutputBaseFileName);
+            }
+        }
 
         private string _outputBaseFileName;
         public string OutputBaseFileName {
