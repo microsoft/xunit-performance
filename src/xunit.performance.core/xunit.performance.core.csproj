@@ -52,11 +52,26 @@
     <Compile Include="..\common\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="AggregatedMetrics\MeasureDefaultMetricsAttribute.cs" />
     <Compile Include="Benchmark.cs" />
     <Compile Include="BenchmarkAttribute.cs" />
     <Compile Include="BenchmarkIteration.cs" />
     <Compile Include="BenchmarkIterationMeasurement.cs" />
     <Compile Include="BenchmarkIterator.cs" />
+    <Compile Include="Custom Metrics\MeasureAppDomainLoadAttribute.cs" />
+    <Compile Include="Custom Metrics\MeasureAppDomainUnLoadAttribute.cs" />
+    <Compile Include="Custom Metrics\MeasureAssemblyLoadAttribute.cs" />
+    <Compile Include="Custom Metrics\MeasureAssemblyUnloadAttribute.cs" />
+    <Compile Include="Custom Metrics\MeasureDiskIOReadAttribute.cs" />
+    <Compile Include="Custom Metrics\MeasureDiskIOWriteAttribute.cs" />
+    <Compile Include="Custom Metrics\MeasureDllsLoadedAttribute.cs" />
+    <Compile Include="Custom Metrics\MeasureExceptionsAttribute.cs" />
+    <Compile Include="Custom Metrics\MeasureFileIOReadAttribute.cs" />
+    <Compile Include="Custom Metrics\MeasureFileIOWriteAttribute.cs" />
+    <Compile Include="Custom Metrics\MeasureFilesReadAttribute.cs" />
+    <Compile Include="Custom Metrics\MeasureModuleLoadAttribute.cs" />
+    <Compile Include="Custom Metrics\MeasureModuleUnloadAttribute.cs" />
+    <Compile Include="Custom Metrics\MeasureObjectsAllocatedAttribute.cs" />
     <Compile Include="IPerformanceMetricAttribute.cs" />
     <Compile Include="IPerformanceMetricDiscoverer.cs" />
     <Compile Include="MeasureGCAllocationsAttribute.cs" />

@@ -15,7 +15,7 @@ namespace Microsoft.Xunit.Performance
     internal class EtwPerformanceMetricEvaluationContext : PerformanceMetricEvaluationContext, IDisposable, IPerformanceMetricReader
     {
         private readonly Dictionary<string, List<KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>>> _evaluators = new Dictionary<string, List<KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>>>();
-        private readonly Dictionary<string, List<Dictionary<string, double>>> _metricValues = new Dictionary<string, List<Dictionary<string, double>>>();
+        private readonly Dictionary<string, List<Dictionary<string, Object>>> _metricValues = new Dictionary<string, List<Dictionary<string, Object>>>();
         private readonly TraceEventSource _traceEventSource;
         private readonly HashSet<int> _currentProcesses = new HashSet<int>();
         private readonly string _runid;
@@ -29,7 +29,7 @@ namespace Microsoft.Xunit.Performance
             return _evaluators.GetOrDefault(testCase)?.Select(kvp => kvp.Key);
         }
 
-        public List<Dictionary<string, double>> GetValues(string testCase)
+        public List<Dictionary<string, Object>> GetValues(string testCase)
         {
             return _metricValues.GetOrDefault(testCase);
         }
@@ -93,7 +93,7 @@ namespace Microsoft.Xunit.Performance
                 while (allValues.Count < args.Iteration)
                     allValues.Add(null);
 
-                var values = new Dictionary<string, double>();
+                var values = new Dictionary<string, Object>();
                 allValues.Add(values);
 
                 foreach (var evaluator in _evaluators[_currentTestCase])

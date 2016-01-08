@@ -10,6 +10,6 @@ namespace Microsoft.Xunit.Performance.Sdk
     {
         string LogPath { get; }
         IEnumerable<PerformanceMetricInfo> GetMetrics(string testCase);
-        List<Dictionary<string, double>> GetValues(string testCase);
+        List<Dictionary<string, Object>> GetValues(string testCase);
     }
 }

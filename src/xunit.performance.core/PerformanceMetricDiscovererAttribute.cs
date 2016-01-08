@@ -9,7 +9,7 @@ namespace Microsoft.Xunit.Performance.Sdk
     /// An attribute used to decorate classes which implement <see cref="IPerformanceMetricAttribute"/>, to indicate
     /// how performance metrics should be discovered.  The discoverer type must implement <see cref="IPerformanceMetricDiscoverer"/>.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
     public class PerformanceMetricDiscovererAttribute : Attribute
     {
         //

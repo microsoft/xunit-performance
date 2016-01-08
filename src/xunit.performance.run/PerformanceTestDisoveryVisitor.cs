@@ -40,9 +40,11 @@ namespace Microsoft.Xunit.Performance
                 List<PerformanceMetricInfo> metrics = new List<PerformanceMetricInfo>();
                 foreach (var metricAttr in GetMetricAttributes(testMethod))
                 {
-                    var discovererAttr = metricAttr.GetCustomAttributes(typeof(PerformanceMetricDiscovererAttribute).AssemblyQualifiedName).First();
-                    var discoverer = GetPerformanceMetricDiscoverer(discovererAttr);
-                    metrics.AddRange(discoverer.GetMetrics(metricAttr));
+                    foreach(var discovererAttr in metricAttr.GetCustomAttributes(typeof(PerformanceMetricDiscovererAttribute).AssemblyQualifiedName))
+                    {
+                        var discoverer = GetPerformanceMetricDiscoverer(discovererAttr);
+                        metrics.AddRange(discoverer.GetMetrics(metricAttr));
+                    }
                 }
 
                 if (metrics.Count > 0)
