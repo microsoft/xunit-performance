@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+using System.Runtime.Serialization;
 
 namespace Microsoft.Xunit.Performance.Analysis
 {
@@ -35,6 +36,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             var allComparisonIds = new List<Tuple<string, string>>();
             var xmlOutputPath = (string)null;
             var htmlOutputPath = (string)null;
+            var csvOutputPath = (string)null;
 
             for (int i = 0; i < args.Length; i++)
             {
@@ -63,6 +65,12 @@ namespace Microsoft.Xunit.Performance.Analysis
                             if (++i >= args.Length)
                                 return Usage();
                             htmlOutputPath = args[i];
+                            break;
+
+                        case "csv":
+                            if (++i >= args.Length)
+                                return Usage();
+                            csvOutputPath = args[i];
                             break;
 
                         default:
@@ -107,6 +115,9 @@ namespace Microsoft.Xunit.Performance.Analysis
 
             if (htmlOutputPath != null)
                 WriteTestResultsHtml(testResults, comparisonResults, htmlOutputPath);
+
+            if (csvOutputPath != null)
+                WriteTestResultsCSV(testResults, csvOutputPath);
 
             return 0;
         }
@@ -273,6 +284,23 @@ namespace Microsoft.Xunit.Performance.Analysis
             }
         }
 
+        private static void WriteTestResultsCSV(Dictionary<string, Dictionary<string, TestResult>> testResults, string csvOutputPath)
+        {
+            using (var writer = new StreamWriter(csvOutputPath))
+            {
+                foreach (var run in testResults)
+                {
+                    foreach (var result in run.Value.Values)
+                    {
+                        foreach (var iteration in result.Iterations)
+                        {
+                            writer.WriteLine(String.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\"", 
+                                iteration.RunId, iteration.RunId, iteration.TestName, iteration.MetricValues[DurationMetricName].ToString()));
+                        }
+                    }
+                }
+            }
+        }
 
         private static IEnumerable<string> ExpandFilePath(string path)
         {
