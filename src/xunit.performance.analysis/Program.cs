@@ -380,6 +380,11 @@ namespace Microsoft.Xunit.Performance.Analysis
                 {
                     var index = int.Parse(iteration.Attribute("index").Value);
 
+                    if (index == 0)
+                    {
+                        continue;
+                    }
+
                     var result = new TestIterationResult();
                     result.TestName = testName;
                     result.TestIteration = index;
