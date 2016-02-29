@@ -17,7 +17,7 @@ namespace Microsoft.Xunit.Performance.Analysis
     internal class Program
     {
         private const double ErrorConfidence = 0.95; // TODO: make configurable
-
+ 
         /// <summary>
         /// The name of the Duration metric, as provided by the XML.
         /// </summary>
@@ -284,6 +284,20 @@ namespace Microsoft.Xunit.Performance.Analysis
             }
         }
 
+        private static string EscapeCsvString(string str)
+        {
+            // Escape the csv string
+            if(str.Contains("\""))
+            {
+                str = "\"" + str.Replace("\"", "\"\"") + "\"";
+            }
+            if (str.Contains(","))
+            {
+                str = string.Format("\"{0}\"", str);
+            }
+            return str;
+        }
+
         private static void WriteTestResultsCSV(Dictionary<string, Dictionary<string, TestResult>> testResults, string csvOutputPath)
         {
             using (var writer = new StreamWriter(csvOutputPath))
@@ -295,7 +309,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                         foreach (var iteration in result.Iterations)
                         {
                             writer.WriteLine(String.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\"", 
-                                iteration.RunId, iteration.RunId, iteration.TestName, iteration.MetricValues[DurationMetricName].ToString()));
+                                EscapeCsvString(iteration.RunId), EscapeCsvString(iteration.RunId), EscapeCsvString(iteration.TestName), iteration.MetricValues[DurationMetricName].ToString()));
                         }
                     }
                 }
