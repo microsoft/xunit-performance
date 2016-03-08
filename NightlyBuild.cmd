@@ -19,13 +19,17 @@ bump the build number on BuildSemanticVersion below.
 :main
 setlocal
 
-set BuildAssemblyVersion=1.0.0.27
-set BuildSemanticVersion=1.0.0-alpha-build0027
+set BuildAssemblyVersion=1.0.0.30
+set BuildSemanticVersion=1.0.0-alpha-build0030
+set OutputDirectory=%~dp0LocalPackages
+set DotNet=%~dp0\tools\cli\bin\dotnet
 
 echo Building version %BuildSemanticVersion% NuGet packages.
 echo WARNING: Some source files will be modified during this build.
 echo WARNING: Please be careful not to check in those modifications.
 
 msbuild.exe /m /nologo /t:Nightly /v:m /fl xunit.performance.msbuild
+
+BuildCliComponents.cmd
 
 goto :eof
