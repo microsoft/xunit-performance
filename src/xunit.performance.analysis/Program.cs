@@ -286,14 +286,16 @@ namespace Microsoft.Xunit.Performance.Analysis
 
         private static string EscapeCsvString(string str)
         {
+            str.Trim('\"');
             // Escape the csv string
-            if(str.Contains("\""))
+            if (str.Contains("\""))
             {
-                str = "\"" + str.Replace("\"", "\"\"") + "\"";
+                str = str.Replace("\"", "\"\"");
             }
+            
             if (str.Contains(","))
             {
-                str = string.Format("\"{0}\"", str);
+                str = "\"\"" + str + "\"\"";
             }
             return str;
         }
