@@ -17,7 +17,7 @@
   <ItemGroup>
     <NuspecFiles Include="src\*.nuspec" />
     <ProjectJsonFiles Include="src\*\project.json" />
-    <ProjectJsonFiles Include="dnx\*\*\project.json" />
+    <ProjectJsonFiles Include="src\*\*\project.json" />
   </ItemGroup>
   <ItemGroup Condition=" '$(PackageSources)' == '' ">
     <PackageSource Include="https://nuget.org/api/v2/" />
