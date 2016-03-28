@@ -14,11 +14,28 @@ tools directory prior to build.
 setlocal
 
 set OutputDirectory=%~dp0LocalPackages
-set DotNet=%~dp0\tools\cli\bin\dotnet
+set DotNet=%~dp0\tools\bin\dotnet.exe
 
+if exist "%DotNet%" goto :build
 echo Installing Dotnet CLI
-powershell -Command "& {%~dp0Install-CLI.ps1 -ToolsDir %~dp0tools}"
 
+set DotNet_Path=%~dp0tools\
+set Init_Tools_Log=%DotNet_Path%\install.log
+
+if NOT exist "%DotNet_Path%" mkdir "%DotNet_Path%"
+set /p DotNet_Version=< %~dp0DotnetCLIVersion.txt
+set DotNet_Zip_Name=dotnet-win-x64.%DotNet_Version%.zip
+set DotNet_Remote_Path=https://dotnetcli.blob.core.windows.net/dotnet/beta/Binaries/%DotNet_Version%/%DotNet_Zip_Name%
+set DotNet_Local_Path=%DotNet_Path%%DotNet_Zip_Name%
+echo Installing '%DotNet_Remote_Path%' to '%DotNet_Local_Path%' >> %Init_Tools_Log%
+powershell -NoProfile -ExecutionPolicy unrestricted -Command "(New-Object Net.WebClient).DownloadFile('%DotNet_Remote_Path%', '%DotNet_Local_Path%'); Add-Type -Assembly 'System.IO.Compression.FileSystem' -ErrorVariable AddTypeErrors; if ($AddTypeErrors.Count -eq 0) { [System.IO.Compression.ZipFile]::ExtractToDirectory('%DotNet_Local_Path%', '%DotNet_Path%') } else { (New-Object -com shell.application).namespace('%DotNet_Path%').CopyHere((new-object -com shell.application).namespace('%DotNet_Local_Path%').Items(),16) }" >> %Init_Tools_Log%
+
+if NOT exist "%DotNet_Local_Path%" (
+  echo ERROR: Could not install dotnet cli correctly. See '%Init_Tools_Log%' for more details.
+  goto :EOF
+)
+
+:build
 echo Building CLI-based components
 pushd %~dp0src\cli\Microsoft.DotNet.xunit.performance.runner.cli
 call %DotNet% restore
