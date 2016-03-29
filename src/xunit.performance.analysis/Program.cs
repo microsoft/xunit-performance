@@ -37,6 +37,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             var xmlOutputPath = (string)null;
             var htmlOutputPath = (string)null;
             var csvOutputPath = (string)null;
+            var statsCsvOutputPath = (string)null;
 
             for (int i = 0; i < args.Length; i++)
             {
@@ -71,6 +72,11 @@ namespace Microsoft.Xunit.Performance.Analysis
                             if (++i >= args.Length)
                                 return Usage();
                             csvOutputPath = args[i];
+                            break;
+                        case "stats":
+                            if (++i >= args.Length)
+                                return Usage();
+                            statsCsvOutputPath = args[i];
                             break;
 
                         default:
@@ -118,6 +124,9 @@ namespace Microsoft.Xunit.Performance.Analysis
 
             if (csvOutputPath != null)
                 WriteTestResultsCSV(testResults, csvOutputPath);
+
+            if (statsCsvOutputPath != null)
+                WriteStatisticsCSV(testResults, statsCsvOutputPath);
 
             return 0;
         }
@@ -318,6 +327,44 @@ namespace Microsoft.Xunit.Performance.Analysis
             }
         }
 
+        private static void WriteStatisticsCSV(Dictionary<string, Dictionary<string, TestResult>> testResults, string analyzeOutputPath)
+        {
+            using (var writer = new StreamWriter(analyzeOutputPath))
+            {
+                writer.WriteLine("Test, Iterations, Duration Min, Duration Max, Duration Average, Duration Stdev, Metrics");
+                foreach (var run in testResults)
+                {
+                    foreach (var result in run.Value.Values)
+                    {
+                        RunningStatistics durationStats = result.Stats[DurationMetricName];
+                        writer.WriteLine(
+                            "\"{0}\",\"{1}\",\"{2}\",\"{3}\",\"{4}\",\"{5}\",\"{6}\"",
+                            EscapeCsvString(result.TestName),
+                            durationStats.Count,
+                            durationStats.Minimum,
+                            durationStats.Maximum,
+                            durationStats.Mean,
+                            durationStats.StandardDeviation,
+                            EscapeCsvString(GetMetricsString(result.Stats.Keys))
+                            );
+                    }
+                }
+            }
+        }
+
+        private static string GetMetricsString(Dictionary<string, RunningStatistics>.KeyCollection metrics)
+        {
+            StringBuilder builder = new StringBuilder();
+            foreach (string metric in metrics)
+            {
+                builder.AppendFormat("{0};", metric);
+            }
+
+            return builder.ToString();
+        }
+
+
+
         private static IEnumerable<string> ExpandFilePath(string path)
         {
             if (File.Exists(path))
@@ -326,7 +373,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             }
             else if (Directory.Exists(path))
             {
-                foreach (var file in Directory.EnumerateFiles(path, "*.xml"))
+                foreach (var file in Directory.EnumerateFiles(path, "*.xml", SearchOption.AllDirectories))
                     yield return file;
             }
         }
