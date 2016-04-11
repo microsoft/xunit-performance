@@ -15,7 +15,8 @@
     "define": [ "LINUX_BUILD" ]
   },
   "compileFiles": [
-    "../../xunit.performance.analysis/Program.cs"
+    "../../xunit.performance.analysis/Program.cs",
+    "../../xunit.performance.analysis/TestStatistics.cs"
   ],
   "dependencies": {
       "Microsoft.NETCore.DotNetHostPolicy":"1.0.1-rc2-002357-00",
