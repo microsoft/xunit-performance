@@ -206,7 +206,6 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
         public string RunId { get { return GetUnicodeStringAt(0); } }
         public string BenchmarkName { get { return GetUnicodeStringAt(SkipUnicodeString(0)); } }
         public int Iteration { get { return GetInt32At(SkipUnicodeString(SkipUnicodeString(0))); } }
-        public bool Success { get { return GetInt32At(SkipUnicodeString(SkipUnicodeString(0)) + 4) != 0; } }
 
         #region Private
         internal BenchmarkIterationStopArgs(Action<BenchmarkIterationStopArgs> target, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName)
@@ -234,7 +233,6 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
             XmlAttrib(sb, "RunId", RunId);
             XmlAttrib(sb, "BenchmarkName", BenchmarkName);
             XmlAttrib(sb, "Iteration", Iteration);
-            XmlAttrib(sb, "Success", Success);
             sb.Append("/>");
             return sb;
         }
@@ -244,7 +242,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
             get
             {
                 if (payloadNames == null)
-                    payloadNames = new string[] { "RunId", "BenchmarkName", "Iteration", "Success" };
+                    payloadNames = new string[] { "RunId", "BenchmarkName", "Iteration" };
                 return payloadNames;
             }
         }
@@ -259,8 +257,6 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
                     return BenchmarkName;
                 case 2:
                     return Iteration;
-                case 3:
-                    return Success;
                 default:
                     Debug.Assert(false, "Bad field index");
                     return null;

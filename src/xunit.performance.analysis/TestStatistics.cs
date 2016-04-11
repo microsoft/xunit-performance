@@ -59,7 +59,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             int stopIndex = values.Length - 1;
             
             // Find the new start-index.
-            for(int i=0; i<values.Length; i++)
+            for(int i = 0; i < values.Length; i++)
             {
                 if(values[i] > firstPercentileVal)
                 {
@@ -69,7 +69,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             }
 
             // Find the new end-index.
-            for(int i=values.Length-1; i>=0; i--)
+            for(int i = values.Length-1; i >= 0; i--)
             {
                 if(values[i] < ninetyninthPercentileVal)
                 {
@@ -82,11 +82,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             // Add 1 because we want to include stopIndex in the new data set.
             int newArrayLength = stopIndex - startIndex + 1;
             double[] newValues = new double[newArrayLength];
-            int newArrayIndex = 0;
-            for(int i=startIndex; i<=stopIndex; i++)
-            {
-                newValues[newArrayIndex++] = values[i];
-            }
+            Array.Copy(values, startIndex, newValues, 0, newArrayLength);
 
             // Swap in the updated set of values.
             _values = new List<double>(newValues);
@@ -105,7 +101,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             }
 
             // Calculate the array slot where the nth percentile lives.
-            int n = (percentage / 100) * (values.Length-1);
+            int n = (int)(((double)percentage / 100) * (values.Length-1));
 
             return values[n];
         }

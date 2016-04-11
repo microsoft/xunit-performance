@@ -52,6 +52,11 @@ namespace Microsoft.Xunit.Performance.Internal
         protected internal abstract IEnumerable<BenchmarkIteration> Iterations { get; }
 
         /// <summary>
+        /// Gets the inner iteration count for the current benchmark
+        /// </summary>
+        protected internal abstract long InnerIterationCount { get; }
+
+        /// <summary>
         /// Starts measurement for the given iteration, if it is the current iteration.
         /// </summary>
         /// <param name="iterationNumber"></param>

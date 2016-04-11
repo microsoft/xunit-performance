@@ -279,7 +279,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                 {
                     foreach (var result in run.Value.Values)
                     {
-                        RunningStatistics durationStats = result.Stats[DurationMetricName];
+                        RunningStatistics durationStats = result.Stats[DurationMetricName].RunningStatistics;
                         writer.WriteLine(
                             "\"{0}\",\"{1}\",\"{2}\",\"{3}\",\"{4}\",\"{5}\",\"{6}\"",
                             EscapeCsvString(result.TestName),
@@ -367,7 +367,7 @@ namespace Microsoft.Xunit.Performance.Analysis
         }
 
 
-        private static string GetMetricsString(Dictionary<string, RunningStatistics>.KeyCollection metrics)
+        private static string GetMetricsString(Dictionary<string, TestStatistics>.KeyCollection metrics)
         {
             StringBuilder builder = new StringBuilder();
             foreach (string metric in metrics)

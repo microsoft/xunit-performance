@@ -145,32 +145,29 @@ namespace Microsoft.Xunit.Performance
         }
 
         [Event(4, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkIterationStop)]
-        public unsafe void BenchmarkIterationStop(string RunId, string BenchmarkName, int Iteration, bool Success)
+        public unsafe void BenchmarkIterationStop(string RunId, string BenchmarkName, int Iteration)
         {
             if (IsEnabled())
             {
                 if (RunId == null)
                     RunId = "";
 
-                int successInt = Success ? 1 : 0;
                 fixed (char* pRunId = RunId)
                 fixed (char* pBenchmarkName = BenchmarkName)
                 {
-                    EventData* data = stackalloc EventData[4];
+                    EventData* data = stackalloc EventData[3];
                     data[0].Size = (RunId.Length + 1) * sizeof(char);
                     data[0].DataPointer = (IntPtr)pRunId;
                     data[1].Size = (BenchmarkName.Length + 1) * 2;
                     data[1].DataPointer = (IntPtr)pBenchmarkName;
                     data[2].Size = sizeof(int);
                     data[2].DataPointer = (IntPtr)(&Iteration);
-                    data[3].Size = sizeof(int);
-                    data[3].DataPointer = (IntPtr)(&successInt);
-                    WriteEventCore(4, 4, data);
+                    WriteEventCore(4, 3, data);
                 }
             }
 
             if (_csvWriter != null)
-                WriteCSV(BenchmarkName, iteration: Iteration, success: Success);
+                WriteCSV(BenchmarkName, iteration: Iteration);
         }
     }
 }
