@@ -1,23 +1,27 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#if !LINUX_BUILD
 using MathNet.Numerics.Statistics;
 using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
+#endif
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+#if !LINUX_BUILD
 using System.Runtime.Serialization;
+#endif
 
 namespace Microsoft.Xunit.Performance.Analysis
 {
     internal class Program
     {
         private const double ErrorConfidence = 0.95; // TODO: make configurable
- 
+
         /// <summary>
         /// The name of the Duration metric, as provided by the XML.
         /// </summary>
@@ -41,7 +45,7 @@ namespace Microsoft.Xunit.Performance.Analysis
 
             for (int i = 0; i < args.Length; i++)
             {
-                if (args[i].StartsWith("-") || args[i].StartsWith("/"))
+                if (args[i].StartsWith("-"))
                 {
                     string switchName = args[i].Substring(1).ToLowerInvariant();
                     switch (switchName)
@@ -113,7 +117,7 @@ namespace Microsoft.Xunit.Performance.Analysis
             var allIterations = ParseXmlFiles(xmlPaths);
 
             var testResults = SummarizeTestResults(allIterations);
-
+#if !LINUX_BUILD
             var comparisonResults = DoComparisons(allComparisonIds, testResults);
 
             if (xmlOutputPath != null)
@@ -122,15 +126,16 @@ namespace Microsoft.Xunit.Performance.Analysis
             if (htmlOutputPath != null)
                 WriteTestResultsHtml(testResults, comparisonResults, htmlOutputPath);
 
-            if (csvOutputPath != null)
-                WriteTestResultsCSV(testResults, csvOutputPath);
-
             if (statsCsvOutputPath != null)
                 WriteStatisticsCSV(testResults, statsCsvOutputPath);
+#endif
+            if (csvOutputPath != null)
+                WriteTestResultsCSV(testResults, csvOutputPath);
 
             return 0;
         }
 
+#if !LINUX_BUILD
         private static List<TestResultComparison> DoComparisons(List<Tuple<string, string>> allComparisonIds, Dictionary<string, Dictionary<string, TestResult>> testResults)
         {
             var comparisonResults = new List<TestResultComparison>();
@@ -170,38 +175,6 @@ namespace Microsoft.Xunit.Performance.Analysis
             }
 
             return comparisonResults;
-        }
-
-        private static Dictionary<string, Dictionary<string, TestResult>> SummarizeTestResults(IEnumerable<TestIterationResult> allIterations)
-        {
-            var testResults = new Dictionary<string, Dictionary<string, TestResult>>();
-
-            foreach (var iteration in allIterations)
-            {
-                Dictionary<string, TestResult> runResults;
-                if (!testResults.TryGetValue(iteration.RunId, out runResults))
-                    testResults[iteration.RunId] = runResults = new Dictionary<string, TestResult>();
-
-                TestResult result;
-                if (!runResults.TryGetValue(iteration.TestName, out result))
-                {
-                    runResults[iteration.TestName] = result = new TestResult();
-                    result.RunId = iteration.RunId;
-                    result.TestName = iteration.TestName;
-                }
-
-                foreach (var metric in iteration.MetricValues)
-                {
-                    RunningStatistics stats;
-                    if (!result.Stats.TryGetValue(metric.Key, out stats))
-                        result.Stats[metric.Key] = stats = new RunningStatistics();
-                    stats.Push(metric.Value);
-                }
-
-                result.Iterations.Add(iteration);
-            }
-
-            return testResults;
         }
 
         private static XDocument WriteTestResultsXml(Dictionary<string, Dictionary<string, TestResult>> testResults, List<TestResultComparison> comparisonResults)
@@ -293,39 +266,6 @@ namespace Microsoft.Xunit.Performance.Analysis
             }
         }
 
-        private static string EscapeCsvString(string str)
-        {
-            str.Trim('\"');
-            // Escape the csv string
-            if (str.Contains("\""))
-            {
-                str = str.Replace("\"", "\"\"");
-            }
-            
-            if (str.Contains(","))
-            {
-                str = "\"\"" + str + "\"\"";
-            }
-            return str;
-        }
-
-        private static void WriteTestResultsCSV(Dictionary<string, Dictionary<string, TestResult>> testResults, string csvOutputPath)
-        {
-            using (var writer = new StreamWriter(csvOutputPath))
-            {
-                foreach (var run in testResults)
-                {
-                    foreach (var result in run.Value.Values)
-                    {
-                        foreach (var iteration in result.Iterations)
-                        {
-                            writer.WriteLine(String.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\"", 
-                                EscapeCsvString(iteration.RunId), EscapeCsvString(iteration.RunId), EscapeCsvString(iteration.TestName), iteration.MetricValues[DurationMetricName].ToString()));
-                        }
-                    }
-                }
-            }
-        }
 
         private static void WriteStatisticsCSV(Dictionary<string, Dictionary<string, TestResult>> testResults, string analyzeOutputPath)
         {
@@ -351,6 +291,78 @@ namespace Microsoft.Xunit.Performance.Analysis
                 }
             }
         }
+
+#endif
+
+
+        private static Dictionary<string, Dictionary<string, TestResult>> SummarizeTestResults(IEnumerable<TestIterationResult> allIterations)
+        {
+            var testResults = new Dictionary<string, Dictionary<string, TestResult>>();
+
+            foreach (var iteration in allIterations)
+            {
+                Dictionary<string, TestResult> runResults;
+                if (!testResults.TryGetValue(iteration.RunId, out runResults))
+                    testResults[iteration.RunId] = runResults = new Dictionary<string, TestResult>();
+
+                TestResult result;
+                if (!runResults.TryGetValue(iteration.TestName, out result))
+                {
+                    runResults[iteration.TestName] = result = new TestResult();
+                    result.RunId = iteration.RunId;
+                    result.TestName = iteration.TestName;
+                }
+
+                foreach (var metric in iteration.MetricValues)
+                {
+                    RunningStatistics stats;
+                    if (!result.Stats.TryGetValue(metric.Key, out stats))
+                        result.Stats[metric.Key] = stats = new RunningStatistics();
+                    stats.Push(metric.Value);
+                }
+
+                result.Iterations.Add(iteration);
+            }
+
+            return testResults;
+        }
+
+
+        private static string EscapeCsvString(string str)
+        {
+            str.Trim('\"');
+            // Escape the csv string
+            if (str.Contains("\""))
+            {
+                str = str.Replace("\"", "\"\"");
+            }
+
+            if (str.Contains(","))
+            {
+                str = "\"\"" + str + "\"\"";
+            }
+            return str;
+        }
+
+
+        private static void WriteTestResultsCSV(Dictionary<string, Dictionary<string, TestResult>> testResults, string csvOutputPath)
+        {
+            using (var writer = new StreamWriter(new FileStream(csvOutputPath, FileMode.OpenOrCreate)))
+            {
+                foreach (var run in testResults)
+                {
+                    foreach (var result in run.Value.Values)
+                    {
+                        foreach (var iteration in result.Iterations)
+                        {
+                            writer.WriteLine(String.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\"",
+                                EscapeCsvString(iteration.RunId), EscapeCsvString(iteration.RunId), EscapeCsvString(iteration.TestName), iteration.MetricValues[DurationMetricName].ToString()));
+                        }
+                    }
+                }
+            }
+        }
+
 
         private static string GetMetricsString(Dictionary<string, RunningStatistics>.KeyCollection metrics)
         {
@@ -378,6 +390,19 @@ namespace Microsoft.Xunit.Performance.Analysis
             }
         }
 
+#if LINUX_BUILD
+        public class RunningStatistics
+        {
+            public RunningStatistics() {
+                values = new List<Double>();
+            }
+            public List<Double> values;
+            public void Push(Double value)
+            {
+                values.Add(value);
+            }
+        }
+#endif
         private class TestResult
         {
             public string TestName;

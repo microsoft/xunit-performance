@@ -2,23 +2,21 @@
   "version": "99.99.99-dev",
   "title": "xUnit Performance Runner for .NET Core",
   "description": "Contains the tools necessary for running xunit Performance tests on .NET Core (Windows, Linux, OSX, etc.)",
-  "authors": [ "ericeil@microsoft.com", "pharring@microsoft.com" ],
+  "authors": [ "brianrob@microsoft.com" ],
   "owners": [ "Microsoft" ],
   "language": "en-US",
   "tags": [ "" ],
-  "projectUrl": "https://github.com/Microsoft/xunit-performance",
+  "": "https://github.com/Microsoft/xunit-performance",
   "licenseUrl": "https://raw.githubusercontent.com/Microsoft/xunit-performance/master/LICENSE",
   "iconUrl": "http://go.microsoft.com/fwlink/?LinkID=288859",
   "requireLicenseAcceptance": false,
-    "compilationOptions": {
-        "emitEntryPoint": true
-    },
-
-  "dependencies": {
-    "Microsoft.DotNet.xunit.performance.run.core": "99.99.99-dev",
-    "xunit.extensibility.execution": "2.1.0"
+  "compilationOptions": {
+    "emitEntryPoint": true,
+    "define": [ "LINUX_BUILD" ]
   },
-
+  "compileFiles": [
+    "../../xunit.performance.analysis/Program.cs"
+  ],
   "frameworks": {
     "netcoreapp1.0": {
       "imports": [
@@ -34,4 +32,3 @@
     }
   }
 }
-
