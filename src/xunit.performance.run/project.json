@@ -1,0 +1,14 @@
+﻿{
+  "dependencies": {
+    "Microsoft.Diagnostics.Tracing.TraceEvent": "1.0.39",
+    "xunit.extensibility.core": "2.1.0",
+    "xunit.runner.console": "2.1.0",
+    "xunit.runner.utility": "2.1.0"
+  },
+  "frameworks": {
+    "net46": { }
+  },
+  "runtimes": {
+    "win": { }
+  }
+}

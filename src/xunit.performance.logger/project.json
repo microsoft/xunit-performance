@@ -1,0 +1,11 @@
+﻿{
+  "dependencies": {
+    "Microsoft.Diagnostics.Tracing.TraceEvent": "1.0.39"
+  },
+  "frameworks": {
+    "net46": { }
+  },
+  "runtimes": {
+    "win": { }
+  }
+}
