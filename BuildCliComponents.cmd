@@ -27,7 +27,7 @@ if NOT exist "%DotNet_Path%" mkdir "%DotNet_Path%"
 set DotNet_Installer_Url=https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.ps1
 powershell -NoProfile -ExecutionPolicy unrestricted -Command "Invoke-WebRequest -Uri '%DotNet_Installer_Url%' -OutFile '%DotNet_Path%\dotnet-install.ps1'"
 echo Executing dotnet installer script %DotNet_Path%\dotnet-install.ps1
-powershell -NoProfile -ExecutionPolicy unrestricted -Command "%DotNet_Path%\dotnet-install.ps1 -InstallDir %DotNet_Path%"
+powershell -NoProfile -ExecutionPolicy unrestricted -Command "%DotNet_Path%\dotnet-install.ps1 -InstallDir %DotNet_Path%" -Version '1.0.0-rc2-002543'
 
 if NOT exist "%DotNet%" (
   echo ERROR: Could not install dotnet cli correctly. See '%Init_Tools_Log%' for more details.
