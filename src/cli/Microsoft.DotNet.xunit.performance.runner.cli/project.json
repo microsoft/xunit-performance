@@ -10,28 +10,26 @@
   "licenseUrl": "https://raw.githubusercontent.com/Microsoft/xunit-performance/master/LICENSE",
   "iconUrl": "http://go.microsoft.com/fwlink/?LinkID=288859",
   "requireLicenseAcceptance": false,
-    "compilationOptions": {
-        "emitEntryPoint": true
-    },
-
+  "compilationOptions": {
+    "emitEntryPoint": true
+  },
   "dependencies": {
     "Microsoft.DotNet.xunit.performance.run.core": "99.99.99-dev",
+    "Microsoft.NETCore.DotNetHostPolicy":"1.0.1-rc2-002357-00",
+    "NETStandard.Library": "1.5.0-rc2-23931",
     "xunit.extensibility.execution": "2.1.0"
   },
-
+  "__comment": "netcoreapp1.0 import and the runtime below is a hack, we need CLI to allow us to build issue reference: https://github.com/dotnet/cli/issues/2913",
   "frameworks": {
     "netstandard1.3": {
       "imports": [
         "dnxcore50",
-        "portable-net45+win8"
-      ],
-      "dependencies": {
-        "Microsoft.NETCore.App": {
-          "type": "platform",
-          "version": "1.0.0-rc2-3002520"
-        }
-      }
+        "portable-net45+win8",
+        "netcoreapp1.0"
+      ]
     }
+  },
+  "runtimes": {
+    "win7-x64": {}
   }
 }
-
