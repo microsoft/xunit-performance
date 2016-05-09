@@ -2,8 +2,8 @@
 
 Build | Status
 ------------ | -------------
-Release | [![Build Status](http://dotnet-ci.cloudapp.net/job/Microsoft_xunit-performance/job/release/badge/icon)](http://dotnet-ci.cloudapp.net/job/Microsoft_xunit-performance/job/release/)
-Debug | [![Build Status](http://dotnet-ci.cloudapp.net/job/Microsoft_xunit-performance/job/debug/badge/icon)](http://dotnet-ci.cloudapp.net/job/Microsoft_xunit-performance/job/debug/)
+Release | [![Build Status](http://dotnet-ci.cloudapp.net/job/Microsoft_xunit-performance/job/master/job/release/badge/icon)](http://dotnet-ci.cloudapp.net/job/Microsoft_xunit-performance/job/master/job/release/)
+Debug | [![Build Status](http://dotnet-ci.cloudapp.net/job/Microsoft_xunit-performance/job/master/job/debug/badge/icon)](http://dotnet-ci.cloudapp.net/job/Microsoft_xunit-performance/job/master/job/debug/)
 
 Provides extensions over xUnit to author performance tests.
 
