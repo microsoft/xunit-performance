@@ -72,8 +72,8 @@ def projectFolder = Utilities.getFolderName(project) + '/' + Utilities.getFolder
 					}
 
 					shell("unpacker LocalPackages.pack .")
-                    shell("ls -lh")
-					shell("ls -lh LocalPackages")
+					shell("chmod +x BuildCliComponents.sh")
+					shell("./BuildCliComponents.sh ${lowerConfigurationName}")
                 }
 
 				parameters {
