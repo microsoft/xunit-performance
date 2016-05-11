@@ -19,14 +19,14 @@ declare dotnetPath=${currentDir}/tools/bin/ubuntu
 declare dotnetCmd=${dotnetPath}/dotnet
 declare dotnetInstallerUrl=https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.sh
 declare dotnetInstallerScript=${dotnetPath}/dotnet-install.sh
-declare dotnetVersion=`cat DotNetCLIVersion.txt`
+declare dotnetVersion=`cat DotNetCliVersion.txt`
 
 if ! [ -f $dotnetCmd ]
 then
 	echo Installing Dotnet CLI
 	if ! [ -f $dotnetPath ]
 	then
-		mkdir $dotnetPath
+		mkdir -p $dotnetPath
 	fi
 	
 	curl $dotnetInstallerUrl -o $dotnetInstallerScript
