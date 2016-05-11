@@ -32,7 +32,7 @@ def projectFolder = Utilities.getFolderName(project) + '/' + Utilities.getFolder
             Utilities.addArchival(newWinJob, 'msbuild.log', '', true, false)
 
 			// Setup a Linux job to build the Linux components.
-			def fullWinBuildJobName = projectFolder + '/' + winBuildJobName
+			def fullWinBuildJobName = projectFolder + '/' + newWinJob.name
             def linuxBuildJobName = "${os.toLowerCase()}_${lowerConfigurationName}";
             def newLinuxJob = job(Utilities.getFullJobName(project, linuxBuildJobName, isPR)) {
                 steps {
