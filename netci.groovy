@@ -6,35 +6,7 @@ def project = GithubProject
 def branch = GithubBranchName
 def projectFolder = Utilities.getFolderName(project) + '/' + Utilities.getFolderName(branch)
 
-// Windows build jobs
-
-[true, false].each { isPR ->
-    ['Debug','Release'].each { configuration ->
-        def os = 'Windows_NT';
-        def lowerConfigurationName = configuration.toLowerCase();
-        def newBuildJobName = "${os.toLowerCase()}_${lowerConfigurationName}";
-        def newJob = job(Utilities.getFullJobName(project, newBuildJobName, isPR)) {
-            steps {
-                batchFile("call \"C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\Common7\\Tools\\VsDevCmd.bat\" && CIBuild /${lowerConfigurationName}")
-                batchFile("C:\\Packer\\Packer.exe .\\LocalPackages.pack . LocalPackages")
-            }
-        }
-        
-        Utilities.setMachineAffinity(newJob, "${os}", 'latest-or-auto')
-        Utilities.standardJobSetup(newJob, project, isPR, "*/${branch}")
-        Utilities.addArchival(newJob, 'LocalPackages.pack')
-        Utilities.addArchival(newJob, 'msbuild.log', '', true, false)
-        if (isPR) {
-            Utilities.addGithubPRTriggerForBranch(newJob, branch, "${os} ${configuration} Build")
-        }
-        else {
-            Utilities.addGithubPushTrigger(newJob)
-        }
-    }
-}
-
-
-// Linux build jobs
+// Windows + Linux build jobs
 
 [true, false].each { isPR ->
     ['Ubuntu'].each { os ->
@@ -98,7 +70,7 @@ def projectFolder = Utilities.getFolderName(project) + '/' + Utilities.getFolder
 			Utilities.standardJobSetup(newLinuxFlowJob, project, isPR, "*/${branch}")
 
             if (isPR) {
-                Utilities.addGithubPRTriggerForBranch(newLinuxFlowJob, branch, "${os} ${configuration} Build")
+                Utilities.addGithubPRTriggerForBranch(newLinuxFlowJob, branch, "Windows / ${os} ${configuration} Build")
             }
             else {
                 Utilities.addGithubPushTrigger(newLinuxFlowJob)
