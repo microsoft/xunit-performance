@@ -13,7 +13,7 @@ call :Usage && exit /b 1
 
 msbuild.exe /nologo /v:m /m /p:Configuration=%BuildConfiguration% /t:CI /fl xunit.performance.msbuild
 
-BuildCliComponents.cmd
+BuildCliComponents.cmd %BuildConfiguration%
 
 goto :eof
 
