@@ -30,6 +30,6 @@ echo WARNING: Please be careful not to check in those modifications.
 
 msbuild.exe /m /nologo /t:Nightly /v:m /fl xunit.performance.msbuild
 
-BuildCliComponents.cmd
+BuildCliComponents.cmd Release
 
 goto :eof

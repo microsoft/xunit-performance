@@ -13,6 +13,9 @@ tools directory prior to build.
 :main
 setlocal
 
+set BuildConfiguration=%1%
+if "%BuildConfiguration%"=="" set BuildConfiguration=Debug
+
 set OutputDirectory=%~dp0LocalPackages
 set DotNet=%~dp0\tools\bin\dotnet.exe
 
@@ -40,13 +43,13 @@ if NOT exist "%DotNet%" (
 echo Building CLI-based components
 pushd %~dp0src\cli\Microsoft.DotNet.xunit.performance.runner.cli
 call %DotNet% restore
-call %DotNet% build -c Release
-call %DotNet% pack -c Release -o %OutputDirectory%
+call %DotNet% build -c %BuildConfiguration%
+call %DotNet% pack -c %BuildConfiguration% -o %OutputDirectory%
 popd
 pushd %~dp0src\cli\Microsoft.DotNet.xunit.performance.analysis.cli
 call %DotNet% restore
-call %DotNet% build -c Release
-call %DotNet% pack -c Release -o %OutputDirectory%
+call %DotNet% build -c %BuildConfiguration%
+call %DotNet% pack -c %BuildConfiguration% -o %OutputDirectory%
 popd
 
 goto :eof
