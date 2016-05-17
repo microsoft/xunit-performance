@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Collections.Generic;
 #if !LINUX_BUILD
 using MathNet.Numerics.Statistics;
@@ -127,6 +130,19 @@ namespace Microsoft.Xunit.Performance.Analysis
         {
             values.Add(value);
         }
+
+        public long Count { get; }
+        public double Kurtosis { get; }
+        public double Maximum { get; }
+        public double Mean { get; }
+        public double Minimum { get; }
+        public double PopulationKurtosis { get; }
+        public double PopulationSkewness { get; }
+        public double PopulationStandardDeviation { get; }
+        public double PopulationVariance { get; }
+        public double Skewness { get; }
+        public double StandardDeviation { get; }
+        public double Variance { get; }
     }
 #endif
 }

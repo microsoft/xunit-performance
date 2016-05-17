@@ -55,6 +55,15 @@
     <Compile Include="..\common\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Properties.cs" />
+    <Compile Include="Writers\AbstractResultsWriter.cs" />
+    <Compile Include="TestIterationResult.cs" />
+    <Compile Include="TestResultComparison.cs" />
+    <Compile Include="TestResult.cs" />
+    <Compile Include="Writers\CsvStatsWriter.cs" />
+    <Compile Include="Writers\CsvResultsWriter.cs" />
+    <Compile Include="Writers\XmlResultsWriter.cs" />
+    <Compile Include="Writers\HtmlResultsWriter.cs" />
     <Compile Include="MathExtensions.cs" />
     <Compile Include="Microsoft-Xunit-Benchmark.manifest.cs" />
     <Compile Include="Program.cs" />
