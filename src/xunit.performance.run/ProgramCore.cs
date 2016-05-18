@@ -18,6 +18,10 @@ namespace Microsoft.Xunit.Performance
 {
     public abstract class ProgramCore
     {
+        private const int MinIterations = 1;
+        private const int MaxIterations = 1000;
+        private const int MaxIterationsWhenInnerIterationsSpecified = 100;
+        private const int MaxTotalMSPerTest = 10000;    // 10 seconds
 
         private bool _nologo = false;
         private bool _verbose = false;
@@ -137,11 +141,25 @@ namespace Microsoft.Xunit.Performance
             };
 
             startInfo.Environment["XUNIT_PERFORMANCE_RUN_ID"] = project.RunId;
-            startInfo.Environment["XUNIT_PERFORMANCE_MIN_ITERATION"] = "10";
-            startInfo.Environment["XUNIT_PERFORMANCE_MAX_ITERATION"] = "1000";
-            startInfo.Environment["XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS"] = "1000";
-            startInfo.Environment["COMPLUS_gcConcurrent"] = "0";
-            startInfo.Environment["COMPLUS_gcServer"] = "0";
+
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("XUNIT_PERFORMANCE_MIN_ITERATION")))
+                startInfo.Environment["XUNIT_PERFORMANCE_MIN_ITERATION"] = MinIterations.ToString();
+
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_ITERATION")))
+                startInfo.Environment["XUNIT_PERFORMANCE_MAX_ITERATION"] = MaxIterations.ToString();
+
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_ITERATION_INNER_SPECIFIED")))
+                startInfo.Environment["XUNIT_PERFORMANCE_MAX_ITERATION_INNER_SPECIFIED"] = MaxIterationsWhenInnerIterationsSpecified.ToString();
+
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS")))
+                startInfo.Environment["XUNIT_PERFORMANCE_MAX_TOTAL_MILLISECONDS"] = MaxTotalMSPerTest.ToString();
+
+            // Disable server and background GC.
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("COMPLUS_gcConcurrent")))
+                startInfo.Environment["COMPLUS_gcConcurrent"] = "0";
+
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("COMPLUS_gcServer")))
+                startInfo.Environment["COMPLUS_gcServer"] = "0";
 
             var logger = GetPerformanceMetricLogger(project);
             using (logger.StartLogging(startInfo))

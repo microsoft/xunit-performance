@@ -163,12 +163,14 @@ namespace Microsoft.Xunit.Performance.Analysis
                     var stdErrorDiff = Math.Sqrt((baselineSumOfSquares - (baselineSumSquared / baselineCount) + comparisonSumOfSquares - (comparisonSumSquared / comparisonCount)) * (1.0 / baselineCount + 1.0 / comparisonCount) / (baselineCount + comparisonCount - 1));
                     var interval = stdErrorDiff * MathNet.Numerics.ExcelFunctions.TInv(1.0 - ErrorConfidence, baselineCount + comparisonCount - 2);
 
+                    RunningStatistics comparisonStats = comparisonTest.Stats[DurationMetricName].RunningStatistics;
+                    RunningStatistics baselineStats = baselineTest.Stats[DurationMetricName].RunningStatistics;
                     var comparisonResult = new TestResultComparison();
                     comparisonResult.BaselineResult = baselineTest;
                     comparisonResult.ComparisonResult = comparisonTest;
                     comparisonResult.TestName = comparisonTest.TestName;
-                    comparisonResult.PercentChange = (comparisonTest.Stats[DurationMetricName].Mean - baselineTest.Stats[DurationMetricName].Mean) / baselineTest.Stats[DurationMetricName].Mean;
-                    comparisonResult.PercentChangeError = interval / baselineTest.Stats[DurationMetricName].Mean;
+                    comparisonResult.PercentChange = (comparisonStats.Mean - baselineStats.Mean) / baselineStats.Mean;
+                    comparisonResult.PercentChangeError = interval / baselineStats.Mean;
 
                     comparisonResults.Add(comparisonResult);
                 }
@@ -197,12 +199,13 @@ namespace Microsoft.Xunit.Performance.Analysis
 
                     foreach (var stat in result.Stats)
                     {
+                        RunningStatistics runningStats = stat.Value.RunningStatistics;
                         summaryElem.Add(new XElement(stat.Key,
-                            new XAttribute("min", stat.Value.Minimum.ToString("G3")),
-                            new XAttribute("mean", stat.Value.Mean.ToString("G3")),
-                            new XAttribute("max", stat.Value.Maximum.ToString("G3")),
-                            new XAttribute("marginOfError", stat.Value.MarginOfError(ErrorConfidence).ToString("G3")),
-                            new XAttribute("stddev", stat.Value.StandardDeviation.ToString("G3"))));
+                            new XAttribute("min", runningStats.Minimum.ToString("G3")),
+                            new XAttribute("mean", runningStats.Mean.ToString("G3")),
+                            new XAttribute("max", runningStats.Maximum.ToString("G3")),
+                            new XAttribute("marginOfError", runningStats.MarginOfError(ErrorConfidence).ToString("G3")),
+                            new XAttribute("stddev", runningStats.StandardDeviation.ToString("G3"))));
                     }
                 }
             }
@@ -253,11 +256,11 @@ namespace Microsoft.Xunit.Performance.Analysis
                     writer.WriteLine($"<h1>Indivdual results: {run.Key}</h1>");
 
                     writer.WriteLine($"<table>");
-                    writer.WriteLine($"<tr><th>Test</th><th>Unit</th><th>Min</th><th>Mean</th><th>Max</th><th>Margin</th><th>StdDev</th></tr>");
+                    writer.WriteLine($"<tr><th>Test</th><th>Unit</th><th>Min</th><th>Mean</th><th>Max</th><th>Margin</th><th>StdDev</th><th>Iterations</th></tr>");
                     foreach (var test in run.Value)
                     {
-                        var stats = test.Value.Stats[DurationMetricName];
-                        writer.WriteLine($"<tr><td>{test.Value.TestName}</td><td>ms</td><td>{stats.Minimum.ToString("G3")}</td><td>{stats.Mean.ToString("G3")}</td><td>{stats.Maximum.ToString("G3")}</td><td>{stats.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{stats.StandardDeviation.ToString("G3")}</td></tr>");
+                        var stats = test.Value.Stats[DurationMetricName].RunningStatistics;
+                        writer.WriteLine($"<tr><td>{test.Value.TestName}</td><td>ms</td><td>{stats.Minimum.ToString("G3")}</td><td>{stats.Mean.ToString("G3")}</td><td>{stats.Maximum.ToString("G3")}</td><td>{stats.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{stats.StandardDeviation.ToString("G3")}</td><td>{test.Value.Stats[DurationMetricName].IterationCount.ToString()}</td></tr>");
                     }
                     writer.WriteLine($"</table>");
                 }
@@ -276,7 +279,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                 {
                     foreach (var result in run.Value.Values)
                     {
-                        RunningStatistics durationStats = result.Stats[DurationMetricName];
+                        RunningStatistics durationStats = result.Stats[DurationMetricName].RunningStatistics;
                         writer.WriteLine(
                             "\"{0}\",\"{1}\",\"{2}\",\"{3}\",\"{4}\",\"{5}\",\"{6}\"",
                             EscapeCsvString(result.TestName),
@@ -315,9 +318,9 @@ namespace Microsoft.Xunit.Performance.Analysis
 
                 foreach (var metric in iteration.MetricValues)
                 {
-                    RunningStatistics stats;
+                    TestStatistics stats;
                     if (!result.Stats.TryGetValue(metric.Key, out stats))
-                        result.Stats[metric.Key] = stats = new RunningStatistics();
+                        result.Stats[metric.Key] = stats = new TestStatistics();
                     stats.Push(metric.Value);
                 }
 
@@ -364,7 +367,7 @@ namespace Microsoft.Xunit.Performance.Analysis
         }
 
 
-        private static string GetMetricsString(Dictionary<string, RunningStatistics>.KeyCollection metrics)
+        private static string GetMetricsString(Dictionary<string, TestStatistics>.KeyCollection metrics)
         {
             StringBuilder builder = new StringBuilder();
             foreach (string metric in metrics)
@@ -390,24 +393,11 @@ namespace Microsoft.Xunit.Performance.Analysis
             }
         }
 
-#if LINUX_BUILD
-        public class RunningStatistics
-        {
-            public RunningStatistics() {
-                values = new List<Double>();
-            }
-            public List<Double> values;
-            public void Push(Double value)
-            {
-                values.Add(value);
-            }
-        }
-#endif
         private class TestResult
         {
             public string TestName;
             public string RunId;
-            public Dictionary<string, RunningStatistics> Stats = new Dictionary<string, RunningStatistics>();
+            public Dictionary<string, TestStatistics> Stats = new Dictionary<string, TestStatistics>();
             public List<TestIterationResult> Iterations = new List<TestIterationResult>();
         }
 

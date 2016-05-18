@@ -36,7 +36,8 @@ namespace Microsoft.Xunit.Performance
             // Run the test method inside of our iterator.  Note that BenchmarkIterator.Run ensures that only one test
             // method is running at any given time, so we don't need extra synchronization here.
             //
-            var iterator = new BenchmarkIteratorImpl(DisplayName);
+            var benchmarkAttr = (BenchmarkAttribute)TestMethod.GetCustomAttribute(typeof(BenchmarkAttribute));
+            var iterator = new BenchmarkIteratorImpl(DisplayName, benchmarkAttr.InnerIterationCount);
             return iterator.RunAsync(async () =>
             {
                 var success = false;
@@ -83,14 +84,31 @@ namespace Microsoft.Xunit.Performance
             private int _currentIteration;
             private bool _currentIterationMeasurementStarted;
             private bool _currentIterationMesaurementStopped;
+            private long _innerIterations;
+            private int _maxIterations;
 
             internal string IterationStopReason { get; private set; }
 
             public BenchmarkIteratorImpl(string testName)
+                : this(testName, 1)
+            {
+            }
+
+            public BenchmarkIteratorImpl(string testName, long innerIterationsCount)
             {
                 _testName = testName;
                 _overallTimer = new Stopwatch();
                 _currentIteration = -1;
+                _innerIterations = innerIterationsCount;
+                if(_innerIterations > 1)
+                {
+                    _maxIterations = BenchmarkConfiguration.MaxIterationWhenInnerSpecified;
+                }
+                else
+                {
+                    _maxIterations = BenchmarkConfiguration.MaxIteration;
+                }
+
                 IterationStopReason = "NoIterations";
             }
 
@@ -101,7 +119,7 @@ namespace Microsoft.Xunit.Performance
                     if (_currentIteration == 0)
                         return false;
 
-                    if (_currentIteration > BenchmarkConfiguration.MaxIteration)
+                    if (_currentIteration > _maxIterations)
                     {
                         IterationStopReason = "MaxIterations";
                         return true;
@@ -147,7 +165,17 @@ namespace Microsoft.Xunit.Performance
                     StopMeasurement(_currentIteration);
 
                     if (_currentIteration == 0)
+                    {
                         _overallTimer.Start();
+                    }
+                }
+            }
+
+            protected override long InnerIterationCount
+            {
+                get
+                {
+                    return _innerIterations;
                 }
             }
 
@@ -224,9 +252,7 @@ namespace Microsoft.Xunit.Performance
                     Debug.Assert(_currentIterationMeasurementStarted);
                     _currentIterationMesaurementStopped = true;
 
-                    // TODO: we should remove the "Success" parameter; this is already communicated elsewhere, and the information isn't
-                    // easily available here.
-                    BenchmarkEventSource.Log.BenchmarkIterationStop(BenchmarkConfiguration.RunId, _testName, iterationNumber, Success: true);
+                    BenchmarkEventSource.Log.BenchmarkIterationStop(BenchmarkConfiguration.RunId, _testName, iterationNumber);
                 }
             }
         }

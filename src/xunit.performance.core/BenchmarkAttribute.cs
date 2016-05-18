@@ -18,5 +18,15 @@ namespace Microsoft.Xunit.Performance
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class BenchmarkAttribute : FactAttribute, IPerformanceMetricAttribute, ITraitAttribute
     {
+        private long _innerIterationsCount = 1;
+
+        /// <summary>
+        /// Get or set the count of inner iterations to run inside of each harness iteration.
+        /// </summary>
+        public long InnerIterationCount
+        {
+            get { return _innerIterationsCount; }
+            set { _innerIterationsCount = value; }
+        }
     }
 }
