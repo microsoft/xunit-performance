@@ -13,6 +13,9 @@
   "compilationOptions": {
     "emitEntryPoint": true
   },
+  "packInclude": {
+    "lib/netstandard1.3/":"../../../DotNetCliVersion.txt"
+  },
   "dependencies": {
     "Microsoft.DotNet.xunit.performance.run.core": "99.99.99-dev",
     "Microsoft.NETCore.DotNetHostPolicy":"1.0.1-rc2-002357-00",
