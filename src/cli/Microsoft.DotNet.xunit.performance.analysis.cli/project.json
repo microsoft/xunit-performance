@@ -14,6 +14,9 @@
     "emitEntryPoint": true,
     "define": [ "LINUX_BUILD" ]
   },
+  "packInclude": {
+    "lib/netstandard1.3/":"../../../DotNetCliVersion.txt"
+  },
   "compileFiles": [
     "../../xunit.performance.analysis/Program.cs",
     "../../xunit.performance.analysis/TestStatistics.cs"
