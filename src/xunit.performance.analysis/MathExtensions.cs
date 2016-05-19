@@ -1,13 +1,17 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using MathNet.Numerics;
-using MathNet.Numerics.Statistics;
 using System;
 using System.Collections.Generic;
+#if !LINUX_BUILD
+using MathNet.Numerics;
+using MathNet.Numerics.Statistics;
+#endif
 
 namespace Microsoft.Xunit.Performance.Analysis
 {
+#if !LINUX_BUILD
+
     public static class MathExtensions
     {
         /// <summary>
@@ -46,4 +50,20 @@ namespace Microsoft.Xunit.Performance.Analysis
             return result;
         }
     }
+
+#else
+
+    //
+    // Just mock up the type for build to complete on Linux 
+    //
+    public static class MathExtensions
+    {
+        public static double MarginOfError(this RunningStatistics stats, double confidence)
+        {
+            return 0;
+        }    
+    }
+
+#endif
 }
+

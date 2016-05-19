@@ -18,8 +18,18 @@
     "lib/netstandard1.3/":"../../../DotNetCliVersion.txt"
   },
   "compileFiles": [
+    "../../xunit.performance.analysis/MathExtensions.cs",
     "../../xunit.performance.analysis/Program.cs",
-    "../../xunit.performance.analysis/TestStatistics.cs"
+    "../../xunit.performance.analysis/Properties.cs",
+    "../../xunit.performance.analysis/TestIterationResult.cs",
+    "../../xunit.performance.analysis/TestResult.cs",
+    "../../xunit.performance.analysis/TestResultComparison.cs",
+    "../../xunit.performance.analysis/TestStatistics.cs",
+    "../../xunit.performance.analysis/Writers/AbstractResultsWriter.cs",
+    "../../xunit.performance.analysis/Writers/CsvResultsWriter.cs",
+    "../../xunit.performance.analysis/Writers/CsvStatsWriter.cs",
+    "../../xunit.performance.analysis/Writers/HtmlResultsWriter.cs",
+    "../../xunit.performance.analysis/Writers/XmlResultsWriter.cs"
   ],
   "dependencies": {
       "Microsoft.NETCore.DotNetHostPolicy":"1.0.1-rc2-002357-00",

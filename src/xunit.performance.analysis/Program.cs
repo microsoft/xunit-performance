@@ -3,29 +3,23 @@
 
 #if !LINUX_BUILD
 using MathNet.Numerics.Statistics;
-using Microsoft.Diagnostics.Tracing;
-using Microsoft.Diagnostics.Tracing.Parsers;
+using System.Runtime.Serialization;
 #endif
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Xml;
 using System.Xml.Linq;
-#if !LINUX_BUILD
-using System.Runtime.Serialization;
-#endif
 
 namespace Microsoft.Xunit.Performance.Analysis
 {
     internal class Program
     {
-        private const double ErrorConfidence = 0.95; // TODO: make configurable
-
         /// <summary>
-        /// The name of the Duration metric, as provided by the XML.
+        /// The set of metrics (name of the metric) that appear in the .etl files
         /// </summary>
-        private const string DurationMetricName = "Duration";
 
         private static int Usage()
         {
@@ -94,8 +88,11 @@ namespace Microsoft.Xunit.Performance.Analysis
                     {
                         if (file.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
                         {
-                            foundFile = true;
-                            xmlPaths.Add(file);
+                            if (file != xmlOutputPath)
+                            {
+                                foundFile = true;
+                                xmlPaths.Add(file);
+                            }
                         }
                         else
                         {
@@ -114,185 +111,105 @@ namespace Microsoft.Xunit.Performance.Analysis
             if (xmlPaths.Count == 0)
                 return Usage();
 
+            //
+            // Start analyzing...
+            //
+
             var allIterations = ParseXmlFiles(xmlPaths);
 
             var testResults = SummarizeTestResults(allIterations);
+
 #if !LINUX_BUILD
             var comparisonResults = DoComparisons(allComparisonIds, testResults);
 
             if (xmlOutputPath != null)
-                WriteTestResultsXml(testResults, comparisonResults).Save(xmlOutputPath);
+            {
+                new XmlResultsWriter(Properties.AllMetrics, testResults, comparisonResults, xmlOutputPath).Write();
+            }
 
             if (htmlOutputPath != null)
-                WriteTestResultsHtml(testResults, comparisonResults, htmlOutputPath);
+            {
+                new HtmlResultsWriter(Properties.AllMetrics, testResults, comparisonResults, htmlOutputPath).Write();
+            }
 
             if (statsCsvOutputPath != null)
-                WriteStatisticsCSV(testResults, statsCsvOutputPath);
+            {
+                new CsvStatsWriter(Properties.AllMetrics, testResults, comparisonResults, statsCsvOutputPath).Write();
+            }
 #endif
+
             if (csvOutputPath != null)
-                WriteTestResultsCSV(testResults, csvOutputPath);
+            {
+                new CsvResultsWriter(Properties.AllMetrics, testResults, null, csvOutputPath).Write();
+            }
 
             return 0;
         }
 
 #if !LINUX_BUILD
-        private static List<TestResultComparison> DoComparisons(List<Tuple<string, string>> allComparisonIds, Dictionary<string, Dictionary<string, TestResult>> testResults)
+        private static Dictionary<string, List<TestResultComparison>> DoComparisons(List<Tuple<string, string>> allComparisonIds, Dictionary<string, Dictionary<string, TestResult>> testResults)
         {
-            var comparisonResults = new List<TestResultComparison>();
+            var comparisonMatrix = new Dictionary<string, List<TestResultComparison>>();
 
             foreach (var comparisonIds in allComparisonIds)
             {
                 var baseline = testResults[comparisonIds.Item1];
                 var comparison = testResults[comparisonIds.Item2];
 
-                foreach (var comparisonTest in comparison.Values)
+                //
+                // Analize results metric-by-metric
+                //
+                foreach (var metricName in Properties.AllMetrics.Keys)
                 {
-                    var baselineTest = baseline[comparisonTest.TestName];
+                    var comparisonResults = new List<TestResultComparison>();
 
-                    // Compute the standard error in the difference
-                    var baselineCount = baselineTest.Iterations.Count;
-                    var baselineSum = baselineTest.Iterations.Sum(iteration => iteration.MetricValues[DurationMetricName]);
-                    var baselineSumSquared = baselineSum * baselineSum;
-                    var baselineSumOfSquares = baselineTest.Iterations.Sum(iteration => iteration.MetricValues[DurationMetricName] * iteration.MetricValues[DurationMetricName]);
+                    comparisonMatrix.Add(metricName, comparisonResults);
 
-                    var comparisonCount = comparisonTest.Iterations.Count;
-                    var comparisonSum = comparisonTest.Iterations.Sum(iteration => iteration.MetricValues[DurationMetricName]);
-                    var comparisonSumSquared = comparisonSum * comparisonSum;
-                    var comparisonSumOfSquares = comparisonTest.Iterations.Sum(iteration => iteration.MetricValues[DurationMetricName] * iteration.MetricValues[DurationMetricName]);
-
-                    var stdErrorDiff = Math.Sqrt((baselineSumOfSquares - (baselineSumSquared / baselineCount) + comparisonSumOfSquares - (comparisonSumSquared / comparisonCount)) * (1.0 / baselineCount + 1.0 / comparisonCount) / (baselineCount + comparisonCount - 1));
-                    var interval = stdErrorDiff * MathNet.Numerics.ExcelFunctions.TInv(1.0 - ErrorConfidence, baselineCount + comparisonCount - 2);
-
-                    RunningStatistics comparisonStats = comparisonTest.Stats[DurationMetricName].RunningStatistics;
-                    RunningStatistics baselineStats = baselineTest.Stats[DurationMetricName].RunningStatistics;
-                    var comparisonResult = new TestResultComparison();
-                    comparisonResult.BaselineResult = baselineTest;
-                    comparisonResult.ComparisonResult = comparisonTest;
-                    comparisonResult.TestName = comparisonTest.TestName;
-                    comparisonResult.PercentChange = (comparisonStats.Mean - baselineStats.Mean) / baselineStats.Mean;
-                    comparisonResult.PercentChangeError = interval / baselineStats.Mean;
-
-                    comparisonResults.Add(comparisonResult);
-                }
-            }
-
-            return comparisonResults;
-        }
-
-        private static XDocument WriteTestResultsXml(Dictionary<string, Dictionary<string, TestResult>> testResults, List<TestResultComparison> comparisonResults)
-        {
-            var resultElem = new XElement("results");
-            var xmlDoc = new XDocument(resultElem);
-
-            foreach (var run in testResults)
-            {
-                var runIdElem = new XElement("run", new XAttribute("id", run.Key));
-                resultElem.Add(runIdElem);
-
-                foreach (var result in run.Value.Values)
-                {
-                    var testElem = new XElement("test", new XAttribute("name", result.TestName));
-                    runIdElem.Add(testElem);
-
-                    var summaryElem = new XElement("summary");
-                    testElem.Add(summaryElem);
-
-                    foreach (var stat in result.Stats)
+                    foreach (var comparisonTest in comparison.Values)
                     {
-                        RunningStatistics runningStats = stat.Value.RunningStatistics;
-                        summaryElem.Add(new XElement(stat.Key,
-                            new XAttribute("min", runningStats.Minimum.ToString("G3")),
-                            new XAttribute("mean", runningStats.Mean.ToString("G3")),
-                            new XAttribute("max", runningStats.Maximum.ToString("G3")),
-                            new XAttribute("marginOfError", runningStats.MarginOfError(ErrorConfidence).ToString("G3")),
-                            new XAttribute("stddev", runningStats.StandardDeviation.ToString("G3"))));
+                        var baselineTest = baseline[comparisonTest.TestName];
+
+                        var baselineCount = baselineTest.Iterations.Count;
+                        var comparisonCount = comparisonTest.Iterations.Count;
+
+                        if (baselineCount <= 0 || comparisonCount <= 0)
+                        {
+                            continue;
+                        }
+
+                        if (!baselineTest.Iterations[0].MetricValues.ContainsKey(metricName) ||
+                            !comparisonTest.Iterations[0].MetricValues.ContainsKey(metricName))
+                        {
+                            continue;
+                        }
+
+                        // Compute the standard error in the difference
+                        var baselineSum = baselineTest.Iterations.Sum(iteration => iteration.MetricValues[metricName]);
+                        var baselineSumSquared = baselineSum * baselineSum;
+                        var baselineSumOfSquares = baselineTest.Iterations.Sum(iteration => iteration.MetricValues[metricName] * iteration.MetricValues[metricName]);
+
+                        var comparisonSum = comparisonTest.Iterations.Sum(iteration => iteration.MetricValues[metricName]);
+                        var comparisonSumSquared = comparisonSum * comparisonSum;
+                        var comparisonSumOfSquares = comparisonTest.Iterations.Sum(iteration => iteration.MetricValues[metricName] * iteration.MetricValues[metricName]);
+
+                        var stdErrorDiff = Math.Sqrt((baselineSumOfSquares - (baselineSumSquared / baselineCount) + comparisonSumOfSquares - (comparisonSumSquared / comparisonCount)) * (1.0 / baselineCount + 1.0 / comparisonCount) / (baselineCount + comparisonCount - 1));
+                        var interval = stdErrorDiff * MathNet.Numerics.ExcelFunctions.TInv(1.0 - Properties.ErrorConfidence, baselineCount + comparisonCount - 2);
+
+                        RunningStatistics comparisonStats = comparisonTest.Stats[metricName].RunningStatistics;
+                        RunningStatistics baselineStats = baselineTest.Stats[metricName].RunningStatistics;
+                        var comparisonResult = new TestResultComparison();
+                        comparisonResult.BaselineResult = baselineTest;
+                        comparisonResult.ComparisonResult = comparisonTest;
+                        comparisonResult.TestName = comparisonTest.TestName;
+                        comparisonResult.PercentChange = (comparisonStats.Mean - baselineStats.Mean) / baselineStats.Mean;
+                        comparisonResult.PercentChangeError = interval / baselineStats.Mean;
+
+                        comparisonResults.Add(comparisonResult);
                     }
                 }
             }
 
-            foreach (var comparison in comparisonResults)
-            {
-                var comparisonElem = new XElement("comparison", new XAttribute("test", comparison.TestName), new XAttribute("baselineId", comparison.BaselineResult.RunId), new XAttribute("comparisonId", comparison.ComparisonResult.RunId));
-                resultElem.Add(comparisonElem);
-
-                comparisonElem.Add(
-                    new XElement("duration",
-                        new XAttribute("changeRatio", comparison.PercentChange.ToString("G3")),
-                        new XAttribute("changeRatioError", comparison.PercentChangeError.ToString("G3"))));
-            }
-
-            return xmlDoc;
-        }
-
-        private static void WriteTestResultsHtml(Dictionary<string, Dictionary<string, TestResult>> testResults, List<TestResultComparison> comparisonResults, string htmlOutputPath)
-        {
-            using (var writer = new StreamWriter(htmlOutputPath, false, Encoding.UTF8))
-            {
-                writer.WriteLine("<html><body>");
-
-                foreach (var comparison in comparisonResults.GroupBy(r => $"Comparison: {r.ComparisonResult.RunId} | Baseline: {r.BaselineResult.RunId}"))
-                {
-                    writer.WriteLine($"<h1>{comparison.Key}</h1>");
-                    writer.WriteLine("<table>");
-                    foreach (var test in from c in comparison orderby c.SortChange descending select c)
-                    {
-                        var passed = test.Passed;
-                        string color;
-                        if (!passed.HasValue)
-                            color = "black";
-                        else if (passed.Value)
-                            color = "green";
-                        else
-                            color = "red";
-                        writer.WriteLine($"<tr><td>{test.TestName}</td><td><font  color={color}>{test.PercentChange.ToString("+##.#%;-##.#%")}</font></td><td>+/-{test.PercentChangeError.ToString("P1")}</td></tr>");
-                    }
-                    writer.WriteLine("</table>");
-                }
-
-                writer.WriteLine("<hr>");
-
-                foreach (var run in testResults)
-                {
-                    writer.WriteLine($"<h1>Indivdual results: {run.Key}</h1>");
-
-                    writer.WriteLine($"<table>");
-                    writer.WriteLine($"<tr><th>Test</th><th>Unit</th><th>Min</th><th>Mean</th><th>Max</th><th>Margin</th><th>StdDev</th><th>Iterations</th></tr>");
-                    foreach (var test in run.Value)
-                    {
-                        var stats = test.Value.Stats[DurationMetricName].RunningStatistics;
-                        writer.WriteLine($"<tr><td>{test.Value.TestName}</td><td>ms</td><td>{stats.Minimum.ToString("G3")}</td><td>{stats.Mean.ToString("G3")}</td><td>{stats.Maximum.ToString("G3")}</td><td>{stats.MarginOfError(ErrorConfidence).ToString("P1")}</td><td>{stats.StandardDeviation.ToString("G3")}</td><td>{test.Value.Stats[DurationMetricName].IterationCount.ToString()}</td></tr>");
-                    }
-                    writer.WriteLine($"</table>");
-                }
-
-                writer.WriteLine("</html></body>");
-            }
-        }
-
-
-        private static void WriteStatisticsCSV(Dictionary<string, Dictionary<string, TestResult>> testResults, string analyzeOutputPath)
-        {
-            using (var writer = new StreamWriter(analyzeOutputPath))
-            {
-                writer.WriteLine("Test, Iterations, Duration Min, Duration Max, Duration Average, Duration Stdev, Metrics");
-                foreach (var run in testResults)
-                {
-                    foreach (var result in run.Value.Values)
-                    {
-                        RunningStatistics durationStats = result.Stats[DurationMetricName].RunningStatistics;
-                        writer.WriteLine(
-                            "\"{0}\",\"{1}\",\"{2}\",\"{3}\",\"{4}\",\"{5}\",\"{6}\"",
-                            EscapeCsvString(result.TestName),
-                            durationStats.Count,
-                            durationStats.Minimum,
-                            durationStats.Maximum,
-                            durationStats.Mean,
-                            durationStats.StandardDeviation,
-                            EscapeCsvString(GetMetricsString(result.Stats.Keys))
-                            );
-                    }
-                }
-            }
+            return comparisonMatrix;
         }
 
 #endif
@@ -330,56 +247,6 @@ namespace Microsoft.Xunit.Performance.Analysis
             return testResults;
         }
 
-
-        private static string EscapeCsvString(string str)
-        {
-            str.Trim('\"');
-            // Escape the csv string
-            if (str.Contains("\""))
-            {
-                str = str.Replace("\"", "\"\"");
-            }
-
-            if (str.Contains(","))
-            {
-                str = "\"\"" + str + "\"\"";
-            }
-            return str;
-        }
-
-
-        private static void WriteTestResultsCSV(Dictionary<string, Dictionary<string, TestResult>> testResults, string csvOutputPath)
-        {
-            using (var writer = new StreamWriter(new FileStream(csvOutputPath, FileMode.OpenOrCreate)))
-            {
-                foreach (var run in testResults)
-                {
-                    foreach (var result in run.Value.Values)
-                    {
-                        foreach (var iteration in result.Iterations)
-                        {
-                            writer.WriteLine(String.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\"",
-                                EscapeCsvString(iteration.RunId), EscapeCsvString(iteration.RunId), EscapeCsvString(iteration.TestName), iteration.MetricValues[DurationMetricName].ToString()));
-                        }
-                    }
-                }
-            }
-        }
-
-
-        private static string GetMetricsString(Dictionary<string, TestStatistics>.KeyCollection metrics)
-        {
-            StringBuilder builder = new StringBuilder();
-            foreach (string metric in metrics)
-            {
-                builder.AppendFormat("{0};", metric);
-            }
-
-            return builder.ToString();
-        }
-
-
-
         private static IEnumerable<string> ExpandFilePath(string path)
         {
             if (File.Exists(path))
@@ -393,59 +260,44 @@ namespace Microsoft.Xunit.Performance.Analysis
             }
         }
 
-        private class TestResult
-        {
-            public string TestName;
-            public string RunId;
-            public Dictionary<string, TestStatistics> Stats = new Dictionary<string, TestStatistics>();
-            public List<TestIterationResult> Iterations = new List<TestIterationResult>();
-        }
-
-        private class TestIterationResult
-        {
-            public string EtlPath;
-            public string RunId;
-            public string TestName;
-            public int TestIteration;
-            public Dictionary<string, double> MetricValues = new Dictionary<string, double>();
-        }
-
-        private class TestResultComparison
-        {
-            public string TestName;
-            public TestResult BaselineResult;
-            public TestResult ComparisonResult;
-            public double PercentChange;
-            public double PercentChangeError;
-            public double SortChange => (PercentChange > 0) ? Math.Max(PercentChange - PercentChangeError, 0) : Math.Min(PercentChange + PercentChangeError, 0);
-            public bool? Passed
-            {
-                get
-                {
-                    if (PercentChange > 0 && PercentChange > PercentChangeError)
-                        return false;
-                    if (PercentChange < 0 && PercentChange < -PercentChangeError)
-                        return true;
-                    else
-                        return null;
-                }
-            }
-        }
 
         private static IEnumerable<TestIterationResult> ParseXmlFiles(IEnumerable<string> etlPaths)
         {
-            return
-                from path in etlPaths.AsParallel()
-                from result in ParseOneXmlFile(path)
-                select result;
+            var results = new List<TestIterationResult>();
+
+            foreach (var path in etlPaths)
+            {
+                Console.Write($"Parsing {path}...");
+
+                try
+                {
+                    using (var reader = XmlReader.Create(path))
+                    {
+                        var result = ParseOneXmlFile(XDocument.Load(reader));
+
+                        if (result != null && result.Count<TestIterationResult>() > 0)
+                        {
+                            results.AddRange(result);
+
+                            Console.WriteLine("done!");
+                        }
+                        else
+                        {
+                            Console.WriteLine("malformed log or not an ETW log.");
+                        }
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine("exception!");
+                }
+            }
+
+            return results;
         }
 
-        private static IEnumerable<TestIterationResult> ParseOneXmlFile(string path)
+        private static IEnumerable<TestIterationResult> ParseOneXmlFile(XDocument doc)
         {
-            Console.WriteLine($"Parsing {path}");
-
-            var doc = XDocument.Load(path);
-
             foreach (var testElem in doc.Descendants("test"))
             {
                 var testName = testElem.Attribute("name").Value;
@@ -453,6 +305,23 @@ namespace Microsoft.Xunit.Performance.Analysis
                 var perfElem = testElem.Element("performance");
                 var runId = perfElem.Attribute("runid").Value;
                 var etlPath = perfElem.Attribute("etl").Value;
+
+                foreach (var metrics in perfElem.Descendants("metrics"))
+                {
+                    foreach (var metric in metrics.Elements())
+                    {
+                        var metricName = metric.Name.LocalName;
+                        var unit = metric.Attribute("unit").Value;
+
+                        //
+                        // Populate the set of all collected metrics 
+                        //
+                        if (!Properties.AllMetrics.ContainsKey(metricName))
+                        {
+                            Properties.AllMetrics.Add(metricName, unit);
+                        }
+                    }
+                }
 
                 foreach (var iteration in perfElem.Descendants("iteration"))
                 {
