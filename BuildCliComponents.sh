@@ -17,7 +17,7 @@ declare currentDir=`pwd`
 declare outputDirectory=${currentDir}/LocalPackages
 declare dotnetPath=${currentDir}/tools/bin/ubuntu
 declare dotnetCmd=${dotnetPath}/dotnet
-declare dotnetInstallerUrl=https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.sh
+declare dotnetInstallerUrl=https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0-preview1/scripts/obtain/dotnet-install.sh
 declare dotnetInstallerScript=${dotnetPath}/dotnet-install.sh
 declare dotnetVersion=`cat DotNetCliVersion.txt`
 
@@ -28,7 +28,7 @@ then
 	then
 		mkdir -p $dotnetPath
 	fi
-	
+
 	curl $dotnetInstallerUrl -o $dotnetInstallerScript
 	chmod +x $dotnetInstallerScript
 
