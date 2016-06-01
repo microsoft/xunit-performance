@@ -39,6 +39,25 @@
         <dependency id="xunit.extensibility.core" version="2.1.0" />
         <dependency id="xunit.extensibility.execution" version="2.1.0" />
       </group>
+      <group targetFramework="netstandard1.3">
+        <dependency id="System.Collections" version="4.0.10" />
+        <dependency id="System.Diagnostics.Debug" version="4.0.10" />
+        <dependency id="System.Diagnostics.Tracing" version="4.0.20" />
+        <dependency id="System.Globalization" version="4.0.10" />
+        <dependency id="System.IO" version="4.0.10" />
+        <dependency id="System.IO.FileSystem" version="4.0.0" />
+        <dependency id="System.IO.FileSystem.Primitives" version="4.0.0" />
+        <dependency id="System.Linq" version="4.0.0" />
+        <dependency id="System.Reflection" version="4.0.10" />
+        <dependency id="System.Runtime" version="4.0.20" />
+        <dependency id="System.Runtime.Extensions" version="4.0.10" />
+        <dependency id="System.Text.Encoding" version="4.0.10" />
+        <dependency id="System.Threading" version="4.0.10" />
+        <dependency id="System.Threading.Tasks" version="4.0.10" />
+        <dependency id="xunit.abstractions" version="2.0.0" />
+        <dependency id="xunit.extensibility.core" version="2.1.0" />
+        <dependency id="xunit.extensibility.execution" version="2.1.0" />
+      </group>
     </dependencies>
   </metadata>
   <files>
@@ -48,6 +67,12 @@
     <file src="xunit.performance.core\bin\$Configuration$\xunit.performance.core.xml" target="lib\dotnet\" />
     <file src="xunit.performance.execution.dotnet\bin\$Configuration$\xunit.performance.execution.dotnet.dll" target="lib\dotnet\" />
     <file src="xunit.performance.execution.dotnet\bin\$Configuration$\xunit.performance.execution.dotnet.pdb" target="lib\dotnet\" />
+    <!-- For netstandard targetted projects -->
+    <file src="xunit.performance.core\bin\$Configuration$\xunit.performance.core.dll" target="lib\netstandard1.3\" />
+    <file src="xunit.performance.core\bin\$Configuration$\xunit.performance.core.pdb" target="lib\netstandard1.3\" />
+    <file src="xunit.performance.core\bin\$Configuration$\xunit.performance.core.xml" target="lib\netstandard1.3\" />
+    <file src="xunit.performance.execution.dotnet\bin\$Configuration$\xunit.performance.execution.dotnet.dll" target="lib\netstandard1.3\" />
+    <file src="xunit.performance.execution.dotnet\bin\$Configuration$\xunit.performance.execution.dotnet.pdb" target="lib\netstandard1.3\" />
     <!-- For desktop class library projects -->
     <file src="xunit.performance.core\bin\$Configuration$\xunit.performance.core.dll" target="lib\net46\" />
     <file src="xunit.performance.core\bin\$Configuration$\xunit.performance.core.pdb" target="lib\net46\" />
