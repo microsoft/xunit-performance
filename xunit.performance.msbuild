@@ -119,7 +119,7 @@
 
               Log.LogMessage("Downloading latest version of NuGet.exe...");
               WebClient webClient = new WebClient();
-              webClient.DownloadFile("http://dist.nuget.org/win-x86-commandline/v3.1.0-beta/nuget.exe", OutputFilename);
+              webClient.DownloadFile("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe", OutputFilename);
 
               return true;
           }
