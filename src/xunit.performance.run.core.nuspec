@@ -44,7 +44,7 @@ Contains the core portable functionality used by xunit.performance.run.
         <dependency id="System.Runtime" version="4.0.20" />
         <dependency id="System.Runtime.Extensions" version="4.0.10" />
         <dependency id="System.Xml.XDocument" version="4.0.10" />
-        <dependency id="Microsoft.DotNet.BuildTools.TestSuite" version="1.0.0-prerelease-508-01" />
+        <dependency id="Microsoft.DotNet.BuildTools.TestSuite" version="1.0.0-prerelease-00508-01" />
       </group>
     </dependencies>
   </metadata>
