@@ -21,6 +21,7 @@ build/
 bld/
 [Bb]in/
 [Oo]bj/
+LocalPackages/
 
 # Tools
 tools/

@@ -19,26 +19,26 @@ Contains the tools necessary for running xunit Performance tests in Windows usin
     </dependencies>
   </metadata>
   <files>
-    <file src="xunit.performance.run\bin\$Configuration$\Microsoft.Diagnostics.Tracing.TraceEvent.dll" target="tools\" />
-    <file src="xunit.performance.run\bin\$Configuration$\ProcDomain.dll" target="tools\" />
-    <file src="xunit.performance.run\bin\$Configuration$\ProcDomain.pdb" target="tools\" />
-    <file src="xunit.performance.run\bin\$Configuration$\xunit.abstractions.dll" target="tools\" />
-    <file src="xunit.performance.run\bin\$Configuration$\xunit.core.dll" target="tools\" />
-    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.core.dll" target="tools\" />
-    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.core.pdb" target="tools\" />
-    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.logger.exe" target="tools\" />
-    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.logger.pdb" target="tools\" />
-    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.metrics.dll" target="tools\" />
-    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.metrics.pdb" target="tools\" />
-    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.run.exe" target="tools\" />
-    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.run.exe.config" target="tools\" />
-    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.run.pdb" target="tools\" />
-    <file src="xunit.performance.run\bin\$Configuration$\xunit.runner.utility.desktop.dll" target="tools\" />
-    <file src="xunit.performance.run\bin\$Configuration$\xunit.runner.utility.desktop.pdb" target="tools\" />
+    <file src="xunit.performance.run\bin\$Configuration$\Microsoft.Diagnostics.Tracing.TraceEvent.dll" target="lib\netstandard1.3" />
+    <file src="xunit.performance.run\bin\$Configuration$\ProcDomain.dll" target="lib\netstandard1.3" />
+    <file src="xunit.performance.run\bin\$Configuration$\ProcDomain.pdb" target="lib\netstandard1.3" />
+    <file src="xunit.performance.run\bin\$Configuration$\xunit.abstractions.dll" target="lib\netstandard1.3" />
+    <file src="xunit.performance.run\bin\$Configuration$\xunit.core.dll" target="lib\netstandard1.3" />
+    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.core.dll" target="lib\netstandard1.3" />
+    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.core.pdb" target="lib\netstandard1.3" />
+    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.logger.exe" target="lib\netstandard1.3" />
+    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.logger.pdb" target="lib\netstandard1.3" />
+    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.metrics.dll" target="lib\netstandard1.3" />
+    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.metrics.pdb" target="lib\netstandard1.3" />
+    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.run.exe" target="lib\netstandard1.3" />
+    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.run.exe.config" target="lib\netstandard1.3" />
+    <file src="xunit.performance.run\bin\$Configuration$\xunit.performance.run.pdb" target="lib\netstandard1.3" />
+    <file src="xunit.performance.run\bin\$Configuration$\xunit.runner.utility.desktop.dll" target="lib\netstandard1.3" />
+    <file src="xunit.performance.run\bin\$Configuration$\xunit.runner.utility.desktop.pdb" target="lib\netstandard1.3" />
     <!-- Pick up the following directly from the nuget because they're not copied to bin\Release in non-DesignTimeBuild builds -->
-    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.39\lib\native\x86\KernelTraceControl.dll" target="tools\x86\" />
-    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.39\lib\native\x86\msdia140.dll" target="tools\x86\" />
-    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.39\lib\native\amd64\KernelTraceControl.dll" target="tools\amd64\" />
-    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.39\lib\native\amd64\msdia140.dll" target="tools\amd64\" />
+    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.39\lib\native\x86\KernelTraceControl.dll" target="lib\netstandard1.3\x86\" />
+    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.39\lib\native\x86\msdia140.dll" target="lib\netstandard1.3\x86\" />
+    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.39\lib\native\amd64\KernelTraceControl.dll" target="lib\netstandard1.3\amd64\" />
+    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.39\lib\native\amd64\msdia140.dll" target="lib\netstandard1.3\amd64\" />
   </files>
 </package>

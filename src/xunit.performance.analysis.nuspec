@@ -16,10 +16,10 @@ Contains the tools necessary for analyzing the output of xunit Performance tests
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
   </metadata>
   <files>
-    <file src="xunit.performance.analysis\bin\$Configuration$\MathNet.Numerics.dll" target="tools\" />
-    <file src="xunit.performance.analysis\bin\$Configuration$\Microsoft.Diagnostics.Tracing.TraceEvent.dll" target="tools\" />
-    <file src="xunit.performance.analysis\bin\$Configuration$\xunit.performance.analysis.exe" target="tools\" />
-    <file src="xunit.performance.analysis\bin\$Configuration$\xunit.performance.analysis.exe.config" target="tools\" />
-    <file src="xunit.performance.analysis\bin\$Configuration$\xunit.performance.analysis.pdb" target="tools\" />
+    <file src="xunit.performance.analysis\bin\$Configuration$\MathNet.Numerics.dll" target="lib\netstandard1.3" />
+    <file src="xunit.performance.analysis\bin\$Configuration$\Microsoft.Diagnostics.Tracing.TraceEvent.dll" target="lib\netstandard1.3" />
+    <file src="xunit.performance.analysis\bin\$Configuration$\xunit.performance.analysis.exe" target="lib\netstandard1.3" />
+    <file src="xunit.performance.analysis\bin\$Configuration$\xunit.performance.analysis.exe.config" target="lib\netstandard1.3" />
+    <file src="xunit.performance.analysis\bin\$Configuration$\xunit.performance.analysis.pdb" target="lib\netstandard1.3" />
   </files>
 </package>
