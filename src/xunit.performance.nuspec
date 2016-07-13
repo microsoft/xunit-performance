@@ -54,7 +54,7 @@
         <dependency id="System.Text.Encoding" version="4.0.10" />
         <dependency id="System.Threading" version="4.0.10" />
         <dependency id="System.Threading.Tasks" version="4.0.10" />
-        <dependency id="Microsoft.DotNet.BuildTools.TestSuite" version="1.0.0-prerelease-508-01" />
+        <dependency id="Microsoft.DotNet.BuildTools.TestSuite" version="1.0.0-prerelease-00508-01" />
       </group>
     </dependencies>
   </metadata>

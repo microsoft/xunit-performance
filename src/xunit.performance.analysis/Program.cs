@@ -24,7 +24,7 @@ namespace Microsoft.Xunit.Performance.Analysis
         private static int Usage()
         {
             Console.Error.WriteLine(
-                "usage: xunit.performance.analysis <xmlPaths> [-compare \"baselineRunId\" \"comparisonRunId\"]  [-xml <output.xml>] [-html <output.html>]");
+                "usage: xunit.performance.analysis <xmlPaths> [-compare \"baselineRunId\" \"comparisonRunId\"]  [-xml <output.xml>] [-html <output.html>] [-csvdir Directory where csvs will be generated]");
             return 1;
         }
 
@@ -66,7 +66,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                             htmlOutputPath = args[i];
                             break;
 
-                        case "csv":
+                        case "csvdir":
                             if (++i >= args.Length)
                                 return Usage();
                             csvOutputPath = args[i];
@@ -117,7 +117,8 @@ namespace Microsoft.Xunit.Performance.Analysis
 
             var allIterations = ParseXmlFiles(xmlPaths);
 
-            var testResults = SummarizeTestResults(allIterations);
+            HashSet<string> metricsFound;
+            var testResults = SummarizeTestResults(allIterations, out metricsFound);
 
 #if !LINUX_BUILD
             var comparisonResults = DoComparisons(allComparisonIds, testResults);
@@ -140,7 +141,17 @@ namespace Microsoft.Xunit.Performance.Analysis
 
             if (csvOutputPath != null)
             {
-                new CsvResultsWriter(Properties.AllMetrics, testResults, null, csvOutputPath).Write();
+                if (metricsFound.Contains(Properties.DurationMetricName))
+                    new CsvResultsWriter(Properties.AllMetrics, testResults, null, csvOutputPath, Properties.DurationMetricName).Write();
+
+                if (metricsFound.Contains(Properties.GCAllocMetricName))
+                    new CsvResultsWriter(Properties.AllMetrics, testResults, null, csvOutputPath, Properties.GCAllocMetricName).Write();
+
+                if (metricsFound.Contains(Properties.GCCountMetricName))
+                    new CsvResultsWriter(Properties.AllMetrics, testResults, null, csvOutputPath, Properties.GCCountMetricName).Write();
+
+                if (metricsFound.Contains(Properties.InstRetiredMetricName))
+                    new CsvResultsWriter(Properties.AllMetrics, testResults, null, csvOutputPath, Properties.InstRetiredMetricName).Write();
             }
 
             return 0;
@@ -215,9 +226,10 @@ namespace Microsoft.Xunit.Performance.Analysis
 #endif
 
 
-        private static Dictionary<string, Dictionary<string, TestResult>> SummarizeTestResults(IEnumerable<TestIterationResult> allIterations)
+        private static Dictionary<string, Dictionary<string, TestResult>> SummarizeTestResults(IEnumerable<TestIterationResult> allIterations, out HashSet<string> metricsFound)
         {
             var testResults = new Dictionary<string, Dictionary<string, TestResult>>();
+            metricsFound = new HashSet<string>();
 
             foreach (var iteration in allIterations)
             {
@@ -237,7 +249,11 @@ namespace Microsoft.Xunit.Performance.Analysis
                 {
                     TestStatistics stats;
                     if (!result.Stats.TryGetValue(metric.Key, out stats))
+                    {
                         result.Stats[metric.Key] = stats = new TestStatistics();
+                        metricsFound.Add(metric.Key);
+                    }
+
                     stats.Push(metric.Value);
                 }
 

@@ -3,17 +3,20 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Microsoft.Xunit.Performance.Analysis
 {
     internal class CsvResultsWriter : CsvStatsWriter
     {
+        private string MetricName;
         public CsvResultsWriter(Dictionary<string, string> allMetrics,
                             Dictionary<string, Dictionary<string, TestResult>> testResults,
                             Dictionary<string, List<TestResultComparison>> comparisonResults,
-                            string outputPath)
-            : base(allMetrics, testResults, comparisonResults, outputPath)
+                            string outputPath, string metricName)
+            : base(allMetrics, testResults, comparisonResults, Path.Combine(outputPath, metricName+".csv"))
         {
+            this.MetricName = metricName;
         }
 
         //--//
@@ -38,16 +41,22 @@ namespace Microsoft.Xunit.Performance.Analysis
                 {
                     foreach (var iteration in result.Iterations)
                     {
+                        // If the current iteration does not contain this metric, skip
+                        if (!iteration.MetricValues.ContainsKey(this.MetricName))
+                            continue;
+
                         this.OutputStream.WriteLine(
                             String.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\"",
                                             EscapeCsvString(iteration.RunId),
                                             EscapeCsvString(iteration.RunId),
                                             EscapeCsvString(iteration.TestName),
-                                            iteration.MetricValues[Properties.DurationMetricName].ToString()));
+                                            iteration.MetricValues[this.MetricName].ToString()));
+
                     }
 
                 }
             }
         }
+
     }
 }
