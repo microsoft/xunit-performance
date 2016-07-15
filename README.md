@@ -11,7 +11,7 @@ Provides extensions over xUnit to author performance tests.
 
 1. Create a new class library project
 2. Add a reference to the "xUnit" NuGet package
-3. Add a reference to xunit.performance.dll
+3. Add a reference to xunit.performance.core.dll
 4. Tag your test methods with [Benchmark] instead of [Fact]
 
 Each [Benchmark]-annotated test must contain a loop of this form:
