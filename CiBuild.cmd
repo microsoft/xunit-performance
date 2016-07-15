@@ -11,7 +11,7 @@ if /I "%1" == "/release" set BuildConfiguration=Release&&shift&& goto :ParseArgu
 call :Usage && exit /b 1
 :DoneParsing
 
-msbuild.exe /nologo /v:m /m /p:Configuration=%BuildConfiguration% /t:CI /fl xunit.performance.msbuild
+msbuild.exe /nologo /v:m /m /p:Configuration=%BuildConfiguration% /t:CI /fl xunit.performance.msbuild /fileloggerparameters:Verbosity=normal;LogFile=msbuild.log;Append
 
 BuildCliComponents.cmd %BuildConfiguration%
 
