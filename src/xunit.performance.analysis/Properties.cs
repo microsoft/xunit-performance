@@ -15,5 +15,9 @@ namespace Microsoft.Xunit.Performance.Analysis
         /// The name of the Duration metric, as provided by the XML.
         /// </summary>
         public const string DurationMetricName = "Duration";
+        public const string GCAllocMetricName = "GCAlloc";
+        public const string GCCountMetricName = "GCCount";
+        public const string InstRetiredMetricName = "InstRetired";
+
     }
 }
