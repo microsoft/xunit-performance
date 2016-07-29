@@ -1,0 +1,13 @@
+﻿{
+  "dependencies": {
+    "Microsoft.DotNet.xunit.performance": "99.99.99-dev",
+    "xunit": "2.1.0",
+    "xunit.runner.visualstudio": "2.1.0"
+  },
+  "frameworks": {
+    "net46": { }
+  },
+  "runtimes": {
+    "win": { }
+  }
+}

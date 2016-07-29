@@ -1,0 +1,12 @@
+﻿{
+  "dependencies": {
+    "Microsoft.Diagnostics.Tracing.TraceEvent": "1.0.39",
+    "xunit.abstractions": "2.0.0"
+  },
+  "frameworks": {
+    "net46": { }
+  },
+  "runtimes": {
+    "win": { }
+  }
+}
