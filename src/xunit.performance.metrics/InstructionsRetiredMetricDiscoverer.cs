@@ -45,7 +45,7 @@ namespace Microsoft.Xunit.Performance
             private readonly int _profileSource;
 
             public InstructionsRetiredMetric(int interval, int profileSource)
-                : base("InstRetired", "Instructions Retired", PerformanceMetricUnits.Count)
+                : base("InstRetired", "Instructions Retired", PerformanceMetricUnits.Count, PerformanceMetricBetterDirections.Descending)
             {
                 _interval = interval;
                 _profileSource = profileSource;

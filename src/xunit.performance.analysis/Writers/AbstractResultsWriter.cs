@@ -10,7 +10,7 @@ namespace Microsoft.Xunit.Performance.Analysis
     internal abstract class AbstractResultsWriter
     {
         protected AbstractResultsWriter(
-                            Dictionary<string, string> allMetrics,
+                            Dictionary<string, MetricInfo> allMetrics,
                             Dictionary<string, Dictionary<string, TestResult>> testResults,
                             Dictionary<string, List<TestResultComparison>> comparisonResults,
                             string outputPath)
@@ -45,7 +45,7 @@ namespace Microsoft.Xunit.Performance.Analysis
 
         protected abstract void WriteIndividualResults();
 
-        protected Dictionary<string, string> AllMetrics { get; private set; }
+        protected Dictionary<string, MetricInfo> AllMetrics { get; private set; }
 
         protected Dictionary<string, List<TestResultComparison>> ComparisonResults { get; private set; }
 

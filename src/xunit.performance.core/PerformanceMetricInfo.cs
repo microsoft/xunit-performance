@@ -30,16 +30,24 @@ namespace Microsoft.Xunit.Performance.Sdk
         public string Unit { get; }
 
         /// <summary>
+        /// Gets a string describing the direction of improvement for measurements of this metric.
+        /// Use one of the pre-defined strings in <see cref="PerformanceMetricBetterDirections"/>.
+        /// </summary>
+        public string BetterDirection { get; }
+
+        /// <summary>
         /// Constructs a new PerformamceMetricInfo
         /// </summary>
         /// <param name="id"></param>
         /// <param name="displayName"></param>
         /// <param name="unit"></param>
-        public PerformanceMetricInfo(string id, string displayName, string unit)
+        /// <param name="betterDirection"></param>
+        public PerformanceMetricInfo(string id, string displayName, string unit, string betterDirection)
         {
             Id = id;
             DisplayName = displayName;
             Unit = unit;
+            BetterDirection = betterDirection;
         }
     }
 }

@@ -63,6 +63,7 @@
     <Compile Include="MeasureInstructionsRetired.cs" />
     <Compile Include="MeasureGCCountsAttribute.cs" />
     <Compile Include="OptimizeForBenchmarksAttribute.cs" />
+    <Compile Include="PerformanceMetricBetterDirections.cs" />
     <Compile Include="PerformanceMetricDiscovererAttribute.cs" />
     <Compile Include="PerformanceMetricInfo.cs" />
     <Compile Include="PerformanceMetricUnits.cs" />

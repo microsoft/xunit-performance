@@ -20,7 +20,7 @@ namespace Microsoft.Xunit.Performance
         private class GCAllocationsMetric : PerformanceMetric
         {
             public GCAllocationsMetric()
-                : base("GCAlloc", "GC Allocations", PerformanceMetricUnits.Bytes)
+                : base("GCAlloc", "GC Allocations", PerformanceMetricUnits.Bytes, PerformanceMetricBetterDirections.Descending)
             {
             }
 

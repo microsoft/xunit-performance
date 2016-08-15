@@ -13,6 +13,7 @@ namespace Microsoft.Xunit.Performance.Analysis
         public TestResult ComparisonResult;
         public double PercentChange;
         public double PercentChangeError;
+        public MetricInfo MetricInfo;
 
         public double SortChange => (PercentChange > 0) ? Math.Max(PercentChange - PercentChangeError, 0) : Math.Min(PercentChange + PercentChangeError, 0);
 
@@ -20,10 +21,10 @@ namespace Microsoft.Xunit.Performance.Analysis
         {
             get
             {
-                if (PercentChange > 0 && PercentChange > PercentChangeError)
-                    return false;
-                if (PercentChange < 0 && PercentChange < -PercentChangeError)
-                    return true;
+                if (MetricInfo != null && PercentChange > 0 && PercentChange > PercentChangeError)
+                    return MetricInfo.BetterDirection.ToLowerInvariant() == "asc" ? true : false;
+                if (MetricInfo != null && PercentChange < 0 && PercentChange < -PercentChangeError)
+                    return MetricInfo.BetterDirection.ToLowerInvariant() == "desc" ? true : false;
                 else
                     return null;
             }

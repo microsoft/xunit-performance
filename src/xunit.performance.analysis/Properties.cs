@@ -9,7 +9,7 @@ namespace Microsoft.Xunit.Performance.Analysis
     {
         public const double ErrorConfidence = 0.95; // TODO: make configurable
 
-        public static Dictionary<string, string> AllMetrics = new Dictionary<string, string>();
+        public static Dictionary<string, MetricInfo> AllMetrics = new Dictionary<string, MetricInfo>();
 
         /// <summary>
         /// The name of the Duration metric, as provided by the XML.

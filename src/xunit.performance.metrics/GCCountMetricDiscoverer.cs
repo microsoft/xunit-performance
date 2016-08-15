@@ -20,7 +20,7 @@ namespace Microsoft.Xunit.Performance
         private class GCCountMetric : PerformanceMetric
         {
             public GCCountMetric()
-                : base("GCCount", "GC Count", PerformanceMetricUnits.Count)
+                : base("GCCount", "GC Count", PerformanceMetricUnits.Count, PerformanceMetricBetterDirections.Descending)
             {
             }
 

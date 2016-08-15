@@ -12,7 +12,7 @@ namespace Microsoft.Xunit.Performance.Analysis
     internal class XmlResultsWriter : AbstractResultsWriter
     {
         public XmlResultsWriter(
-            Dictionary<string, string> allMetrics,
+            Dictionary<string, MetricInfo> allMetrics,
             Dictionary<string, Dictionary<string, TestResult>> testResults,
             Dictionary<string, List<TestResultComparison>> comparisonResults,
             string outputPath) : base(allMetrics, testResults, comparisonResults, outputPath)

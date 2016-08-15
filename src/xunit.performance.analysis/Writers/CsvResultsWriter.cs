@@ -10,7 +10,7 @@ namespace Microsoft.Xunit.Performance.Analysis
     internal class CsvResultsWriter : CsvStatsWriter
     {
         private string MetricName;
-        public CsvResultsWriter(Dictionary<string, string> allMetrics,
+        public CsvResultsWriter(Dictionary<string, MetricInfo> allMetrics,
                             Dictionary<string, Dictionary<string, TestResult>> testResults,
                             Dictionary<string, List<TestResultComparison>> comparisonResults,
                             string outputPath, string metricName)
