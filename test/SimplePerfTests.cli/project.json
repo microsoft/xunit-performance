@@ -3,14 +3,12 @@
 
     "dependencies": {
       "xunit.core": "2.1.0",
-      "Microsoft.DotNet.xunit.performance.run.core": "1.0.0-alpha-build0030"
+      "Microsoft.DotNet.xunit.performance.run.core": "99.99.99-dev",
+      "NETStandard.Library": "1.6.0"
     },
     "frameworks": {
-        "dnxcore50": {
-          "imports": "portable-net45+win8",
-          "dependencies": {
-            "NETStandard.Library": "1.0.0-rc3-23904",
-          }
+        "netstandard1.3": {
+          "imports": "portable-net45+win8"
         }
     }
 }

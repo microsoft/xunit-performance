@@ -15,36 +15,21 @@ Contains the core portable functionality used by xunit.performance.run.
     <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <dependencies>
-      <group targetFramework="dotnet">
-        <dependency id="System.Threading" version="4.0.10" />
-        <dependency id="System.Collections" version="4.0.10" />
-        <dependency id="System.Console" version="4.0.0-rc2-24103" />
-        <dependency id="System.Diagnostics.Debug" version="4.0.10" />
-        <dependency id="System.Diagnostics.Process" version="4.1.0-rc2-24103" />
-        <dependency id="System.IO" version="4.0.10" />
-        <dependency id="System.IO.FileSystem" version="4.0.0" />
-        <dependency id="System.Linq" version="4.0.0" />
-        <dependency id="System.Reflection" version="4.0.10" />
-        <dependency id="System.Runtime" version="4.0.20" />
-        <dependency id="System.Runtime.Extensions" version="4.0.10" />
-        <dependency id="System.Xml.XDocument" version="4.0.10" />
-        <dependency id="xunit.abstractions" version="2.0.0" />
-        <dependency id="xunit.runner.utility" version="2.1.0" />
-      </group>
       <group targetFramework="netstandard1.3">
-        <dependency id="System.Threading" version="4.0.10" />
-        <dependency id="System.Collections" version="4.0.10" />
-        <dependency id="System.Console" version="4.0.0-beta-23225" />
-        <dependency id="System.Diagnostics.Debug" version="4.0.10" />
-        <dependency id="System.Diagnostics.Process" version="4.0.0-beta-23225" />
-        <dependency id="System.IO" version="4.0.10" />
-        <dependency id="System.IO.FileSystem" version="4.0.0" />
-        <dependency id="System.Linq" version="4.0.0" />
-        <dependency id="System.Reflection" version="4.0.10" />
-        <dependency id="System.Runtime" version="4.0.20" />
-        <dependency id="System.Runtime.Extensions" version="4.0.10" />
-        <dependency id="System.Xml.XDocument" version="4.0.10" />
-        <dependency id="Microsoft.DotNet.BuildTools.TestSuite" version="1.0.0-prerelease-00508-01" />
+        <dependency id="System.Threading" version="4.0.*" />
+        <dependency id="System.Collections" version="4.0.*" />
+        <dependency id="System.Console" version="4.0.*" />
+        <dependency id="System.Diagnostics.Debug" version="4.0.*" />
+        <dependency id="System.Diagnostics.Process" version="4.1.*" />
+        <dependency id="System.IO" version="4.1.*" />
+        <dependency id="System.IO.FileSystem" version="4.0.*" />
+        <dependency id="System.Linq" version="4.1.*" />
+        <dependency id="System.Reflection" version="4.1.*" />
+        <dependency id="System.Runtime" version="4.1.*" />
+        <dependency id="System.Runtime.Extensions" version="4.1.*" />
+        <dependency id="System.Xml.XDocument" version="4.0.*" />
+        <dependency id="xunit.abstractions" version="2.0.0" />
+        <dependency id="xunit.runner.utility" version="2.2.0-beta2-build3300" />
       </group>
     </dependencies>
   </metadata>

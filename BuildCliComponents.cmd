@@ -28,7 +28,7 @@ set Init_Tools_Log=%DotNet_Path%\install.log
 if NOT exist "%DotNet_Path%" mkdir "%DotNet_Path%"
 
 set /p DotNet_Version=< %~dp0DotNetCLIVersion.txt
-set DotNet_Installer_Url=https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0-preview1/scripts/obtain/dotnet-install.ps1
+set DotNet_Installer_Url=https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0-preview2/scripts/obtain/dotnet-install.ps1
 
 powershell -NoProfile -ExecutionPolicy unrestricted -Command "Invoke-WebRequest -Uri '%DotNet_Installer_Url%' -OutFile '%DotNet_Path%\dotnet-install.ps1'"
 echo Executing dotnet installer script %DotNet_Path%\dotnet-install.ps1

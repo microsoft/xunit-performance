@@ -16,7 +16,7 @@
     <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <dependencies>
-      <dependency id="Microsoft.Diagnostics.Tracing.TraceEvent" version="1.0.39" />
+      <dependency id="Microsoft.Diagnostics.Tracing.TraceEvent" version="1.0.41" />
     </dependencies>
   </metadata>
   <files>

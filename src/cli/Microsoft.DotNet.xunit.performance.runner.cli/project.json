@@ -18,18 +18,18 @@
   },
   "dependencies": {
     "Microsoft.DotNet.xunit.performance.run.core": "99.99.99-dev",
-    "Microsoft.NETCore.DotNetHostPolicy":"1.0.1-rc2-002357-00",
-    "NETStandard.Library": "1.5.0-rc2-23931",
-    "Microsoft.xunit.extensibility.execution.netcore": "1.0.0-prerelease-00508-01",
-    "System.Diagnostics.Process": "4.1.0-rc2-24103",
+    "Microsoft.NETCore.DotNetHostPolicy":"1.0.1-rc2-*",
+    "Microsoft.NETCore.Runtime.CoreCLR":"1.0.2",
+    "NETStandard.Library": "1.6.0",
+    "System.Diagnostics.Process": "4.1.*",
+    "xunit.runner.utility": "2.2.0-beta2-build3300"
   },
   "__comment": "netcoreapp1.0 import and the runtime below is a hack, we need CLI to allow us to build issue reference: https://github.com/dotnet/cli/issues/2913",
   "frameworks": {
     "netstandard1.3": {
       "imports": [
-        "dnxcore50",
-        "portable-net45+win8",
-        "netcoreapp1.0"
+        "netcoreapp1.0",
+        "portable-net45+win8"
       ]
     }
   },

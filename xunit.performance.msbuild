@@ -1,4 +1,4 @@
-﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="12.0">
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="14.0">
   <UsingTask
       AssemblyFile="packages\xunit.buildtasks\tools\CodePlex.MSBuildTasks.dll"
       TaskName="CodePlex.MSBuildTasks.RegexReplace"/>
@@ -42,7 +42,7 @@
       <TestAssemblies Include="Samples\SimplePerfTests\bin\$(Configuration)\SimplePerfTests.dll" />
     </ItemGroup>
 
-    <Exec Command="packages\xunit.runner.console.2.1.0\tools\xunit.console.exe @(TestAssemblies, ' ')" />
+    <Exec Command="packages\xunit.runner.console.2.2.0-beta2-build3300\tools\xunit.console.exe @(TestAssemblies, ' ')" />
   </Target>
 
   <Target Name="Clean">
