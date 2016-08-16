@@ -32,17 +32,17 @@
     "../../xunit.performance.analysis/Writers/XmlResultsWriter.cs"
   ],
   "dependencies": {
-      "Microsoft.NETCore.DotNetHostPolicy":"1.0.1-rc2-002357-00",
-      "NETStandard.Library": "1.5.0-rc2-23931",
-      "System.Linq.Parallel":"4.0.1-rc3-23928-00"
+      "Microsoft.NETCore.DotNetHostPolicy":"1.0.1-rc2-*",
+      "Microsoft.NETCore.Runtime.CoreCLR":"1.0.2",
+      "NETStandard.Library": "1.6.0",
+      "System.Linq.Parallel":"4.0.*"
   },
   "__comment": "netcoreapp1.0 import and the runtime below is a hack, we need CLI to allow us to build issue reference: https://github.com/dotnet/cli/issues/2913",
   "frameworks": {
     "netstandard1.3": {
       "imports": [
-        "dnxcore50",
-        "portable-net45+win8",
-        "netcoreapp1.0"
+        "netcoreapp1.0",
+        "portable-net45+win8"
       ]
     }
   },

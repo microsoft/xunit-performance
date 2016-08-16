@@ -19,8 +19,8 @@ bump the build number on BuildSemanticVersion below.
 :main
 setlocal
 
-set BuildAssemblyVersion=1.0.0.39
-set BuildSemanticVersion=1.0.0-alpha-build0039
+set BuildAssemblyVersion=1.0.0.40
+set BuildSemanticVersion=1.0.0-alpha-build0040
 set OutputDirectory=%~dp0LocalPackages
 set DotNet=%~dp0\tools\cli\bin\dotnet
 

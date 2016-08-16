@@ -1,16 +1,12 @@
-{
-  "supports": {
-    "net46.app": {},
-    "uwp.10.0.app": {}
-  },
+﻿{
+  "supports": {},
   "dependencies": {
-    "xunit.extensibility.core": "2.1.0",
-    "Microsoft.NETCore": "5.0.0",
-    "Microsoft.NETCore.Portable.Compatibility": "1.0.0"
+    "Microsoft.NETCore": "5.0.1",
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
+    "NETStandard.Library": "1.6.0",
+    "xunit.extensibility.core": "2.2.0-beta2-build3300"
   },
   "frameworks": {
-    "dotnet": {
-      "imports": "portable-net45+win8"
-    }
+    "netstandard1.3": {}
   }
 }

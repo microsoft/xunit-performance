@@ -15,7 +15,7 @@ Contains the tools necessary for running xunit Performance tests in Windows usin
     <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <dependencies>
-      <dependency id="xunit.runner.console" version="2.1.0" />
+      <dependency id="xunit.runner.console" version="2.2.0-beta2-build3300" />
     </dependencies>
   </metadata>
   <files>
@@ -36,9 +36,9 @@ Contains the tools necessary for running xunit Performance tests in Windows usin
     <file src="xunit.performance.run\bin\$Configuration$\xunit.runner.utility.desktop.dll" target="tools\" />
     <file src="xunit.performance.run\bin\$Configuration$\xunit.runner.utility.desktop.pdb" target="tools\" />
     <!-- Pick up the following directly from the nuget because they're not copied to bin\Release in non-DesignTimeBuild builds -->
-    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.39\lib\native\x86\KernelTraceControl.dll" target="tools\x86\" />
-    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.39\lib\native\x86\msdia140.dll" target="tools\x86\" />
-    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.39\lib\native\amd64\KernelTraceControl.dll" target="tools\amd64\" />
-    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.39\lib\native\amd64\msdia140.dll" target="tools\amd64\" />
+    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.41\lib\native\x86\KernelTraceControl.dll" target="tools\x86\" />
+    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.41\lib\native\x86\msdia140.dll" target="tools\x86\" />
+    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.41\lib\native\amd64\KernelTraceControl.dll" target="tools\amd64\" />
+    <file src="..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.1.0.41\lib\native\amd64\msdia140.dll" target="tools\amd64\" />
   </files>
 </package>
