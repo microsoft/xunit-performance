@@ -26,7 +26,7 @@ def projectFolder = Utilities.getFolderName(project) + '/' + Utilities.getFolder
                 }
             }
 
-            Utilities.setMachineAffinity(newWinJob, winOS, 'latest-or-auto-update3')
+            Utilities.setMachineAffinity(newWinJob, winOS, 'latest-or-auto')
             Utilities.standardJobSetup(newWinJob, project, isPR, "*/${branch}")
             Utilities.addArchival(newWinJob, 'LocalPackages.pack')
             Utilities.addArchival(newWinJob, 'msbuild.log', '', true, false)
