@@ -87,8 +87,13 @@ namespace Microsoft.Xunit.Performance.Analysis
             double[] newValues = new double[newArrayLength];
             Array.Copy(values, startIndex, newValues, 0, newArrayLength);
 
-            // Swap in the updated set of values.
-            _values = new List<double>(newValues);
+            // Ensure that we've not thrown out too much data.
+            // The cap here is 5%.
+            if (newValues.Length >= _values.Count / 20)
+            {
+                // Swap in the updated set of values.
+                _values = new List<double>(newValues);
+            }
         }
 
         private static double PercentileInSortedArray(double[] values, int percentage)
