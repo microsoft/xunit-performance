@@ -62,7 +62,7 @@ void EmptyBenchmark()
 
 For very small benchmarks that complete very quickly (microseconds), it is recommend to add an inner loop to ensure that test code runs long enough to dominate the harness overhead:
 
-1. Add the for loop using iteration.InnerIterationsCount as the number of loop iterations
+1. Add the for loop using Benchmark.InnerIterationCount as the number of loop iterations
 2. Specify the value of InnerIterationsCount using the [Benchmark] attribute
 
 ```csharp
@@ -71,7 +71,7 @@ void TestMethod()
 {
   foreach (var iteration in Benchmark.Iterations)
     using (iteration.StartMeasurement())
-      for(int i=0; i<iteration.InnerIterationsCount; i++)
+      for(int i=0; i<Benchmark.InnerIterationCount; i++)
         // test code here
 }
 ```
