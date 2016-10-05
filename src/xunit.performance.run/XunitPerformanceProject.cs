@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Xunit;
 
 namespace Microsoft.Xunit.Performance
@@ -30,7 +31,7 @@ namespace Microsoft.Xunit.Performance
 
         public string RunId { get; set; } = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss");
 
-        public string OutputDir { get; set; } = ".";
+        public string OutputDir { get; set; } = Directory.GetCurrentDirectory();
 
         private string _outputBaseFileName;
         public string OutputBaseFileName {
