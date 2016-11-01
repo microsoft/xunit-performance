@@ -1,0 +1,51 @@
+﻿<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
+  
+  <PropertyGroup>
+    <Description>Contains the tools necessary for running xunit Performance tests on .NET Core (Windows, Linux, OSX, etc.)</Description>
+    <AssemblyTitle>xUnit Performance analysis tool for dotnet cli</AssemblyTitle>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <VersionPrefix>1.0.0-alpha</VersionPrefix>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <AssemblyName>Microsoft.DotNet.xunit.performance.analysis.cli</AssemblyName>
+    <PackageIconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</PackageIconUrl>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/Microsoft/xunit-performance/master/LICENSE</PackageLicenseUrl>
+    <RuntimeIdentifiers>win7-x86;win7-x64;ubuntu.14.04-x64</RuntimeIdentifiers>
+    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.3' ">$(PackageTargetFallback);netcoreapp1.0;portable-net45+win8</PackageTargetFallback>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="**\*.cs" Exclude="bin\**;obj\**;**\*.xproj;packages\**" />
+    <Compile Include="..\..\xunit.performance.analysis\MathExtensions.cs;..\..\xunit.performance.analysis\Program.cs;..\..\xunit.performance.analysis\Properties.cs;..\..\xunit.performance.analysis\TestIterationResult.cs;..\..\xunit.performance.analysis\TestResult.cs;..\..\xunit.performance.analysis\TestResultComparison.cs;..\..\xunit.performance.analysis\TestStatistics.cs;..\..\xunit.performance.analysis\Writers\AbstractResultsWriter.cs;..\..\xunit.performance.analysis\Writers\CsvResultsWriter.cs;..\..\xunit.performance.analysis\Writers\CsvStatsWriter.cs;..\..\xunit.performance.analysis\Writers\HtmlResultsWriter.cs;..\..\xunit.performance.analysis\Writers\XmlResultsWriter.cs" Exclude="bin\**;obj\**;**\*.xproj;packages\**" />
+    <EmbeddedResource Include="**\*.resx" />
+    <EmbeddedResource Include="compiler\resources\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Sdk">
+      <Version>1.0.0-alpha-20161104-2</Version>
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NETCore.DotNetHostPolicy">
+      <Version>1.0.1-rc2-*</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NETCore.Runtime.CoreCLR">
+      <Version>1.0.2</Version>
+    </PackageReference>
+    <PackageReference Include="NETStandard.Library">
+      <Version>1.6.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Linq.Parallel">
+      <Version>4.0.*</Version>
+    </PackageReference>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <DefineConstants>LINUX_BUILD</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
+  </PropertyGroup>
+  
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
