@@ -67,7 +67,7 @@ namespace Microsoft.Xunit.Performance
         {
             public static readonly DurationMetric Instance = new DurationMetric();
 
-            private DurationMetric() : base("Duration", "Duration", PerformanceMetricUnits.Milliseconds) { }
+            private DurationMetric() : base("Duration", "Duration", PerformanceMetricUnits.Milliseconds, PerformanceMetricBetterDirections.Descending) { }
         }
     }
 }

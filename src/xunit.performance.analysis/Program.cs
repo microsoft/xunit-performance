@@ -214,6 +214,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                         comparisonResult.TestName = comparisonTest.TestName;
                         comparisonResult.PercentChange = (comparisonStats.Mean - baselineStats.Mean) / baselineStats.Mean;
                         comparisonResult.PercentChangeError = interval / baselineStats.Mean;
+                        comparisonResult.MetricInfo = Properties.AllMetrics[metricName];
 
                         comparisonResults.Add(comparisonResult);
                     }
@@ -328,13 +329,14 @@ namespace Microsoft.Xunit.Performance.Analysis
                     {
                         var metricName = metric.Name.LocalName;
                         var unit = metric.Attribute("unit").Value;
+                        var better = metric.Attribute("better").Value;
 
                         //
                         // Populate the set of all collected metrics 
                         //
                         if (!Properties.AllMetrics.ContainsKey(metricName))
                         {
-                            Properties.AllMetrics.Add(metricName, unit);
+                            Properties.AllMetrics.Add(metricName, new MetricInfo() { Unit = unit, BetterDirection = better });
                         }
                     }
                 }

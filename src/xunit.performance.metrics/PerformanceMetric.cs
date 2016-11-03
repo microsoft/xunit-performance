@@ -12,8 +12,8 @@ namespace Microsoft.Xunit.Performance.Sdk
     /// </summary>
     public abstract class PerformanceMetric : PerformanceMetricInfo
     {
-        public PerformanceMetric(string id, string displayName, string unit)
-            : base(id, displayName, unit)
+        public PerformanceMetric(string id, string displayName, string unit, string betterDirection)
+            : base(id, displayName, unit, betterDirection)
         {
         }
 

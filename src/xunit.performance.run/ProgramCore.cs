@@ -199,7 +199,12 @@ Arguments: {startInfo.Arguments}");
                         perfElem.Add(metricsElem);
 
                         foreach (var metric in metrics)
-                            metricsElem.Add(new XElement(metric.Id, new XAttribute("displayName", metric.DisplayName), new XAttribute("unit", metric.Unit)));
+                            metricsElem.Add(new XElement(
+                                metric.Id,
+                                new XAttribute("displayName", metric.DisplayName),
+                                new XAttribute("unit", metric.Unit),
+                                new XAttribute("better", metric.BetterDirection)
+                            ));
                     }
 
                     var iterations = evaluationContext.GetValues(testName);

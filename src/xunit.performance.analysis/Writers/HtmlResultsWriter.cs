@@ -8,7 +8,7 @@ namespace Microsoft.Xunit.Performance.Analysis
 {
     internal class HtmlResultsWriter : AbstractResultsWriter
     {
-        public HtmlResultsWriter(Dictionary<string, string> allMetrics,
+        public HtmlResultsWriter(Dictionary<string, MetricInfo> allMetrics,
                             Dictionary<string, Dictionary<string, TestResult>> testResults,
                             Dictionary<string, List<TestResultComparison>> comparisonResults,
                             string htmlOutputPath)
@@ -108,7 +108,7 @@ namespace Microsoft.Xunit.Performance.Analysis
                         if (test.Value.Stats.ContainsKey(metricName))
                         {
                             var stats = test.Value.Stats[metricName].RunningStatistics;
-                            this.OutputStream.WriteLine($"<tr><td>{test.Value.TestName}</td><td>{AllMetrics[metricName]}</td><td>{stats.Minimum.ToString("G3")}</td><td>{stats.Mean.ToString("G3")}</td><td>{stats.Maximum.ToString("G3")}</td><td>{stats.MarginOfError(Properties.ErrorConfidence).ToString("P1")}</td><td>{stats.StandardDeviation.ToString("G3")}</td></tr>");
+                            this.OutputStream.WriteLine($"<tr><td>{test.Value.TestName}</td><td>{AllMetrics[metricName].Unit}</td><td>{stats.Minimum.ToString("G3")}</td><td>{stats.Mean.ToString("G3")}</td><td>{stats.Maximum.ToString("G3")}</td><td>{stats.MarginOfError(Properties.ErrorConfidence).ToString("P1")}</td><td>{stats.StandardDeviation.ToString("G3")}</td></tr>");
                         }
                     }
                     this.OutputStream.WriteLine($"</table>");

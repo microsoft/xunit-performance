@@ -19,7 +19,7 @@ namespace Microsoft.Xunit.Performance
         private class BenchmarkDurationMetric : PerformanceMetric
         {
             public BenchmarkDurationMetric()
-                : base("Duration", "Duration", PerformanceMetricUnits.Milliseconds)
+                : base("Duration", "Duration", PerformanceMetricUnits.Milliseconds, PerformanceMetricBetterDirections.Descending)
             {
             }
 

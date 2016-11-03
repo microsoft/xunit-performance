@@ -8,7 +8,7 @@ namespace Microsoft.Xunit.Performance.Analysis
 {
     internal class CsvStatsWriter : AbstractResultsWriter
     {
-        public CsvStatsWriter(Dictionary<string, string> allMetrics,
+        public CsvStatsWriter(Dictionary<string, MetricInfo> allMetrics,
                                 Dictionary<string, Dictionary<string, TestResult>> testResults,
                                 Dictionary<string, List<TestResultComparison>> comparisonResults,
                                 string outputPath)
