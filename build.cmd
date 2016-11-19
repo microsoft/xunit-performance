@@ -49,10 +49,12 @@ popd
 pushd %~dp0src\xunit.performance.core
 call %DotNet% restore
 call %DotNet% build -c %BuildConfiguration% --version-suffix %VersionSuffix%
+call %DotNet% pack -c %BuildConfiguration% --version-suffix %VersionSuffix% --output %OutputDirectory% --include-symbols --include-source
 popd
 pushd %~dp0src\xunit.performance.execution
 call %DotNet% restore
 call %DotNet% build -c %BuildConfiguration% --version-suffix %VersionSuffix%
+call %DotNet% pack -c %BuildConfiguration% --version-suffix %VersionSuffix% --output %OutputDirectory% --include-symbols --include-source
 popd
 pushd %~dp0src\xunit.performance.logger
 call %DotNet% restore
@@ -89,5 +91,18 @@ popd
 pushd %~dp0src
 call %DotNet% nuget pack xunit.performance.nuspec -p Configuration=%BuildConfiguration% --version=%PackageVersion% --output-directory %OutputDirectory% --symbols
 call %DotNet% nuget pack xunit.performance.runner.Windows.nuspec -p Configuration=%BuildConfiguration% --version=%PackageVersion% --output-directory %OutputDirectory% --symbols
+popd
+
+pushd %~dp0src\xunit.performance.api
+call %DotNet% restore
+call %DotNet% build -c %BuildConfiguration% --version-suffix %VersionSuffix%
+call %DotNet% pack -c %BuildConfiguration% --version-suffix %VersionSuffix% --output %OutputDirectory% --include-symbols --include-source
+popd
+
+pushd %~dp0tests\simpleharness
+call %DotNet% restore
+call %DotNet% build -c %BuildConfiguration% --version-suffix %VersionSuffix%
+call %DotNet% bin\%BuildConfiguration%\netcoreapp1.0\simpleharness.dll
+popd
 
 goto :eof
