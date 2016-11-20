@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using Microsoft.Xunit.Performance;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -10,10 +11,22 @@ namespace Microsoft.Xunit.Performance.Api
         public XunitPerformanceHarness(string[] args)
         {
             _args = args;
+
+            // Set the run id.
+            Configuration.RunId = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss");
+
+            // Set the file log path.
+            // TODO: Conditionally set this based on whether we want a csv file written.
+            Configuration.FileLogPath = Configuration.RunId + ".csv";
         }
 
         void IDisposable.Dispose()
         {
+        }
+
+        public BenchmarkConfiguration Configuration
+        {
+            get { return BenchmarkConfiguration.Instance; }
         }
 
         public void RunBenchmarks(string assemblyPath)

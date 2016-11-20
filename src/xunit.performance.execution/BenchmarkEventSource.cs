@@ -29,7 +29,7 @@ namespace Microsoft.Xunit.Performance
         [NonEvent]
         private static StreamWriter OpenCSV()
         {
-            var logPath = BenchmarkConfiguration.FileLogPath;
+            var logPath = BenchmarkConfiguration.Instance.FileLogPath;
             if (logPath == null)
                 return null;
 

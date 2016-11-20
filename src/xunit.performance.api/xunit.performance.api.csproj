@@ -31,6 +31,8 @@
     <PackageReference Include="xunit.runner.utility">
       <Version>2.2.0-beta2-build3300</Version>
     </PackageReference>
+    <ProjectReference Include="..\xunit.performance.execution\xunit.performance.execution.csproj" />
+    <ProjectReference Include="..\xunit.performance.core\xunit.performance.core.csproj" />
   </ItemGroup>
   
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -41,7 +41,7 @@ namespace Microsoft.Xunit.Performance
             return iterator.RunAsync(async () =>
             {
                 var success = false;
-                BenchmarkEventSource.Log.BenchmarkStart(BenchmarkConfiguration.RunId, DisplayName);
+                BenchmarkEventSource.Log.BenchmarkStart(BenchmarkConfiguration.Instance.RunId, DisplayName);
                 try
                 {
                     var result = TestMethod.Invoke(testClassInstance, TestMethodArguments);
@@ -70,7 +70,7 @@ namespace Microsoft.Xunit.Performance
                 finally
                 {
                     var stopReason = success ? iterator.IterationStopReason : "TestFailed";
-                    BenchmarkEventSource.Log.BenchmarkStop(BenchmarkConfiguration.RunId, DisplayName, stopReason);
+                    BenchmarkEventSource.Log.BenchmarkStop(BenchmarkConfiguration.Instance.RunId, DisplayName, stopReason);
                     BenchmarkEventSource.Log.Flush();
                 }
             });
@@ -102,11 +102,11 @@ namespace Microsoft.Xunit.Performance
                 _innerIterations = innerIterationsCount;
                 if(_innerIterations > 1)
                 {
-                    _maxIterations = BenchmarkConfiguration.MaxIterationWhenInnerSpecified;
+                    _maxIterations = BenchmarkConfiguration.Instance.MaxIterationWhenInnerSpecified;
                 }
                 else
                 {
-                    _maxIterations = BenchmarkConfiguration.MaxIteration;
+                    _maxIterations = BenchmarkConfiguration.Instance.MaxIteration;
                 }
 
                 IterationStopReason = "NoIterations";
@@ -125,8 +125,8 @@ namespace Microsoft.Xunit.Performance
                         return true;
                     }
 
-                    if (_currentIteration > BenchmarkConfiguration.MinIteration && 
-                        _overallTimer.ElapsedMilliseconds > BenchmarkConfiguration.MaxTotalMilliseconds)
+                    if (_currentIteration > BenchmarkConfiguration.Instance.MinIteration && 
+                        _overallTimer.ElapsedMilliseconds > BenchmarkConfiguration.Instance.MaxTotalMilliseconds)
                     {
                         IterationStopReason = "MaxTime";
                         return true;
@@ -190,7 +190,7 @@ namespace Microsoft.Xunit.Performance
 
                     RandomizeMeasurementStartTime();
 
-                    BenchmarkEventSource.Log.BenchmarkIterationStart(BenchmarkConfiguration.RunId, _testName, iterationNumber);
+                    BenchmarkEventSource.Log.BenchmarkIterationStart(BenchmarkConfiguration.Instance.RunId, _testName, iterationNumber);
                 }
             }
 
@@ -252,7 +252,7 @@ namespace Microsoft.Xunit.Performance
                     Debug.Assert(_currentIterationMeasurementStarted);
                     _currentIterationMesaurementStopped = true;
 
-                    BenchmarkEventSource.Log.BenchmarkIterationStop(BenchmarkConfiguration.RunId, _testName, iterationNumber);
+                    BenchmarkEventSource.Log.BenchmarkIterationStop(BenchmarkConfiguration.Instance.RunId, _testName, iterationNumber);
                 }
             }
         }
