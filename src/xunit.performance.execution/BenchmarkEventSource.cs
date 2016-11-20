@@ -43,6 +43,16 @@ namespace Microsoft.Xunit.Performance
                 _csvWriter.Flush();
         }
 
+        // This can only be called when the process is done using the EventSource
+        // and all test cases have completed running.
+        // TODO: Remove once the CSV functionality is no longer needed.
+        [NonEvent]
+        internal void Close()
+        {
+            if (_csvWriter != null)
+                _csvWriter.Dispose();
+        }
+
         [NonEvent]
         private double GetTimestamp()
         {

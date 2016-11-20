@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.Xunit.Performance;
 
@@ -22,6 +23,12 @@ namespace Microsoft.Xunit.Performance.Api
 
         void IDisposable.Dispose()
         {
+            // Close the log when all test cases have completed execution.
+            // TODO: This is a hack because we haven't found a way to close the file from within xunit.
+            BenchmarkEventSource.Log.Close();
+
+            // Process the results now that we know we're done executing tests.
+            ProcessResults();
         }
 
         public BenchmarkConfiguration Configuration
@@ -39,6 +46,25 @@ namespace Microsoft.Xunit.Performance.Api
             // Invoke xunit to run benchmarks in the specified assembly.
             XunitRunner runner = new XunitRunner();
             runner.Run(assemblyPath);
+        }
+
+        private void ProcessResults()
+        {
+            CSVMetricReader reader = new CSVMetricReader(Configuration.FileLogPath);
+
+            foreach(string testCaseName in reader.TestCases)
+            {
+                Console.WriteLine($"\nTest Case: {testCaseName}");
+                List<Dictionary<string, double>> iterations = reader.GetValues(testCaseName);
+                for(int i=0; i<iterations.Count; i++)
+                {
+                    Dictionary<string, double> iter = iterations[i];
+                    foreach(KeyValuePair<string, double> result in iter)
+                    {
+                        Console.WriteLine($"Iter={i}; Metric={result.Key}; Value={result.Value}");
+                    }
+                }
+            }
         }
     }
 }
