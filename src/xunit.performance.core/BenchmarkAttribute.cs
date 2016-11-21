@@ -12,9 +12,9 @@ namespace Microsoft.Xunit.Performance
     /// Attribute that is applied to a method to indicate that it is a performance test that
     /// should be run and measured by the performance test runner.
     /// </summary>
-    [XunitTestCaseDiscoverer("Microsoft.Xunit.Performance.BenchmarkDiscoverer", "xunit.performance.execution.{Platform}")]
+    [XunitTestCaseDiscoverer("Microsoft.Xunit.Performance.BenchmarkDiscoverer", "xunit.performance.execution")]
     [PerformanceMetricDiscoverer("Microsoft.Xunit.Performance.BenchmarkMetricDiscoverer", "xunit.performance.metrics")]
-    [TraitDiscoverer("Microsoft.Xunit.Performance.BenchmarkDiscoverer", "xunit.performance.execution.{Platform}")]
+    [TraitDiscoverer("Microsoft.Xunit.Performance.BenchmarkDiscoverer", "xunit.performance.execution")]
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class BenchmarkAttribute : FactAttribute, IPerformanceMetricAttribute, ITraitAttribute
     {
