@@ -7,12 +7,10 @@
     <AssemblyName>xunit.performance.api</AssemblyName>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
-    <ProjectGuid>{801557D3-A84B-4EA8-A4E7-8BD66E874CD8}</ProjectGuid>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CSVMetricReader.cs" />
     <Compile Include="DictionaryExtensions.cs" />
-    <Compile Include="obj\debug\netstandard1.3\xunit.performance.api.AssemblyInfo.cs" />
     <Compile Include="Table\ColumnName.cs" />
     <Compile Include="Table\ColumnNameCollection.cs" />
     <Compile Include="Table\CSVFile.cs" />
