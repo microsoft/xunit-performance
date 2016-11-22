@@ -98,7 +98,7 @@ namespace Microsoft.Xunit.Performance.Api.Table
         }
     }
 
-    public sealed class CSVFile : IDisposable
+    internal sealed class CSVFile : IDisposable
     {
         private StreamWriter _Writer;
 
