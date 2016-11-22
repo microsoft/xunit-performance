@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Microsoft.Xunit.Performance.Api.Table
 {
-    public sealed class CSVReader : IDisposable
+    internal sealed class CSVReader : IDisposable
     {
         private StreamReader _Reader;
         private Dictionary<string, int> titlePositions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);

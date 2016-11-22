@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Microsoft.Xunit.Performance.Api.Table
 {
-    public sealed class DataTable
+    internal sealed class DataTable
     {
         private ColumnNameCollection _ColumnNames;
         private List<Row> _Rows;

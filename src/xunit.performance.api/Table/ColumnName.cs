@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Xunit.Performance.Api.Table
 {
-    public sealed class ColumnName
+    internal sealed class ColumnName
     {
         private DataTable _Table;
         private string _Name;

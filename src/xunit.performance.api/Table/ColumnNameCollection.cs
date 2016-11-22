@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Xunit.Performance.Api.Table
 {
-    public sealed class ColumnNameCollection : IEnumerable<ColumnName>
+    internal sealed class ColumnNameCollection : IEnumerable<ColumnName>
     {
         private DataTable _Table;
         private List<ColumnName> _ColumnNames;

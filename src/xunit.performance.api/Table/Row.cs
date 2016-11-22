@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.Xunit.Performance.Api.Table
 {
-    public sealed class Row
+    internal sealed class Row
     {
         private DataTable _Table;
         private Dictionary<ColumnName, string> _Cells = new Dictionary<ColumnName, string>();
