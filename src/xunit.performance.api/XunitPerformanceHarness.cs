@@ -68,15 +68,15 @@ namespace Microsoft.Xunit.Performance.Api
         /// <param name="reader"></param>
         private void WriteStatisticsToFile(CSVMetricReader reader)
         {
-            var summaryFilePath = $"{Configuration.RunId}-Summary.csv";
-            var summaryTable = new DataTable();
-            var col0_testName = summaryTable.AddColumn("Test Name");
-            var col1_metric = summaryTable.AddColumn("Metric");
-            var col2_iterations = summaryTable.AddColumn("Iterations");
-            var col3_average = summaryTable.AddColumn("Average");
-            var col4_stdevs = summaryTable.AddColumn("Sample standard deviation");
-            var col5_min = summaryTable.AddColumn("Minimum");
-            var col6_max = summaryTable.AddColumn("Maximum");
+            var statisticsFilePath = $"{Configuration.RunId}-Statistics.csv";
+            var statisticsTable = new DataTable();
+            var col0_testName = statisticsTable.AddColumn("Test Name");
+            var col1_metric = statisticsTable.AddColumn("Metric");
+            var col2_iterations = statisticsTable.AddColumn("Iterations");
+            var col3_average = statisticsTable.AddColumn("Average");
+            var col4_stdevs = statisticsTable.AddColumn("Sample standard deviation");
+            var col5_min = statisticsTable.AddColumn("Minimum");
+            var col6_max = statisticsTable.AddColumn("Maximum");
 
             foreach (var testCaseName in reader.TestCases)
             {
@@ -102,7 +102,7 @@ namespace Microsoft.Xunit.Performance.Api
                     var max = measurement.Value.Max();
                     var min = measurement.Value.Min();
 
-                    var r = summaryTable.AppendRow();
+                    var r = statisticsTable.AppendRow();
                     r[col0_testName] = testCaseName;
                     r[col1_metric] = metric;
                     r[col2_iterations] = count.ToString();
@@ -113,8 +113,8 @@ namespace Microsoft.Xunit.Performance.Api
                 }
             }
 
-            summaryTable.WriteToCSV(summaryFilePath);
-            Console.WriteLine($"Statistics written to \"{summaryFilePath}\"");
+            statisticsTable.WriteToCSV(statisticsFilePath);
+            Console.WriteLine($"\nStatistics written to \"{statisticsFilePath}\"\n");
         }
     }
 }
