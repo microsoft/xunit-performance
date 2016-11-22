@@ -29,7 +29,7 @@ namespace Microsoft.Xunit.Performance
         [NonEvent]
         private static StreamWriter OpenCSV()
         {
-            var logPath = BenchmarkConfiguration.FileLogPath;
+            var logPath = BenchmarkConfiguration.Instance.FileLogPath;
             if (logPath == null)
                 return null;
 
@@ -41,6 +41,16 @@ namespace Microsoft.Xunit.Performance
         {
             if (_csvWriter != null)
                 _csvWriter.Flush();
+        }
+
+        // This can only be called when the process is done using the EventSource
+        // and all test cases have completed running.
+        // TODO: Remove once the CSV functionality is no longer needed.
+        [NonEvent]
+        internal void Close()
+        {
+            if (_csvWriter != null)
+                _csvWriter.Dispose();
         }
 
         [NonEvent]

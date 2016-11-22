@@ -11,7 +11,7 @@ namespace Microsoft.Xunit.Performance
     {
         public Type GetTestFrameworkType(IAttributeInfo attribute)
         {
-            if (BenchmarkConfiguration.RunningAsPerfTest)
+            if (BenchmarkConfiguration.Instance.RunningAsPerfTest)
                 return typeof(BenchmarkTestFramework);
             else
                 return typeof(XunitTestFramework);
