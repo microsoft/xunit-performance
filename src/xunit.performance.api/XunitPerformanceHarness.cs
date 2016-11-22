@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Xunit.Performance;
@@ -43,6 +44,11 @@ namespace Microsoft.Xunit.Performance.Api
             if (string.IsNullOrEmpty(assemblyPath))
             {
                 throw new ArgumentNullException(nameof(assemblyPath));
+            }
+
+            if(!File.Exists(assemblyPath))
+            {
+                throw new FileNotFoundException(assemblyPath);
             }
 
             // Invoke xunit to run benchmarks in the specified assembly.
