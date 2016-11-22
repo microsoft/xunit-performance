@@ -1,5 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
   <PropertyGroup>
     <VersionPrefix>1.0.0-alpha</VersionPrefix>
@@ -9,15 +8,7 @@
     <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="CSVMetricReader.cs" />
-    <Compile Include="DictionaryExtensions.cs" />
-    <Compile Include="Table\ColumnName.cs" />
-    <Compile Include="Table\ColumnNameCollection.cs" />
-    <Compile Include="Table\CSVFile.cs" />
-    <Compile Include="Table\DataTable.cs" />
-    <Compile Include="Table\Row.cs" />
-    <Compile Include="XunitPerformanceHarness.cs" />
-    <Compile Include="XunitRunner.cs" />
+    <Compile Include="**\*.cs" />
     <EmbeddedResource Include="**\*.resx" />
   </ItemGroup>
   <ItemGroup>
