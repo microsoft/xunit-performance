@@ -49,10 +49,12 @@ popd
 pushd %~dp0src\xunit.performance.core
 call %DotNet% restore
 call %DotNet% build -c %BuildConfiguration% --version-suffix %VersionSuffix%
+call %DotNet% pack -c %BuildConfiguration% --version-suffix %VersionSuffix% --output %OutputDirectory% --include-symbols --include-source
 popd
 pushd %~dp0src\xunit.performance.execution
 call %DotNet% restore
 call %DotNet% build -c %BuildConfiguration% --version-suffix %VersionSuffix%
+call %DotNet% pack -c %BuildConfiguration% --version-suffix %VersionSuffix% --output %OutputDirectory% --include-symbols --include-source
 popd
 pushd %~dp0src\xunit.performance.logger
 call %DotNet% restore
