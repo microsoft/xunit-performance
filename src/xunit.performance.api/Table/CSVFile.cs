@@ -1,79 +1,84 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace Microsoft.Xunit.Performance.Api.Table
 {
     internal sealed class CSVReader : IDisposable
     {
-        private StreamReader _Reader;
-        private Dictionary<string, int> titlePositions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        private List<string[]> lines = new List<string[]>();
-
         public CSVReader(string filePath)
         {
-            var fs = new FileStream(filePath, FileMode.Open);
-            this._Reader = new StreamReader(fs);
+            _disposed = false;
+            _stream = new FileStream(filePath, FileMode.Open);
+            try
+            {
+                _reader = new StreamReader(_stream);
+            }
+            catch
+            {
+                _stream.Dispose();
+                throw;
+            }
+
+            _titlePositions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            _lines = new List<string[]>();
 
             // Get the title line
-            string line = this._Reader.ReadLine();
+            var line = _reader.ReadLine();
             if (line == null)
-            {
                 throw new InvalidDataException("No lines in CSV file.");
-            }
 
             string[] titles = FormatLine(line);
             for (int i = 0; i < titles.Length; ++i)
             {
-                this.titlePositions.Add(titles[i], i);
+                _titlePositions.Add(titles[i], i);
             }
 
-            while ((line = this._Reader.ReadLine()) != null)
+            while ((line = _reader.ReadLine()) != null)
             {
-                this.lines.Add(FormatLine(line));
+                _lines.Add(FormatLine(line));
             }
         }
 
         public Dictionary<string, int> TitlePositions
         {
-            get { return titlePositions; }
+            get { return _titlePositions; }
         }
 
         public string GetValue(int line, int pos)
         {
-            if (line > this.lines.Count || pos > this.lines[line].Length)
+            if (line > _lines.Count || pos > _lines[line].Length)
             {
                 throw new ArgumentException();
             }
 
-            return this.lines[line][pos];
+            return _lines[line][pos];
         }
 
         public string GetValue(int line, string name)
         {
             int pos;
-            if (line > this.lines.Count || !this.titlePositions.TryGetValue(name, out pos))
+            if (line > _lines.Count || !_titlePositions.TryGetValue(name, out pos))
             {
                 throw new ArgumentException();
             }
 
-            return this.GetValue(line, pos);
+            return GetValue(line, pos);
         }
 
         public int Length()
         {
-            return this.lines.Count;
+            return _lines.Count;
         }
 
         public int LineLength(int lineNumber)
         {
-            if (lineNumber > this.lines.Count)
+            if (lineNumber > _lines.Count)
             {
                 throw new ArgumentException();
             }
 
-            return this.lines[lineNumber].Length;
+            return _lines[lineNumber].Length;
         }
 
         private static string[] FormatLine(string line)
@@ -88,56 +93,124 @@ namespace Microsoft.Xunit.Performance.Api.Table
             return s;
         }
 
-        void IDisposable.Dispose()
+        #region IDisposable implementation
+
+        public void Close()
         {
-            if (_Reader != null)
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        public void Dispose()
+        {
+            Close();
+        }
+
+        ~CSVReader()
+        {
+            Dispose(false);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (!_disposed)
             {
-                _Reader.Dispose();
-                _Reader = null;
+                if (disposing)
+                    FreeManagedResources();
+                _disposed = true;
             }
         }
+
+        private void FreeManagedResources()
+        {
+            _reader.Dispose();
+            _stream.Dispose();
+        }
+
+        #endregion IDisposable implementation
+
+        private bool _disposed;
+        private Stream _stream;
+        private StreamReader _reader;
+        private Dictionary<string, int> _titlePositions;
+        private List<string[]> _lines;
     }
 
     internal sealed class CSVFile : IDisposable
     {
-        private StreamWriter _Writer;
-
         public CSVFile(string filePath)
         {
-            var fs = new FileStream(filePath, FileMode.OpenOrCreate);
-            _Writer = new StreamWriter(fs);
-        }
+            _disposed = false;
+            _stream = new FileStream(filePath, FileMode.Create);
 
-        void IDisposable.Dispose()
-        {
-            if (_Writer != null)
+            try
             {
-                _Writer.Dispose();
-                _Writer = null;
+                _writer = new StreamWriter(_stream);
+            }
+            catch
+            {
+                _stream.Dispose();
+                throw;
             }
         }
-
-        private const char Quote = '"';
-        private const char Comma = ',';
 
         public void WriteLine(string[] values)
         {
             // Iterate through the values, writing them out.
             for (int i = 0; i < values.Length; i++)
             {
-                _Writer.Write(Quote);
-                _Writer.Write(values[i]);
-                _Writer.Write(Quote);
+                var newValue = values[i].Replace("\"", "\"\"");
+                _writer.Write($"{Quote}{newValue}{Quote}");
 
                 // Write a comma to separate all values.  Don't write a comma after the last value.
                 if (i < values.Length - 1)
-                {
-                    _Writer.Write(Comma);
-                }
+                    _writer.Write(Comma);
             }
 
-            // Write the newline.
-            _Writer.WriteLine();
+            _writer.WriteLine();
         }
+
+        #region IDisposable implementation
+
+        public void Close()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        public void Dispose()
+        {
+            Close();
+        }
+
+        ~CSVFile()
+        {
+            Dispose(false);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                    FreeManagedResources();
+                _disposed = true;
+            }
+        }
+
+        private void FreeManagedResources()
+        {
+            _writer.Dispose();
+            _stream.Dispose();
+        }
+
+        #endregion IDisposable implementation
+
+        private const char Quote = '"';
+        private const char Comma = ',';
+
+        private bool _disposed;
+        private readonly Stream _stream;
+        private readonly StreamWriter _writer;
     }
 }
