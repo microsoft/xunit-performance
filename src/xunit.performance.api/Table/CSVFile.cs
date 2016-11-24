@@ -8,35 +8,30 @@ namespace Microsoft.Xunit.Performance.Api.Table
     {
         public CSVReader(string filePath)
         {
-            _disposed = false;
-            _stream = new FileStream(filePath, FileMode.Open);
             try
             {
+                _disposed = false;
+                _stream = new FileStream(filePath, FileMode.Open);
                 _reader = new StreamReader(_stream);
+                _titlePositions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                _lines = new List<string[]>();
+
+                // Get the title line
+                var line = _reader.ReadLine();
+                if (line == null)
+                    throw new InvalidDataException("No lines in CSV file.");
+
+                string[] titles = FormatLine(line);
+                for (int i = 0; i < titles.Length; ++i)
+                    _titlePositions.Add(titles[i], i);
+
+                while ((line = _reader.ReadLine()) != null)
+                    _lines.Add(FormatLine(line));
             }
             catch
             {
-                _stream.Dispose();
+                Dispose();
                 throw;
-            }
-
-            _titlePositions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            _lines = new List<string[]>();
-
-            // Get the title line
-            var line = _reader.ReadLine();
-            if (line == null)
-                throw new InvalidDataException("No lines in CSV file.");
-
-            string[] titles = FormatLine(line);
-            for (int i = 0; i < titles.Length; ++i)
-            {
-                _titlePositions.Add(titles[i], i);
-            }
-
-            while ((line = _reader.ReadLine()) != null)
-            {
-                _lines.Add(FormatLine(line));
             }
         }
 
@@ -123,8 +118,10 @@ namespace Microsoft.Xunit.Performance.Api.Table
 
         private void FreeManagedResources()
         {
-            _reader.Dispose();
-            _stream.Dispose();
+            if (_reader != null)
+                _reader.Dispose();
+            if (_stream != null)
+                _stream.Dispose();
         }
 
         #endregion IDisposable implementation
@@ -140,16 +137,15 @@ namespace Microsoft.Xunit.Performance.Api.Table
     {
         public CSVFile(string filePath)
         {
-            _disposed = false;
-            _stream = new FileStream(filePath, FileMode.Create);
-
             try
             {
+                _disposed = false;
+                _stream = new FileStream(filePath, FileMode.Create);
                 _writer = new StreamWriter(_stream);
             }
             catch
             {
-                _stream.Dispose();
+                Dispose();
                 throw;
             }
         }
@@ -200,8 +196,10 @@ namespace Microsoft.Xunit.Performance.Api.Table
 
         private void FreeManagedResources()
         {
-            _writer.Dispose();
-            _stream.Dispose();
+            if (_writer != null)
+                _writer.Dispose();
+            if (_stream != null)
+                _stream.Dispose();
         }
 
         #endregion IDisposable implementation
