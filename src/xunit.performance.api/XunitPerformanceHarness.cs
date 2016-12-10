@@ -1,20 +1,18 @@
+using Microsoft.Xunit.Performance.Api.Table;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using Microsoft.Xunit.Performance;
-using Microsoft.Xunit.Performance.Api.Table;
+using static Microsoft.Xunit.Performance.Api.XunitPerformanceProcess;
 
 namespace Microsoft.Xunit.Performance.Api
 {
     public sealed class XunitPerformanceHarness : IDisposable
     {
-        private string[] _args;
-
         public XunitPerformanceHarness(string[] args)
         {
             _args = args;
+            _disposed = false;
 
             // Set the run id.
             Configuration.RunId = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss");
@@ -24,36 +22,23 @@ namespace Microsoft.Xunit.Performance.Api
             Configuration.FileLogPath = Configuration.RunId + ".csv";
         }
 
-        void IDisposable.Dispose()
-        {
-            // Close the log when all test cases have completed execution.
-            // TODO: This is a hack because we haven't found a way to close the file from within xunit.
-            BenchmarkEventSource.Log.Close();
-
-            // Process the results now that we know we're done executing tests.
-            ProcessResults();
-        }
-
         public BenchmarkConfiguration Configuration
         {
             get { return BenchmarkConfiguration.Instance; }
         }
 
-        public void RunBenchmarks(string assemblyPath)
+        public int RunBenchmarks(string assemblyPath)
+        {
+            Validate(assemblyPath);
+            return ETWProfiler.Profile(assemblyPath, Configuration.RunId, () => XunitRunner.Run(assemblyPath));
+        }
+
+        private static void Validate(string assemblyPath)
         {
             if (string.IsNullOrEmpty(assemblyPath))
-            {
                 throw new ArgumentNullException(nameof(assemblyPath));
-            }
-
-            if(!File.Exists(assemblyPath))
-            {
+            if (!File.Exists(assemblyPath))
                 throw new FileNotFoundException(assemblyPath);
-            }
-
-            // Invoke xunit to run benchmarks in the specified assembly.
-            XunitRunner runner = new XunitRunner();
-            runner.Run(assemblyPath);
         }
 
         private void ProcessResults()
@@ -116,5 +101,52 @@ namespace Microsoft.Xunit.Performance.Api
             statisticsTable.WriteToCSV(statisticsFilePath);
             Console.WriteLine($"\nStatistics written to \"{statisticsFilePath}\"\n");
         }
+
+        #region IDisposable implementation
+
+        public void Dispose()
+        {
+            // Close the log when all test cases have completed execution.
+            // TODO: This is a hack because we haven't found a way to close the file from within xunit.
+            BenchmarkEventSource.Log.Close();
+
+            // Process the results now that we know we're done executing tests.
+            ProcessResults();
+
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~XunitPerformanceHarness()
+        {
+            Dispose(false);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    FreeManagedResources();
+                }
+
+                FreeUnManagedResources();
+                _disposed = true;
+            }
+        }
+
+        private void FreeManagedResources()
+        {
+        }
+
+        private void FreeUnManagedResources()
+        {
+        }
+
+        #endregion IDisposable implementation
+
+        private readonly string[] _args;
+        private bool _disposed;
     }
 }
