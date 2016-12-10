@@ -4,108 +4,101 @@
 
 using System;
 using System.Threading;
-using System.Reflection;
 using Xunit.Runners;
+using static Microsoft.Xunit.Performance.Api.XunitPerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    public class XunitRunner
+    public static class XunitRunner
     {
-        // We use consoleLock because messages can arrive in parallel, so we want to make sure we get
-        // consistent console output.
-        private object _consoleLock = new object();
-
-        // Use an event to know when we're done
-        private ManualResetEvent _finished = new ManualResetEvent(false);
-
-        // Start out assuming success; we'll set this to 1 if we get a failed test
-        private int _result = 0;
-
-        public int Run(string assemblyPath)
+        public static int Run(string assemblyPath, string typeName = null)
         {
+            if(typeName != null && string.IsNullOrWhiteSpace(typeName))
+                throw new ArgumentException();
+
             // Create a runner for the specifid assembly.
-            using(AssemblyRunner runner = AssemblyRunner.WithoutAppDomain(assemblyPath))
+            using (var runner = AssemblyRunner.WithoutAppDomain(assemblyPath))
             {
-                // Setup callbacks.
-                runner.OnDiscoveryComplete = OnDiscoveryComplete;
-                runner.OnExecutionComplete = OnExecutionComplete;
-                runner.OnTestStarting = OnTestStarting;
-                runner.OnTestFailed = OnTestFailed;
-                runner.OnTestSkipped = OnTestSkipped;
+                // Start out assuming success; we'll set this to 1 if we get a failed test
+                var result = new int[] { 0 };
 
-                Console.WriteLine("\nDiscovering performance tests in {0}.", assemblyPath);
+                // Use an event to know when we're done
+                using (var finished = new ManualResetEvent(false))
+                {
+                    // We use consoleLock because messages can arrive in parallel, so we want to make sure we get
+                    // consistent console output.
+                    var consoleLock = new object();
 
-                // Start running tests.
-                runner.Start(null);
+                    SetupRunnerCallbacks(runner, finished, consoleLock, result);
+                    WriteInfoLine($"Discovering performance tests in \"{assemblyPath}\".");
 
-                // Wait for tests to complete.
-                _finished.WaitOne();
-                _finished.Dispose();
+                    runner.Start(typeName);
+
+                    // Wait for tests to complete.
+                    finished.WaitOne();
+                    finished.Dispose();
+                }
 
                 // Wait for the assembly runner to go idle.
-                ManualResetEvent waitHandle = new ManualResetEvent(false);
-                while(runner.Status != AssemblyRunnerStatus.Idle)
-                {
-                    waitHandle.WaitOne(10);
-                }
+                using (var waitHandle = new ManualResetEvent(false))
+                    while (runner.Status != AssemblyRunnerStatus.Idle)
+                        waitHandle.WaitOne(10);
 
                 // Return overall status.
-                return _result;
+                return result[0];
             }
         }
 
-        private void OnDiscoveryComplete(DiscoveryCompleteInfo info)
+        private static void SetupRunnerCallbacks(AssemblyRunner runner, ManualResetEvent manualResetEvent, object consoleLock, int[] result)
         {
-            lock (_consoleLock)
+            runner.OnDiscoveryComplete = info =>
             {
-                Console.WriteLine($"Running {info.TestCasesToRun} of {info.TestCasesDiscovered} tests...");
-            }
-        }
-
-        private void OnExecutionComplete(ExecutionCompleteInfo info)
-        {
-            lock (_consoleLock)
-            {
-                Console.WriteLine($"Finished: {info.TotalTests} tests in {Math.Round(info.ExecutionTime, 3)}s ({info.TestsFailed} failed, {info.TestsSkipped} skipped)");
-            }
-
-            _finished.Set();
-        }
-
-        private void OnTestStarting(TestStartingInfo info)
-        {
-            lock (_consoleLock)
-            {
-                Console.WriteLine($"Running: {info.TestDisplayName}");
-            }
-        }
-
-        private void OnTestFailed(TestFailedInfo info)
-        {
-            lock (_consoleLock)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("[FAIL] {0}: {1}", info.TestDisplayName, info.ExceptionMessage);
-                
-                if (info.ExceptionStackTrace != null)
+                lock (consoleLock)
                 {
-                    Console.WriteLine(info.ExceptionStackTrace);
+                    Console.WriteLine($"Running {info.TestCasesToRun} of {info.TestCasesDiscovered} tests...");
+                }
+            };
+            runner.OnExecutionComplete = info =>
+            {
+                lock (consoleLock)
+                {
+                    Console.WriteLine($"Finished: {info.TotalTests} tests in {Math.Round(info.ExecutionTime, 3)}s ({info.TestsFailed} failed, {info.TestsSkipped} skipped)");
                 }
 
-                Console.ResetColor();
-            }
-
-            _result = 1;
-        }
-
-        private void OnTestSkipped(TestSkippedInfo info)
-        {
-            lock (_consoleLock)
+                manualResetEvent.Set();
+            };
+            runner.OnTestStarting = info =>
             {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("[SKIP] {0}: {1}", info.TestDisplayName, info.SkipReason);
-                Console.ResetColor();
-            }
+                lock (consoleLock)
+                {
+                    Console.WriteLine($"Running: {info.TestDisplayName}");
+                }
+            };
+            runner.OnTestFailed = info =>
+            {
+                lock (consoleLock)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("[FAIL] {0}: {1}", info.TestDisplayName, info.ExceptionMessage);
+
+                    if (info.ExceptionStackTrace != null)
+                    {
+                        Console.WriteLine(info.ExceptionStackTrace);
+                    }
+
+                    Console.ResetColor();
+                }
+                result[0] = 1;
+            };
+            runner.OnTestSkipped = info =>
+            {
+                lock (consoleLock)
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("[SKIP] {0}: {1}", info.TestDisplayName, info.SkipReason);
+                    Console.ResetColor();
+                }
+            };
         }
     }
 }
