@@ -82,7 +82,8 @@ namespace Microsoft.Xunit.Performance.Api
             var providers = GetProviders(assemblyFileName);
             var kernelProviderInfo = providers.OfType<KernelProviderInfo>().FirstOrDefault();
             var needKernelSession = NeedSeparateKernelSession(kernelProviderInfo);
-            needKernelSession = false;
+            TResult result;
+
             using (var kernelSession = needKernelSession ? new TraceEventSession(KernelTraceEventParser.KernelSessionName, kernelFullFileName) : null)
             {
                 if (kernelSession != null)
@@ -107,11 +108,12 @@ namespace Microsoft.Xunit.Performance.Api
                     foreach (var userProviderInfo in providers.OfType<UserProviderInfo>())
                         userEventSession.EnableProvider(userProviderInfo.ProviderGuid, userProviderInfo.Level, userProviderInfo.Keywords);
 
-                    TResult result = func.Invoke();
-                    TraceEventSession.MergeInPlace(userFullFileName, Console.Out);
-                    return result;
+                    result = func.Invoke();
                 }
             }
+
+            TraceEventSession.MergeInPlace(userFullFileName, Console.Out);
+            return result;
         }
 
         private static IEnumerable<ProviderInfo> GetProviders(string assemblyFileName)
@@ -137,7 +139,7 @@ namespace Microsoft.Xunit.Performance.Api
                         from provider in metric.ProviderInfo
                         select provider;
 
-                    providers = ProviderInfo.Merge(providers); // H@CK: ???
+                    providers = ProviderInfo.Merge(providers);
                     return ProviderInfo.Merge(RequiredProviders.Concat(providers));
                 }
             }
@@ -191,7 +193,7 @@ namespace Microsoft.Xunit.Performance.Api
                 //    return false;
                 //if (os.Version.Major == 6 && os.Version.Minor < 2)
                 //    return false;
-                return true; // H@CK: Assuming we are on Windows 10 if we are running .NET Core
+                return true; // H@CK: Assuming this is true on .NET Core
             }
         }
 

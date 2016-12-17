@@ -15,7 +15,7 @@ namespace Microsoft.Xunit.Performance.Api
             _disposed = false;
 
             // Set the run id.
-            Configuration.RunId = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss");
+            Configuration.RunId = $"{DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss")}";
 
             // Set the file log path.
             // TODO: Conditionally set this based on whether we want a csv file written.
@@ -53,6 +53,7 @@ namespace Microsoft.Xunit.Performance.Api
         /// <param name="reader"></param>
         private void WriteStatisticsToFile(CSVMetricReader reader)
         {
+            // FIXME: Update the statistics file name.
             var statisticsFilePath = $"{Configuration.RunId}-Statistics.csv";
             var statisticsTable = new DataTable();
             var col0_testName = statisticsTable.AddColumn("Test Name");

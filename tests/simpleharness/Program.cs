@@ -14,13 +14,7 @@ namespace simpleharness
         public static void Main(string[] args)
         {
             using (var p = new XunitPerformanceHarness(args))
-            {
-                string entryAssemblyPath = Assembly.GetEntryAssembly().Location;
-                for (int i = 0; i < 5; i++)
-                {
-                    p.RunBenchmarks(entryAssemblyPath);
-                }
-            }
+                p.RunBenchmarks(Assembly.GetEntryAssembly().Location);
         }
 
         public sealed class Type_1
