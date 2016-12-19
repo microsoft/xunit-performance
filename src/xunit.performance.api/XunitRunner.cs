@@ -14,7 +14,7 @@ namespace Microsoft.Xunit.Performance.Api
         public static int Run(string assemblyPath, string typeName = null)
         {
             if(typeName != null && string.IsNullOrWhiteSpace(typeName))
-                throw new ArgumentException();
+                throw new ArgumentException("The test type name cannot be white space.");
 
             // Create a runner for the specifid assembly.
             using (var runner = AssemblyRunner.WithoutAppDomain(assemblyPath))
@@ -55,14 +55,14 @@ namespace Microsoft.Xunit.Performance.Api
             {
                 lock (consoleLock)
                 {
-                    Console.WriteLine($"Running {info.TestCasesToRun} of {info.TestCasesDiscovered} tests...");
+                    WriteInfoLine($"Running {info.TestCasesToRun} of {info.TestCasesDiscovered} tests...");
                 }
             };
             runner.OnExecutionComplete = info =>
             {
                 lock (consoleLock)
                 {
-                    Console.WriteLine($"Finished: {info.TotalTests} tests in {Math.Round(info.ExecutionTime, 3)}s ({info.TestsFailed} failed, {info.TestsSkipped} skipped)");
+                    WriteInfoLine($"Finished: {info.TotalTests} tests in {Math.Round(info.ExecutionTime, 3)}s ({info.TestsFailed} failed, {info.TestsSkipped} skipped)");
                 }
 
                 manualResetEvent.Set();
@@ -71,22 +71,19 @@ namespace Microsoft.Xunit.Performance.Api
             {
                 lock (consoleLock)
                 {
-                    Console.WriteLine($"Running: {info.TestDisplayName}");
+                    WriteInfoLine($"Running: {info.TestDisplayName}");
                 }
             };
             runner.OnTestFailed = info =>
             {
                 lock (consoleLock)
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("[FAIL] {0}: {1}", info.TestDisplayName, info.ExceptionMessage);
+                    WriteErrorLine($"{info.TestDisplayName}: {info.ExceptionMessage}");
 
                     if (info.ExceptionStackTrace != null)
                     {
-                        Console.WriteLine(info.ExceptionStackTrace);
+                        WriteErrorLine(info.ExceptionStackTrace);
                     }
-
-                    Console.ResetColor();
                 }
                 result[0] = 1;
             };
@@ -94,9 +91,7 @@ namespace Microsoft.Xunit.Performance.Api
             {
                 lock (consoleLock)
                 {
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine("[SKIP] {0}: {1}", info.TestDisplayName, info.SkipReason);
-                    Console.ResetColor();
+                    WriteWarningLine($"[SKIP] {info.TestDisplayName}: {info.SkipReason}");
                 }
             };
         }
