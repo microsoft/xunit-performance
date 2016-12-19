@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -6,30 +7,54 @@ namespace Microsoft.Xunit.Performance.Api
     {
         public static void WriteInfoLine(string value)
         {
-            WriteLine($"[INFO ] {value}", ConsoleColor.Black, ConsoleColor.White);
+            WriteLine($"[INF] {value}", ConsoleColor.Black, ConsoleColor.White);
         }
 
         public static void WriteErrorLine(string value)
         {
-            WriteLine($"[ERROR] {value}", ConsoleColor.Black, ConsoleColor.Red);
+            WriteLine($"[ERR] {value}", ConsoleColor.Black, ConsoleColor.Red);
         }
 
         public static void WriteWarningLine(string value)
         {
-            WriteLine($"[WARN ] {value}", ConsoleColor.Black, ConsoleColor.Yellow);
+            WriteLine($"[WRN] {value}", ConsoleColor.Black, ConsoleColor.Yellow);
         }
 
+        [Conditional("DEBUG")]
         public static void WriteDebugLine(string value)
         {
-            WriteLine($"[DEBUG] {value}", ConsoleColor.Yellow, ConsoleColor.Blue);
+            WriteLine($"[DBG] {value}", ConsoleColor.Yellow, ConsoleColor.Blue);
         }
 
         private static void WriteLine(string value, ConsoleColor background, ConsoleColor foreground)
         {
-            Console.BackgroundColor = background;
-            Console.ForegroundColor = foreground;
-            Console.Out.WriteLine($"[{DateTime.Now}] {value}");
-            Console.ResetColor();
+            using (var conColor = new ConColor(background, foreground))
+                Console.Out.WriteLine($"[{DateTime.Now}] {value}");
+        }
+
+        private sealed class ConColor : IDisposable
+        {
+            public ConColor(ConsoleColor background, ConsoleColor foreground)
+            {
+                // Save previous setting.
+                _background = Console.BackgroundColor;
+                _foreground = Console.ForegroundColor;
+
+                // Set new setting.
+                Console.BackgroundColor = background;
+                Console.ForegroundColor = foreground;
+            }
+
+            public void Dispose()
+            {
+                // Restore previous setting.
+                Console.BackgroundColor = _background;
+                Console.ForegroundColor = _foreground;
+                GC.SuppressFinalize(this);
+            }
+
+            private ConsoleColor _background;
+            private ConsoleColor _foreground;
         }
     }
 }

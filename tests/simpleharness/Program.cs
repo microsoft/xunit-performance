@@ -5,7 +5,6 @@ using System.Reflection;
 [assembly: MeasureGCAllocations]
 [assembly: MeasureGCCounts]
 [assembly: MeasureInstructionsRetired]
-[assembly: OptimizeForBenchmarks]
 
 namespace simpleharness
 {
