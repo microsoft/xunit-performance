@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using static Microsoft.Xunit.Performance.Api.XunitPerformanceProcess;
+using static Microsoft.Xunit.Performance.Api.XunitPerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -30,7 +30,9 @@ namespace Microsoft.Xunit.Performance.Api
         public int RunBenchmarks(string assemblyPath)
         {
             Validate(assemblyPath);
-            return ETWProfiler.Profile(assemblyPath, Configuration.RunId, () => XunitRunner.Run(assemblyPath));
+            int errCode = 0;
+            ETWProfiler.Profile(assemblyPath, Configuration.RunId, () => { errCode = XunitRunner.Run(assemblyPath); });
+            return errCode;
         }
 
         private static void Validate(string assemblyPath)
@@ -43,8 +45,13 @@ namespace Microsoft.Xunit.Performance.Api
 
         private void ProcessResults()
         {
-            CSVMetricReader reader = new CSVMetricReader(Configuration.FileLogPath);
+            var reader = new CSVMetricReader(Configuration.FileLogPath);
             WriteStatisticsToFile(reader);
+
+#if !DEBUG
+            // Deleting raw data not used by api users.
+            File.Delete(Configuration.FileLogPath);
+#endif
         }
 
         /// <summary>
@@ -54,7 +61,6 @@ namespace Microsoft.Xunit.Performance.Api
         private void WriteStatisticsToFile(CSVMetricReader reader)
         {
             // FIXME: Update the statistics file name.
-            var statisticsFilePath = $"{Configuration.RunId}-Statistics.csv";
             var statisticsTable = new DataTable();
             var col0_testName = statisticsTable.AddColumn("Test Name");
             var col1_metric = statisticsTable.AddColumn("Metric");
@@ -66,9 +72,9 @@ namespace Microsoft.Xunit.Performance.Api
 
             foreach (var testCaseName in reader.TestCases)
             {
-                List<Dictionary<string, double>> iterations = reader.GetValues(testCaseName);
-
+                var iterations = reader.GetValues(testCaseName);
                 var measurements = new Dictionary<string, List<double>>();
+
                 foreach (var dict in iterations)
                 {
                     foreach (var pair in dict)
@@ -99,21 +105,15 @@ namespace Microsoft.Xunit.Performance.Api
                 }
             }
 
+            var statisticsFilePath = $"{Configuration.RunId}-Statistics.csv";
             statisticsTable.WriteToCSV(statisticsFilePath);
-            Console.WriteLine($"\nStatistics written to \"{statisticsFilePath}\"\n");
+            WriteInfoLine($"Statistics written to \"{statisticsFilePath}\"");
         }
 
-        #region IDisposable implementation
+#region IDisposable implementation
 
         public void Dispose()
         {
-            // Close the log when all test cases have completed execution.
-            // TODO: This is a hack because we haven't found a way to close the file from within xunit.
-            BenchmarkEventSource.Log.Close();
-
-            // Process the results now that we know we're done executing tests.
-            ProcessResults();
-
             Dispose(true);
             GC.SuppressFinalize(this);
         }
@@ -128,10 +128,7 @@ namespace Microsoft.Xunit.Performance.Api
             if (!_disposed)
             {
                 if (disposing)
-                {
                     FreeManagedResources();
-                }
-
                 FreeUnManagedResources();
                 _disposed = true;
             }
@@ -139,13 +136,19 @@ namespace Microsoft.Xunit.Performance.Api
 
         private void FreeManagedResources()
         {
+            // Close the log when all test cases have completed execution.
+            // HACK: This is a hack because we haven't found a way to close the file from within xunit.
+            BenchmarkEventSource.Log.Close();
+
+            // Process the results now that we know we're done executing tests.
+            ProcessResults();
         }
 
         private void FreeUnManagedResources()
         {
         }
 
-        #endregion IDisposable implementation
+#endregion IDisposable implementation
 
         private readonly string[] _args;
         private bool _disposed;

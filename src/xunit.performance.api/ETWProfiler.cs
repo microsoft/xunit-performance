@@ -12,7 +12,6 @@ using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.Xunit.Performance.Api.XunitPerformanceLogger;
-using static Microsoft.Xunit.Performance.Api.XunitPerformanceProcess;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -58,31 +57,31 @@ namespace Microsoft.Xunit.Performance.Api
         ///     4. Get non-kernel ETW flags set and enable them
         ///     5. Run the benchmarks
         ///     6. Stop collecting ETW
+        ///     7. Merge ETL files.
         /// </summary>
-        /// <typeparam name="TResult"></typeparam>
         /// <param name="assemblyFileName"></param>
         /// <param name="sessionName"></param>
-        /// <param name="func"></param>
+        /// <param name="action"></param>
         /// <param name="bufferSizeMB"></param>
         /// <returns></returns>
-        public static TResult Profile<TResult>(string assemblyFileName, string sessionName, Func<TResult> func, int bufferSizeMB = 128)
+        public static void Profile(string assemblyFileName, string sessionName, Action action, int bufferSizeMB = 128)
         {
-            var session = Path.GetFileNameWithoutExtension(assemblyFileName);
-            var userFileName = $"{session}.etl";
-            var kernelFileName = $"{session}.kernel.etl";
-            var userFullFileName = Path.Combine(CurrentWorkingDirectory, userFileName);
-            var kernelFullFileName = Path.Combine(CurrentWorkingDirectory, kernelFileName);
+            var sessionFileName = $"{sessionName}-{Path.GetFileNameWithoutExtension(assemblyFileName)}";
+            var userFileName = $"{sessionFileName}.etl";
+            var kernelFileName = $"{sessionFileName}.kernel.etl";
+            var currentWorkingDirectory = Directory.GetCurrentDirectory();
+            var userFullFileName = Path.Combine(currentWorkingDirectory, userFileName);
+            var kernelFullFileName = Path.Combine(currentWorkingDirectory, kernelFileName);
 
             WriteDebugLine("  ===== ETW Profiling information =====");
             WriteDebugLine($"       Assembly: {assemblyFileName}");
-            WriteDebugLine($"  ETW file name: {userFullFileName}");
             WriteDebugLine($"   Session name: {sessionName}");
+            WriteDebugLine($"  ETW file name: {userFullFileName}");
             WriteDebugLine("  =====================================");
 
             var providers = GetProviders(assemblyFileName);
             var kernelProviderInfo = providers.OfType<KernelProviderInfo>().FirstOrDefault();
             var needKernelSession = NeedSeparateKernelSession(kernelProviderInfo);
-            TResult result;
 
             using (var kernelSession = needKernelSession ? new TraceEventSession(KernelTraceEventParser.KernelSessionName, kernelFullFileName) : null)
             {
@@ -108,12 +107,12 @@ namespace Microsoft.Xunit.Performance.Api
                     foreach (var userProviderInfo in providers.OfType<UserProviderInfo>())
                         userEventSession.EnableProvider(userProviderInfo.ProviderGuid, userProviderInfo.Level, userProviderInfo.Keywords);
 
-                    result = func.Invoke();
+                    action.Invoke();
                 }
             }
 
             TraceEventSession.MergeInPlace(userFullFileName, Console.Out);
-            return result;
+            WriteInfoLine($"ETW Tracing Session saved to \"{userFullFileName}\"");
         }
 
         private static IEnumerable<ProviderInfo> GetProviders(string assemblyFileName)
