@@ -4,8 +4,8 @@ goto :main
 :main
 setlocal
 
-set PackageVersion=1.0.0-alpha-build0043
 set VersionSuffix=build0043
+set PackageVersion=1.0.0-alpha-%VersionSuffix%
 
 echo Building version %PackageVersion% NuGet packages.
 

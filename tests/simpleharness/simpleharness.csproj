@@ -13,14 +13,10 @@
     <EmbeddedResource Include="app.manifest" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NETCore.App">
-      <Version>1.0.1</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.NET.Sdk">
-      <Version>1.0.0-alpha-20161104-2</Version>
+    <PackageReference Include="Microsoft.NETCore.App" Version="1.0.1" />
+    <PackageReference Include="Microsoft.NET.Sdk" Version="1.0.0-alpha-20161104-2">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
-    <ProjectReference Include="..\..\..\perfview\src\TraceEvent\.NETCore\TraceEventCore.csproj" />
     <ProjectReference Include="..\..\src\xunit.performance.api\xunit.performance.api.csproj" />
     <ProjectReference Include="..\..\src\xunit.performance.core\xunit.performance.core.csproj" />
     <ProjectReference Include="..\..\src\xunit.performance.execution\xunit.performance.execution.csproj" />

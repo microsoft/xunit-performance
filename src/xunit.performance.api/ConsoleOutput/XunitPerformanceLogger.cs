@@ -29,7 +29,7 @@ namespace Microsoft.Xunit.Performance.Api
         private static void WriteLine(string value, ConsoleColor background, ConsoleColor foreground)
         {
             using (var conColor = new ConColor(background, foreground))
-                Console.Out.WriteLine($"[{DateTime.Now}] {value}");
+                Console.Out.WriteLine($"[{DateTime.Now}]{value}");
         }
 
         private sealed class ConColor : IDisposable

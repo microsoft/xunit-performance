@@ -16,22 +16,26 @@
     <EmbeddedResource Include="**\*.resx" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Sdk">
-      <Version>1.0.0-alpha-20161104-2</Version>
+    <PackageReference Include="MarkdownLog" Version="1.0.0" />
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="1.0.0-alpha">
+      <IncludeAssets>All</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Sdk" Version="1.0.0-alpha-20161104-2">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="NETStandard.Library">
-      <Version>1.6.1</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.utility">
-      <Version>2.2.0-beta2-build3300</Version>
-    </PackageReference>
+    <PackageReference Include="NETStandard.Library" Version="1.6.1" />
+    <PackageReference Include="System.ValueTuple" Version="4.3.0" />
+    <PackageReference Include="xunit.runner.utility" Version="2.2.0-beta2-build3300" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\perfview\src\TraceEvent\.NETCore\TraceEventCore.csproj" />
     <ProjectReference Include="..\xunit.performance.core\xunit.performance.core.csproj" />
     <ProjectReference Include="..\xunit.performance.execution\xunit.performance.execution.csproj" />
     <ProjectReference Include="..\xunit.performance.metrics\xunit.performance.metrics.csproj" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="PrePackage" BeforeTargets="BuildPackage">
+    <PropertyGroup>
+      <BuildCommand>$(BuildCommand) -IncludeReferencedProjects</BuildCommand>
+    </PropertyGroup>
+  </Target>
 </Project>

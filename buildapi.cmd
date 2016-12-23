@@ -4,13 +4,13 @@ goto :main
 :main
 setlocal
 
-set BuildConfiguration=%1%
+set BuildConfiguration=%~1
 if "%BuildConfiguration%"=="" set BuildConfiguration=Debug
 
-set VersionSuffix=%2%
+set VersionSuffix=%~2
 if "%VersionSuffix%"=="" set VersionSuffix=build0000
 
-set PackageVersion=%3%
+set PackageVersion=%~3
 if "%PackageVersion%"=="" set PackageVersion=1.0.0-alpha-build0000
 
 set OutputDirectory=%~dp0LocalPackages
