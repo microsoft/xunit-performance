@@ -1,3 +1,4 @@
+using MarkdownLog;
 using Microsoft.Xunit.Performance.Api.Table;
 using System;
 using System.Collections.Generic;
@@ -46,7 +47,7 @@ namespace Microsoft.Xunit.Performance.Api
         private void ProcessResults()
         {
             var reader = new CSVMetricReader(Configuration.FileLogPath);
-            WriteStatisticsToFile(reader);
+            WriteStatisticsToFile(Configuration.RunId, reader);
 
 #if !DEBUG
             // Deleting raw data not used by api users.
@@ -54,22 +55,8 @@ namespace Microsoft.Xunit.Performance.Api
 #endif
         }
 
-        /// <summary>
-        /// Generate CSV data (Probably not the most efficient way, e.g. How big can this become).
-        /// </summary>
-        /// <param name="reader"></param>
-        private void WriteStatisticsToFile(CSVMetricReader reader)
+        private static IEnumerable<(string testCaseName, string metric, IEnumerable<double> values)> GetMeasurements(CSVMetricReader reader)
         {
-            // FIXME: Update the statistics file name.
-            var statisticsTable = new DataTable();
-            var col0_testName = statisticsTable.AddColumn("Test Name");
-            var col1_metric = statisticsTable.AddColumn("Metric");
-            var col2_iterations = statisticsTable.AddColumn("Iterations");
-            var col3_average = statisticsTable.AddColumn("Average");
-            var col4_stdevs = statisticsTable.AddColumn("Sample standard deviation");
-            var col5_min = statisticsTable.AddColumn("Minimum");
-            var col6_max = statisticsTable.AddColumn("Maximum");
-
             foreach (var testCaseName in reader.TestCases)
             {
                 var iterations = reader.GetValues(testCaseName);
@@ -86,31 +73,110 @@ namespace Microsoft.Xunit.Performance.Api
                 }
 
                 foreach (var measurement in measurements)
-                {
-                    var metric = measurement.Key;
-                    var count = measurement.Value.Count;
-                    var avg = measurement.Value.Average();
-                    var stdev_s = Math.Sqrt(measurement.Value.Sum(x => Math.Pow(x - avg, 2)) / (measurement.Value.Count - 1));
-                    var max = measurement.Value.Max();
-                    var min = measurement.Value.Min();
-
-                    var r = statisticsTable.AppendRow();
-                    r[col0_testName] = testCaseName;
-                    r[col1_metric] = metric;
-                    r[col2_iterations] = count.ToString();
-                    r[col3_average] = avg.ToString();
-                    r[col4_stdevs] = stdev_s.ToString();
-                    r[col5_min] = min.ToString();
-                    r[col6_max] = max.ToString();
-                }
+                    yield return (testCaseName, measurement.Key, measurement.Value);
             }
-
-            var statisticsFilePath = $"{Configuration.RunId}-Statistics.csv";
-            statisticsTable.WriteToCSV(statisticsFilePath);
-            WriteInfoLine($"Statistics written to \"{statisticsFilePath}\"");
         }
 
-#region IDisposable implementation
+        private static DataTable CreateStatistics(CSVMetricReader reader)
+        {
+            var statisticsTable = new DataTable();
+            var col0_testName = statisticsTable.AddColumn("Test Name");
+            var col1_metric = statisticsTable.AddColumn("Metric");
+            var col2_iterations = statisticsTable.AddColumn("Iterations");
+            var col3_average = statisticsTable.AddColumn("Average");
+            var col4_stdevs = statisticsTable.AddColumn("Sample standard deviation");
+            var col5_min = statisticsTable.AddColumn("Minimum");
+            var col6_max = statisticsTable.AddColumn("Maximum");
+
+            foreach (var (testCaseName, metric, values) in GetMeasurements(reader))
+            {
+                var count = values.Count();
+                var avg = values.Average();
+                var stdev_s = Math.Sqrt(values.Sum(x => Math.Pow(x - avg, 2)) / (values.Count() - 1));
+                var max = values.Max();
+                var min = values.Min();
+
+                var newRow = statisticsTable.AppendRow();
+                newRow[col0_testName] = testCaseName;
+                newRow[col1_metric] = metric;
+                newRow[col2_iterations] = count.ToString();
+                newRow[col3_average] = avg.ToString();
+                newRow[col4_stdevs] = stdev_s.ToString();
+                newRow[col5_min] = min.ToString();
+                newRow[col6_max] = max.ToString();
+            }
+
+            return statisticsTable;
+        }
+
+        private static void PrintStatistics(DataTable statisticsTable)
+        {
+            var cellValueFunctions = new Func<Row, object>[] {
+                (row) => {
+                    return row[statisticsTable.ColumnNames["Test Name"]];
+                },
+                (row) => {
+                    return row[statisticsTable.ColumnNames["Metric"]];
+                },
+                (row) => {
+                    return row[statisticsTable.ColumnNames["Iterations"]];
+                },
+                (row) => {
+                    return row[statisticsTable.ColumnNames["Average"]];
+                },
+                (row) => {
+                    return row[statisticsTable.ColumnNames["Sample standard deviation"]];
+                },
+                (row) => {
+                    return row[statisticsTable.ColumnNames["Minimum"]];
+                },
+                (row) => {
+                    return row[statisticsTable.ColumnNames["Maximum"]];
+                },
+            };
+
+            var mdTable = statisticsTable.Rows.ToMarkdownTable(cellValueFunctions);
+            mdTable.Columns = from column in statisticsTable.ColumnNames
+                              select new TableColumn
+                              {
+                                  HeaderCell = new TableCell() { Text = column.Name }
+                              };
+            mdTable.Columns = new TableColumn[]
+            {
+                new TableColumn(){ HeaderCell = new TableCell() { Text = "Test Name" }, Alignment = TableColumnAlignment.Left },
+                new TableColumn(){ HeaderCell = new TableCell() { Text = "Metric" }, Alignment = TableColumnAlignment.Left },
+                new TableColumn(){ HeaderCell = new TableCell() { Text = "Iterations" }, Alignment = TableColumnAlignment.Center },
+                new TableColumn(){ HeaderCell = new TableCell() { Text = "Average" }, Alignment = TableColumnAlignment.Right },
+                new TableColumn(){ HeaderCell = new TableCell() { Text = "Sample standard deviation" }, Alignment = TableColumnAlignment.Right },
+                new TableColumn(){ HeaderCell = new TableCell() { Text = "Minimum" }, Alignment = TableColumnAlignment.Right },
+                new TableColumn(){ HeaderCell = new TableCell() { Text = "Maximum" }, Alignment = TableColumnAlignment.Right },
+            };
+
+            // TODO: Print table as Markdown!
+            Console.WriteLine(mdTable);
+        }
+
+        /// <summary>
+        /// Generate CSV data (Probably not the most efficient way, e.g. How big can this become).
+        /// </summary>
+        /// <param name="reader"></param>
+        private static void WriteStatisticsToFile(string configurationRunId, CSVMetricReader reader)
+        {
+            var statisticsTable = CreateStatistics(reader);
+
+            // Only create output statistics if there is data.
+            if (statisticsTable.Rows.Count() > 0)
+            {
+                PrintStatistics(statisticsTable);
+
+                var currentWorkingDirectory = Directory.GetCurrentDirectory();
+                var statisticsFilePath = Path.Combine(currentWorkingDirectory, $"{configurationRunId}-Statistics.csv");
+                statisticsTable.WriteToCSV(statisticsFilePath);
+                WriteInfoLine($"Statistics written to \"{statisticsFilePath}\"");
+            }
+        }
+
+        #region IDisposable implementation
 
         public void Dispose()
         {
@@ -148,7 +214,7 @@ namespace Microsoft.Xunit.Performance.Api
         {
         }
 
-#endregion IDisposable implementation
+        #endregion IDisposable implementation
 
         private readonly string[] _args;
         private bool _disposed;
