@@ -2,8 +2,14 @@
 @if defined _echo echo on
 
 :main
-setlocal
+setlocal enabledelayedexpansion
   set errorlevel=
+
+  set lv_api_only=
+  if /I "%~1" == "--api-only" (
+    set lv_api_only=1
+    shift
+  )
 
   set BuildConfiguration=%~1
   if "%BuildConfiguration%"=="" set BuildConfiguration=Debug
@@ -24,18 +30,26 @@ setlocal
   )
 
   set procedures=
-  set procedures=%procedures% build_procdomain
-  set procedures=%procedures% build_xunit_performance_analysis
-  set procedures=%procedures% build_xunit_performance_core
-  set procedures=%procedures% build_xunit_performance_execution
-  set procedures=%procedures% build_xunit_performance_logger
-  set procedures=%procedures% build_xunit_performance_metrics
-  set procedures=%procedures% build_xunit_performance_run
-  set procedures=%procedures% build_microsoft_dotnet_xunit_performance_runner_cli
-  set procedures=%procedures% build_microsoft_dotnet_xunit_performance_analysis_cli
-  set procedures=%procedures% build_samples_classlibrary_net46
-  set procedures=%procedures% build_samples_simpleperftests
-  set procedures=%procedures% nuget_pack_src
+
+  if not defined lv_api_only (
+    set procedures=!procedures! build_procdomain
+    set procedures=!procedures! build_xunit_performance_analysis
+    set procedures=!procedures! build_xunit_performance_core
+    set procedures=!procedures! build_xunit_performance_execution
+    set procedures=!procedures! build_xunit_performance_logger
+    set procedures=!procedures! build_xunit_performance_metrics
+    set procedures=!procedures! build_xunit_performance_run
+    set procedures=!procedures! build_microsoft_dotnet_xunit_performance_runner_cli
+    set procedures=!procedures! build_microsoft_dotnet_xunit_performance_analysis_cli
+    set procedures=!procedures! build_samples_classlibrary_net46
+    set procedures=!procedures! build_samples_simpleperftests
+    set procedures=!procedures! nuget_pack_src
+  ) else (
+    set procedures=!procedures! build_xunit_performance_core
+    set procedures=!procedures! build_xunit_performance_execution
+    set procedures=!procedures! build_xunit_performance_metrics
+  )
+
   set procedures=%procedures% build_xunit_performance_api
   set procedures=%procedures% build_tests_simpleharness
 
@@ -181,8 +195,8 @@ setlocal
   call %DotNet% build -c %BuildConfiguration% --version-suffix %VersionSuffix%                                              || exit /b 1
   call %DotNet% pack  -c %BuildConfiguration% --version-suffix %VersionSuffix% --output %OutputDirectory% --include-symbols || exit /b 1
 
-:: FIXME: pack sources does not work with the current mixed version of the Tracing library (EXCEPTION THROWN).
-::call %DotNet% pack  -c %BuildConfiguration% --version-suffix %VersionSuffix% --output %OutputDirectory% --include-symbols --include-source  || exit /b 1
+  :: FIXME: pack sources does not work with the current mixed version of the Tracing library (EXCEPTION THROWN).
+  ::call %DotNet% pack  -c %BuildConfiguration% --version-suffix %VersionSuffix% --output %OutputDirectory% --include-symbols --include-source  || exit /b 1
   exit /b 0
 
 :print_error_message

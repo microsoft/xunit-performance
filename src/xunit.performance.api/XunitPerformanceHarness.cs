@@ -2,8 +2,10 @@ using MarkdownLog;
 using Microsoft.Xunit.Performance.Api.Table;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 using static Microsoft.Xunit.Performance.Api.XunitPerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
@@ -109,8 +111,21 @@ namespace Microsoft.Xunit.Performance.Api
             return statisticsTable;
         }
 
+        private static string ConvertToDoubleFormattedString(string data)
+        {
+            const string fixedFotmat = "F3";
+            const string scientificNotationFormat = "E3";
+            var d = Convert.ToDouble(data);
+            var format = d > 99999 ? scientificNotationFormat : fixedFotmat;
+            return d.ToString(format, CultureInfo.InvariantCulture);
+        }
+
         private static void PrintStatistics(DataTable statisticsTable)
         {
+            var rows = statisticsTable.ColumnNames.Count() > 0 ?
+                statisticsTable.Rows.OrderBy(columns => columns[statisticsTable.ColumnNames.First()]) :
+                statisticsTable.Rows;
+
             var cellValueFunctions = new Func<Row, object>[] {
                 (row) => {
                     return row[statisticsTable.ColumnNames["Test Name"]];
@@ -122,20 +137,20 @@ namespace Microsoft.Xunit.Performance.Api
                     return row[statisticsTable.ColumnNames["Iterations"]];
                 },
                 (row) => {
-                    return row[statisticsTable.ColumnNames["Average"]];
+                    return ConvertToDoubleFormattedString(row[statisticsTable.ColumnNames["Average"]]);
                 },
                 (row) => {
-                    return row[statisticsTable.ColumnNames["Sample standard deviation"]];
+                    return ConvertToDoubleFormattedString(row[statisticsTable.ColumnNames["Sample standard deviation"]]);
                 },
                 (row) => {
-                    return row[statisticsTable.ColumnNames["Minimum"]];
+                    return ConvertToDoubleFormattedString(row[statisticsTable.ColumnNames["Minimum"]]);
                 },
                 (row) => {
-                    return row[statisticsTable.ColumnNames["Maximum"]];
+                    return ConvertToDoubleFormattedString(row[statisticsTable.ColumnNames["Maximum"]]);
                 },
             };
 
-            var mdTable = statisticsTable.Rows.ToMarkdownTable(cellValueFunctions);
+            var mdTable = rows.ToMarkdownTable(cellValueFunctions);
             mdTable.Columns = from column in statisticsTable.ColumnNames
                               select new TableColumn
                               {
@@ -146,14 +161,15 @@ namespace Microsoft.Xunit.Performance.Api
                 new TableColumn(){ HeaderCell = new TableCell() { Text = "Test Name" }, Alignment = TableColumnAlignment.Left },
                 new TableColumn(){ HeaderCell = new TableCell() { Text = "Metric" }, Alignment = TableColumnAlignment.Left },
                 new TableColumn(){ HeaderCell = new TableCell() { Text = "Iterations" }, Alignment = TableColumnAlignment.Center },
-                new TableColumn(){ HeaderCell = new TableCell() { Text = "Average" }, Alignment = TableColumnAlignment.Right },
-                new TableColumn(){ HeaderCell = new TableCell() { Text = "Sample standard deviation" }, Alignment = TableColumnAlignment.Right },
-                new TableColumn(){ HeaderCell = new TableCell() { Text = "Minimum" }, Alignment = TableColumnAlignment.Right },
-                new TableColumn(){ HeaderCell = new TableCell() { Text = "Maximum" }, Alignment = TableColumnAlignment.Right },
+                new TableColumn(){ HeaderCell = new TableCell() { Text = "AVERAGE" }, Alignment = TableColumnAlignment.Right },
+                new TableColumn(){ HeaderCell = new TableCell() { Text = "STDEV.S" }, Alignment = TableColumnAlignment.Right },
+                new TableColumn(){ HeaderCell = new TableCell() { Text = "MIN" }, Alignment = TableColumnAlignment.Right },
+                new TableColumn(){ HeaderCell = new TableCell() { Text = "MAX" }, Alignment = TableColumnAlignment.Right },
             };
 
-            // TODO: Print table as Markdown!
             Console.WriteLine(mdTable);
+
+            // TODO: Save table as Markdown file!
         }
 
         /// <summary>

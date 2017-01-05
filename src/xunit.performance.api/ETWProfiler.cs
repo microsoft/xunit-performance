@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Text;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.Xunit.Performance.Api.Native.Windows.Kernel32;
 using static Microsoft.Xunit.Performance.Api.XunitPerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
@@ -39,12 +40,12 @@ namespace Microsoft.Xunit.Performance.Api
                     Level = TraceEventLevel.Verbose,
                     Keywords =
                     (
-                        (ulong)ClrTraceEventParser.Keywords.Default // TODO: Maybe use (ulong)ClrTraceEventParser.Keywords.Default instead?
-                        //(ulong)ClrTraceEventParser.Keywords.Jit |
-                        //(ulong)ClrTraceEventParser.Keywords.JittedMethodILToNativeMap |
-                        //(ulong)ClrTraceEventParser.Keywords.Loader |
-                        //(ulong)ClrTraceEventParser.Keywords.Exception |
-                        //(ulong)ClrTraceEventParser.Keywords.GC
+                        //(ulong)ClrTraceEventParser.Keywords.Default // TODO: Should we be using this instead?
+                        (ulong)ClrTraceEventParser.Keywords.Jit |
+                        (ulong)ClrTraceEventParser.Keywords.JittedMethodILToNativeMap |
+                        (ulong)ClrTraceEventParser.Keywords.Loader |
+                        (ulong)ClrTraceEventParser.Keywords.Exception |
+                        (ulong)ClrTraceEventParser.Keywords.GC
                     ),
                 }
             };
@@ -73,22 +74,17 @@ namespace Microsoft.Xunit.Performance.Api
             var userFullFileName = Path.Combine(currentWorkingDirectory, userFileName);
             var kernelFullFileName = Path.Combine(currentWorkingDirectory, kernelFileName);
 
-            WriteDebugLine("  ===== ETW Profiling information =====");
-            WriteDebugLine($"       Assembly: {assemblyFileName}");
-            WriteDebugLine($"   Session name: {sessionName}");
-            WriteDebugLine($"  ETW file name: {userFullFileName}");
-            WriteDebugLine("  =====================================");
+            PrintProfilingInformation(assemblyFileName, sessionName, userFullFileName);
 
             var providers = GetProviders(assemblyFileName);
             var kernelProviderInfo = providers.OfType<KernelProviderInfo>().FirstOrDefault();
-            var needKernelSession = NeedSeparateKernelSession(kernelProviderInfo);
+            SetPreciseMachineCounters(providers);
 
+            var needKernelSession = NeedSeparateKernelSession(kernelProviderInfo);
             using (var kernelSession = needKernelSession ? new TraceEventSession(KernelTraceEventParser.KernelSessionName, kernelFullFileName) : null)
             {
                 if (kernelSession != null)
                 {
-                    SetPreciseMachineCounters(providers);
-
                     kernelSession.BufferSizeMB = bufferSizeMB;
                     var flags = (KernelTraceEventParser.Keywords)kernelProviderInfo.Keywords;
                     var stackCapture = (KernelTraceEventParser.Keywords)kernelProviderInfo.StackKeywords;
@@ -146,7 +142,7 @@ namespace Microsoft.Xunit.Performance.Api
 
         private static void SetPreciseMachineCounters(IEnumerable<ProviderInfo> providers)
         {
-            if (IsWin8OrGreater)
+            if (IsWindows8OrGreater)
             {
                 var availableCpuCounters = TraceEventProfileSources.GetInfo();
                 var profileSourceIDs = new List<int>();
@@ -172,7 +168,7 @@ namespace Microsoft.Xunit.Performance.Api
                 return false;
 
             // Prior to Windows 8 (NT 6.2), all kernel events needed the special kernel session.
-            if (!IsWin8OrGreater)
+            if (!IsWindows8OrGreater)
                 return true;
 
             // CPU counters need the special kernel session
@@ -182,23 +178,21 @@ namespace Microsoft.Xunit.Performance.Api
             return false;
         }
 
-        private static bool IsWin8OrGreater
-        {
-            get
-            {
-                //var os = Environment.OSVersion;
-                //Debug.Assert(os.Platform == PlatformID.Win32NT);
-                //if (os.Version.Major < 6)
-                //    return false;
-                //if (os.Version.Major == 6 && os.Version.Minor < 2)
-                //    return false;
-                return true; // H@CK: Assuming this is true on .NET Core
-            }
-        }
+        private static bool IsWindows8OrGreater => IsWindows8OrGreater();
 
         private static IEnumerable<ProviderInfo> RequiredProviders { get; }
 
         private static Guid EventSourceGuidFromName { get; }
+
+        [Conditional("DEBUG")]
+        private static void PrintProfilingInformation(string assemblyFileName, string sessionName, string userFullFileName)
+        {
+            WriteDebugLine("  ===== ETW Profiling information =====");
+            WriteDebugLine($"       Assembly: {assemblyFileName}");
+            WriteDebugLine($"   Session name: {sessionName}");
+            WriteDebugLine($"  ETW file name: {userFullFileName}");
+            WriteDebugLine("  =====================================");
+        }
 
         [Conditional("DEBUG")]
         private static void PrintAvailableProfileSources()
