@@ -81,6 +81,8 @@ setlocal
     call :print_error_message Could not install dotnet cli correctly. See '%Init_Tools_Log%' for more details.
     exit /b 1
   )
+
+  call %DotNet% --version
 endlocal& exit /b 0
 
 :build_procdomain

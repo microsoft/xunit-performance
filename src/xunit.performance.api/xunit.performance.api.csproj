@@ -5,7 +5,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <VersionPrefix>1.0.0-alpha</VersionPrefix>
-    <TargetFrameworks>netstandard1.6</TargetFrameworks>
+    <TargetFrameworks>netstandard1.5</TargetFrameworks>
     <AssemblyName>xunit.performance.api</AssemblyName>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
