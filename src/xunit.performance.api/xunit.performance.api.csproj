@@ -12,12 +12,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="**\*.cs" />
-	<Compile Include="..\common\GlobalAssemblyInfo.cs" />
+    <Compile Include="..\common\GlobalAssemblyInfo.cs" />
     <EmbeddedResource Include="**\*.resx" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MarkdownLog" Version="1.0.0" />
-    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="1.0.0-alpha">
+    <PackageReference Include="Microsoft.3rdpartytools.MarkdownLog" Version="0.10.0-alpha-experimental" />
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="1.0.0-alpha-experimental">
       <IncludeAssets>All</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.NET.Sdk" Version="1.0.0-alpha-20161104-2">
