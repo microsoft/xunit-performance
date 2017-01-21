@@ -36,7 +36,6 @@ namespace Microsoft.Xunit.Performance.Api
 
                     // Wait for tests to complete.
                     finished.WaitOne();
-                    finished.Dispose();
                 }
 
                 // Wait for the assembly runner to go idle.
