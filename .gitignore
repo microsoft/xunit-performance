@@ -216,6 +216,7 @@ ModelManifest.xml
 
 # xunit.performance specific ignores
 nuget.exe
+*.csv
 *.nuget.props
 *.nuget.targets
 *.etl
