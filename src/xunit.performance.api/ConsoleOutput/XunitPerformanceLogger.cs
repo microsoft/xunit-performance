@@ -3,6 +3,11 @@ using System.Diagnostics;
 
 namespace Microsoft.Xunit.Performance.Api
 {
+    /// <summary>
+    /// This class currently wraps Console.Out.WriteLine, and it is an interface
+    /// to log: information, warning, errors and debug messages in a standard
+    /// way with timestamp.
+    /// </summary>
     internal static class XunitPerformanceLogger
     {
         public static void WriteInfoLine(string value)
@@ -50,7 +55,6 @@ namespace Microsoft.Xunit.Performance.Api
                 // Restore previous setting.
                 Console.BackgroundColor = _background;
                 Console.ForegroundColor = _foreground;
-                GC.SuppressFinalize(this);
             }
 
             private ConsoleColor _background;

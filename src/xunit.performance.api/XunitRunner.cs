@@ -40,8 +40,12 @@ namespace Microsoft.Xunit.Performance.Api
 
                 // Wait for the assembly runner to go idle.
                 using (var waitHandle = new ManualResetEvent(false))
+                {
                     while (runner.Status != AssemblyRunnerStatus.Idle)
+                    {
                         waitHandle.WaitOne(10);
+                    }
+                }
 
                 // Return overall status.
                 return result[0];

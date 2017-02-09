@@ -30,12 +30,10 @@ namespace Microsoft.Xunit.Performance.Api
             get { return BenchmarkConfiguration.Instance; }
         }
 
-        public int RunBenchmarks(string assemblyPath)
+        public void RunBenchmarks(string assemblyPath)
         {
             Validate(assemblyPath);
-            int errCode = 0;
-            ETWProfiler.Profile(assemblyPath, Configuration.RunId, () => { errCode = XunitRunner.Run(assemblyPath); });
-            return errCode;
+            ETWProfiler.Profile(assemblyPath, Configuration.RunId, () => { XunitRunner.Run(assemblyPath); });
         }
 
         private static void Validate(string assemblyPath)
@@ -211,7 +209,6 @@ namespace Microsoft.Xunit.Performance.Api
             {
                 if (disposing)
                     FreeManagedResources();
-                FreeUnManagedResources();
                 _disposed = true;
             }
         }
@@ -224,10 +221,6 @@ namespace Microsoft.Xunit.Performance.Api
 
             // Process the results now that we know we're done executing tests.
             ProcessResults();
-        }
-
-        private void FreeUnManagedResources()
-        {
         }
 
         #endregion IDisposable implementation

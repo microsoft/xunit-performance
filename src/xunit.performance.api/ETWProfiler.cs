@@ -20,7 +20,7 @@ namespace Microsoft.Xunit.Performance.Api
     {
         static ETWProfiler()
         {
-            EventSourceGuidFromName = TraceEventProviders.GetEventSourceGuidFromName("ETWProfiler");
+            EventSourceGuidFromName = TraceEventProviders.GetEventSourceGuidFromName("Xunit-Performance-API");
             RequiredProviders = new ProviderInfo[]
             {
                 new KernelProviderInfo()
@@ -52,7 +52,7 @@ namespace Microsoft.Xunit.Performance.Api
         }
 
         /// <summary>
-        ///     1. In the specified assembly, get the EWT providers set as assembly attributes (PerformanceTestInfo)
+        ///     1. In the specified assembly, get the ETW providers set as assembly attributes (PerformanceTestInfo)
         ///     2. Check if the benchmark assembly request Precise Machine Counters(PMC) to be collected
         ///     3. Enable Kernel providers if needed
         ///     4. Get non-kernel ETW flags set and enable them

@@ -73,106 +73,111 @@ setlocal
   set /p DotNet_Version=< %~dp0DotNetCLIVersion.txt
   set DotNet_Installer_Url=https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.ps1
 
+  echo Downloading dotnet installer script dotnet-install.ps1
   powershell -NoProfile -ExecutionPolicy unrestricted -Command "Invoke-WebRequest -Uri '%DotNet_Installer_Url%' -OutFile '%DotNet_Path%\dotnet-install.ps1'"
-  echo Executing dotnet installer script %DotNet_Path%\dotnet-install.ps1
-  powershell -NoProfile -ExecutionPolicy unrestricted -Command "%DotNet_Path%\dotnet-install.ps1 -InstallDir %DotNet_Path% -Version '%DotNet_Version%'"
+  if not exist "%DotNet_Path%\dotnet-install.ps1" (
+    call :print_error_message Failed to download "%DotNet_Path%\dotnet-install.ps1"
+    exit /b 1
+  )
 
+  echo Executing dotnet installer script "%DotNet_Path%\dotnet-install.ps1"
+  powershell -NoProfile -ExecutionPolicy unrestricted -Command "&'%DotNet_Path%\dotnet-install.ps1' -InstallDir '%DotNet_Path%' -Version '%DotNet_Version%'"
   if not exist "%DotNet%" (
     call :print_error_message Could not install dotnet cli correctly. See '%Init_Tools_Log%' for more details.
     exit /b 1
   )
 
-  call %DotNet% --version
+  call "%DotNet%" --version
 endlocal& exit /b 0
 
 :build_procdomain
 setlocal
-  cd %~dp0src\procdomain
+  cd /d %~dp0src\procdomain
   call :dotnet_build
   exit /b %errorlevel%
 
 :build_xunit_performance_analysis
 setlocal
-  cd %~dp0src\xunit.performance.analysis
+  cd /d %~dp0src\xunit.performance.analysis
   call :dotnet_pack
   exit /b %errorlevel%
 
 :build_xunit_performance_core
 setlocal
-  cd %~dp0src\xunit.performance.core
+  cd /d %~dp0src\xunit.performance.core
   call :dotnet_pack
   exit /b %errorlevel%
 
 :build_xunit_performance_execution
 setlocal
-  cd %~dp0src\xunit.performance.execution
+  cd /d %~dp0src\xunit.performance.execution
   call :dotnet_pack
   exit /b %errorlevel%
 
 :build_xunit_performance_logger
 setlocal
-  cd %~dp0src\xunit.performance.logger
+  cd /d %~dp0src\xunit.performance.logger
   call :dotnet_build
   exit /b %errorlevel%
 
 :build_xunit_performance_metrics
 setlocal
-  cd %~dp0src\xunit.performance.metrics
+  cd /d %~dp0src\xunit.performance.metrics
   call :dotnet_pack
   exit /b %errorlevel%
 
 :build_xunit_performance_run
 setlocal
-  cd %~dp0src\xunit.performance.run
+  cd /d %~dp0src\xunit.performance.run
   call :dotnet_build
   exit /b %errorlevel%
 
 :build_microsoft_dotnet_xunit_performance_runner_cli
 setlocal
-  cd %~dp0src\cli\Microsoft.DotNet.xunit.performance.runner.cli
+  cd /d %~dp0src\cli\Microsoft.DotNet.xunit.performance.runner.cli
   call :dotnet_pack
   exit /b %errorlevel%
 
 :build_microsoft_dotnet_xunit_performance_analysis_cli
 setlocal
-  cd %~dp0src\cli\Microsoft.DotNet.xunit.performance.analysis.cli
+  cd /d %~dp0src\cli\Microsoft.DotNet.xunit.performance.analysis.cli
   call :dotnet_pack
   exit /b %errorlevel%
 
 :build_samples_classlibrary_net46
 setlocal
-  cd %~dp0samples\ClassLibrary.net46
+  cd /d %~dp0samples\ClassLibrary.net46
   call :dotnet_build
   exit /b %errorlevel%
 
 :build_samples_simpleperftests
 setlocal
-  cd %~dp0samples\SimplePerfTests
+  cd /d %~dp0samples\SimplePerfTests
   call :dotnet_build
   exit /b %errorlevel%
 
 :nuget_pack_src
 setlocal
-  cd %~dp0src
-  call %DotNet% nuget pack xunit.performance.nuspec                -p Configuration=%BuildConfiguration% --version=%PackageVersion% --output-directory %OutputDirectory% --symbols  || exit /b 1
-  call %DotNet% nuget pack xunit.performance.runner.Windows.nuspec -p Configuration=%BuildConfiguration% --version=%PackageVersion% --output-directory %OutputDirectory% --symbols  || exit /b 1
+  cd /d %~dp0src
+  call "%DotNet%" nuget pack xunit.performance.nuspec                -p Configuration=%BuildConfiguration% --version=%PackageVersion% --output-directory "%OutputDirectory%" --symbols  || exit /b 1
+  call "%DotNet%" nuget pack xunit.performance.runner.Windows.nuspec -p Configuration=%BuildConfiguration% --version=%PackageVersion% --output-directory "%OutputDirectory%" --symbols  || exit /b 1
   exit /b 0
 
 :build_xunit_performance_api
 setlocal
-  cd %~dp0src\xunit.performance.api
+  cd /d %~dp0src\xunit.performance.api
   call :dotnet_pack
   exit /b %errorlevel%
 
 :build_tests_simpleharness
 setlocal
-  cd %~dp0tests\simpleharness
+  cd /d %~dp0tests\simpleharness
   call :dotnet_build  || exit /b 1
   net.exe session 1>nul 2>&1 || (
     call :print_error_message Cannot run simpleharness test because this is not an administrator window
     exit /b 1
   )
-  call %DotNet% run -c %BuildConfiguration% bin\%BuildConfiguration%\netcoreapp1.0\simpleharness.dll                                                                                                        || exit /b 1
+  call "%DotNet%" run -c %BuildConfiguration% "bin\%BuildConfiguration%\netcoreapp1.0\simpleharness.dll" || exit /b 1
   exit /b %errorlevel%
 
 :dotnet_build
@@ -180,10 +185,10 @@ setlocal
   echo/  ==========
   echo/   Building %cd%
   echo/  ==========
-  call :remove_directory bin                                                    || exit /b 1
-  call :remove_directory obj                                                    || exit /b 1
-  call %DotNet% restore                                                         || exit /b 1
-  call %DotNet% build -c %BuildConfiguration% --version-suffix %VersionSuffix%  || exit /b 1
+  call :remove_directory bin                                                      || exit /b 1
+  call :remove_directory obj                                                      || exit /b 1
+  call "%DotNet%" restore                                                         || exit /b 1
+  call "%DotNet%" build -c %BuildConfiguration% --version-suffix %VersionSuffix%  || exit /b 1
   exit /b 0
 
 :dotnet_pack
@@ -191,14 +196,14 @@ setlocal
   echo/  ==========
   echo/   Packing %cd%
   echo/  ==========
-  call :remove_directory bin                                                                                                || exit /b 1
-  call :remove_directory obj                                                                                                || exit /b 1
-  call %DotNet% restore                                                                                                     || exit /b 1
-  call %DotNet% build -c %BuildConfiguration% --version-suffix %VersionSuffix%                                              || exit /b 1
-  call %DotNet% pack  -c %BuildConfiguration% --version-suffix %VersionSuffix% --output %OutputDirectory% --include-symbols || exit /b 1
+  call :remove_directory bin                                                                                                    || exit /b 1
+  call :remove_directory obj                                                                                                    || exit /b 1
+  call "%DotNet%" restore                                                                                                       || exit /b 1
+  call "%DotNet%" build -c %BuildConfiguration% --version-suffix %VersionSuffix%                                                || exit /b 1
+  call "%DotNet%" pack  -c %BuildConfiguration% --version-suffix %VersionSuffix% --output "%OutputDirectory%" --include-symbols || exit /b 1
 
   :: FIXME: pack sources does not work with the current mixed version of the Tracing library (EXCEPTION THROWN).
-  ::call %DotNet% pack  -c %BuildConfiguration% --version-suffix %VersionSuffix% --output %OutputDirectory% --include-symbols --include-source  || exit /b 1
+  ::call "%DotNet%" pack  -c %BuildConfiguration% --version-suffix %VersionSuffix% --output "%OutputDirectory%" --include-symbols --include-source  || exit /b 1
   exit /b 0
 
 :print_error_message

@@ -44,9 +44,12 @@ namespace Microsoft.Xunit.Performance.Api
                         currentIterationStart = double.NaN;
                         break;
 
-                    //default:
-                    //    // TODO: Throw exception if the event name is unknown?
-                    //    break;
+                    case "BenchmarkStart":
+                    case "BenchmarkStop":
+                        break;
+
+                    default:
+                        throw new Exception($"Found unknown event: \"{eventName}\", on \"{csvPath}\"");
                 }
             }
         }
