@@ -47,7 +47,7 @@ namespace Microsoft.Xunit.Performance
         // and all test cases have completed running.
         // TODO: Remove once the CSV functionality is no longer needed.
         [NonEvent]
-        internal void Close()
+        public void Close()
         {
             if (_csvWriter != null)
                 _csvWriter.Dispose();
@@ -67,12 +67,12 @@ namespace Microsoft.Xunit.Performance
 
         [NonEvent]
         private void WriteCSV(
-            string benchmarkName, 
+            string benchmarkName,
             [CallerMemberName]string eventName = null,
             string stopReason = "",
             int? iteration = null,
             bool? success = null)
-        { 
+        {
             // TODO: this is going to add a lot of overhead; it's just here to get us running while we wait for an ETW-equivalent on Linux.
             _csvWriter.WriteLine($"{GetTimestamp()},{Escape(benchmarkName)},{eventName},{iteration?.ToString(CultureInfo.InvariantCulture) ?? ""},{success?.ToString() ?? ""},{stopReason}");
         }
