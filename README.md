@@ -66,7 +66,7 @@ For very small benchmarks that complete very quickly (microseconds), it is recom
 2. Specify the value of InnerIterationsCount using the [Benchmark] attribute
 
 ```csharp
-[Benchmark(InnerIterationsCount=500)]
+[Benchmark(InnerIterationCount=500)]
 void TestMethod()
 {
   foreach (var iteration in Benchmark.Iterations)
