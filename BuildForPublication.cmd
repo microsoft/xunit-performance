@@ -8,9 +8,21 @@ setlocal
   set VersionSuffix=build0047
   set PackageVersion=1.0.0-alpha-%VersionSuffix%
 
-  echo/==================
-  echo/ Building version %PackageVersion% NuGet packages.
-  echo/==================
+  REM Check that git is on path.
+  where.exe /Q git.exe || (
+    echo ERROR: git.exe is not in the path.
+    exit /b 1
+  )
+
+  set /a count = 0
+  for /f %%l in ('git clean -xdn') do set /a count += 1
+  for /f %%l in ('git status --porcelain') do set /a count += 1
+  if %count% neq 0 (
+    choice /T 10 /D N /C YN /M "WARNING: Repository is not clean. Press Y to continue or N to stop. "
+  )
+  if %errorlevel% neq 1 (
+    exit /b 0
+  )
 
   set LocalDotNet_ToolsDir=%~dp0tools
   if exist "%LocalDotNet_ToolsDir%" rmdir /s /q "%LocalDotNet_ToolsDir%"
@@ -19,5 +31,8 @@ setlocal
     exit /b 1
   )
 
+  echo/==================
+  echo/ Building version %PackageVersion% NuGet packages.
+  echo/==================
   call build.cmd %BuildConfiguration% %VersionSuffix% %PackageVersion%
 endlocal& exit /b %errorlevel%
