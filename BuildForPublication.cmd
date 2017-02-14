@@ -21,7 +21,7 @@ setlocal
     choice /T 10 /D N /C YN /M "WARNING: Repository is not clean. Press Y to continue or N to stop. "
   )
   if %errorlevel% neq 1 (
-    exit /b 0
+    exit /b 1
   )
 
   set LocalDotNet_ToolsDir=%~dp0tools
