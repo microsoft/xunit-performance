@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace Microsoft.Xunit.Performance.Api.Table
@@ -38,21 +37,24 @@ namespace Microsoft.Xunit.Performance.Api.Table
             get { return _Rows; }
         }
 
-        public void WriteToCSV(string fullFilePath)
+        public void WriteToCSV(string fullFilePath, bool sort = true)
         {
             using (CSVFile outFile = new CSVFile(fullFilePath))
             {
                 // Write the columns.
                 string[] columnNames = _ColumnNames.Select(c => c.Name).ToArray();
                 outFile.WriteLine(columnNames);
-                
+
+                var rows = (sort == true && _ColumnNames.Count() > 0) ?
+                    Rows.OrderBy(columns => columns[_ColumnNames.First()]) : Rows;
+
                 // Write out each row.
-                foreach (Row r in Rows)
+                foreach (var row in rows)
                 {
                     string[] rowValues = new string[_ColumnNames.Names.Count];
                     for (int i = 0; i < _ColumnNames.Names.Count; i++)
                     {
-                        rowValues[i] = r[_ColumnNames.Names.ElementAtOrDefault(i)];
+                        rowValues[i] = row[_ColumnNames.Names.ElementAtOrDefault(i)];
                     }
 
                     outFile.WriteLine(rowValues);
@@ -80,7 +82,7 @@ namespace Microsoft.Xunit.Performance.Api.Table
                 {
                     // Create a new row.
                     Row row = table.AppendRow();
-                    for(columnIndex = 0; columnIndex < columns.Length; columnIndex++)
+                    for (columnIndex = 0; columnIndex < columns.Length; columnIndex++)
                     {
                         ColumnName columnName = columns[columnIndex];
                         row[columnName] = reader.GetValue(rowIndex, columnName.Name);

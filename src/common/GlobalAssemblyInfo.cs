@@ -4,4 +4,4 @@
 using System.Reflection;
 
 [assembly: AssemblyCopyright("Copyright \u00A9 Microsoft Corporation 2015")]
-[assembly: AssemblyKeyFileAttribute("..\\Common\\xunit.performance.snk")]
+[assembly: AssemblyKeyFileAttribute("..\\common\\xunit.performance.snk")]

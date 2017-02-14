@@ -1,66 +1,70 @@
-using System;
-using System.Reflection;
-using Microsoft.Xunit.Performance.Api;
-using Xunit;
 using Microsoft.Xunit.Performance;
+using Microsoft.Xunit.Performance.Api;
+using System.Reflection;
 
-using System.Diagnostics;
+[assembly: MeasureGCAllocations]
+[assembly: MeasureGCCounts]
+[assembly: MeasureInstructionsRetired]
 
-
-public class Program
+namespace simpleharness
 {
-    public static void Main(string[] args)
+    public class Program
     {
-        using (XunitPerformanceHarness p = new XunitPerformanceHarness(args))
+        public static void Main(string[] args)
         {
-            string entryAssemblyPath = Assembly.GetEntryAssembly().Location;
-            for(int i=0; i<5; i++)
+            using (var p = new XunitPerformanceHarness(args))
             {
-                p.RunBenchmarks(entryAssemblyPath);
+                p.RunBenchmarks(Assembly.GetEntryAssembly().Location);
             }
         }
-    }
 
-    [Benchmark(InnerIterationCount=10000)]
-    public void TestBenchmark()
-    {
-        foreach(BenchmarkIteration iter in Benchmark.Iterations)
+        public sealed class Type_1
         {
-            using(iter.StartMeasurement())
+            [Benchmark(InnerIterationCount = 10000)]
+            public void TestBenchmark()
             {
-                for(int i=0; i<Benchmark.InnerIterationCount; i++)
+                foreach (BenchmarkIteration iter in Benchmark.Iterations)
                 {
-                    string.Format("{0}{1}{2}{3}", "a", "b", "c", "d");
+                    using (iter.StartMeasurement())
+                    {
+                        for (int i = 0; i < Benchmark.InnerIterationCount; i++)
+                        {
+                            string.Format("{0}{1}{2}{3}", "a", "b", "c", "d");
+                        }
+                    }
                 }
             }
         }
-    }
 
-    [Benchmark(InnerIterationCount=10000)]
-    public void TestBenchmark1()
-    {
-        foreach(BenchmarkIteration iter in Benchmark.Iterations)
+        public sealed class Type_2
         {
-            using(iter.StartMeasurement())
+            [Benchmark(InnerIterationCount = 10000)]
+            public void TestBenchmark1()
             {
-                for(int i=0; i<Benchmark.InnerIterationCount; i++)
+                foreach (BenchmarkIteration iter in Benchmark.Iterations)
                 {
-                    string.Format("{0}{1}{2}{3}", "a", "b", "c", "d");
+                    using (iter.StartMeasurement())
+                    {
+                        for (int i = 0; i < Benchmark.InnerIterationCount; i++)
+                        {
+                            string.Format("{0}{1}{2}{3}", "a", "b", "c", "d");
+                        }
+                    }
                 }
             }
-        }
-    }
 
-    [Benchmark(InnerIterationCount=10000)]
-    public void TestBenchmark2()
-    {
-        foreach(BenchmarkIteration iter in Benchmark.Iterations)
-        {
-            using(iter.StartMeasurement())
+            [Benchmark(InnerIterationCount = 10000)]
+            public void TestBenchmark2()
             {
-                for(int i=0; i<Benchmark.InnerIterationCount; i++)
+                foreach (BenchmarkIteration iter in Benchmark.Iterations)
                 {
-                    string.Format("{0}{1}{2}{3}", "a", "b", "c", "d");
+                    using (iter.StartMeasurement())
+                    {
+                        for (int i = 0; i < Benchmark.InnerIterationCount; i++)
+                        {
+                            string.Format("{0}{1}{2}{3}", "a", "b", "c", "d");
+                        }
+                    }
                 }
             }
         }

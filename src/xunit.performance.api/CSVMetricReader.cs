@@ -12,12 +12,11 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal class CSVMetricReader
+    internal sealed class CSVMetricReader
     {
-        private Dictionary<string, List<Dictionary<string, double>>> _values = new Dictionary<string, List<Dictionary<string, double>>>();
-
         public CSVMetricReader(string csvPath)
         {
+            _values = new Dictionary<string, List<Dictionary<string, double>>>();
             LogPath = csvPath;
 
             double currentIterationStart = double.NaN;
@@ -44,6 +43,13 @@ namespace Microsoft.Xunit.Performance.Api
                         values.Add(new Dictionary<string, double>() { { "Duration", duration } });
                         currentIterationStart = double.NaN;
                         break;
+
+                    case "BenchmarkStart":
+                    case "BenchmarkStop":
+                        break;
+
+                    default:
+                        throw new Exception($"Found unknown event: \"{eventName}\", on \"{csvPath}\"");
                 }
             }
         }
@@ -71,15 +77,13 @@ namespace Microsoft.Xunit.Performance.Api
             return _values.GetOrDefault(testCase);
         }
 
-        public void Dispose()
-        {
-        }
-
         private class DurationMetric : PerformanceMetricInfo
         {
             public static readonly DurationMetric Instance = new DurationMetric();
 
             private DurationMetric() : base("Duration", "Duration", PerformanceMetricUnits.Milliseconds) { }
         }
+
+        private Dictionary<string, List<Dictionary<string, double>>> _values;
     }
 }

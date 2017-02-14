@@ -3,12 +3,36 @@ goto :main
 
 :main
 setlocal
+  set errorlevel=
+  set BuildConfiguration=Release
+  set VersionSuffix=build0047
+  set PackageVersion=1.0.0-alpha-%VersionSuffix%
 
-set PackageVersion=1.0.0-alpha-build0043
-set VersionSuffix=build0043
+  REM Check that git is on path.
+  where.exe /Q git.exe || (
+    echo ERROR: git.exe is not in the path.
+    exit /b 1
+  )
 
-echo Building version %PackageVersion% NuGet packages.
+  set /a count = 0
+  for /f %%l in ('git clean -xdn') do set /a count += 1
+  for /f %%l in ('git status --porcelain') do set /a count += 1
+  if %count% neq 0 (
+    choice /T 10 /D N /C YN /M "WARNING: The repo contains uncommitted changes and you are building for publication. Press Y to continue or N to stop. "
+  )
+  if %errorlevel% neq 1 (
+    exit /b 1
+  )
 
-build.cmd Release %VersionSuffix% %PackageVersion%
+  set LocalDotNet_ToolsDir=%~dp0tools
+  if exist "%LocalDotNet_ToolsDir%" rmdir /s /q "%LocalDotNet_ToolsDir%"
+  if exist "%LocalDotNet_ToolsDir%" (
+    echo ERROR: Failed to remove "%LocalDotNet_ToolsDir%" folder.
+    exit /b 1
+  )
 
-goto :eof
+  echo/==================
+  echo/ Building version %PackageVersion% NuGet packages.
+  echo/==================
+  call build.cmd %BuildConfiguration% %VersionSuffix% %PackageVersion%
+endlocal& exit /b %errorlevel%

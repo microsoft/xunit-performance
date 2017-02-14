@@ -21,19 +21,19 @@ Each [Benchmark]-annotated test must contain a loop of this form:
 void TestMethod()
 {
   // Any per-test-case setup can go here.
-  
+
   foreach (var iteration in Benchmark.Iterations)
   {
     // Any per-iteration setup can go here.
-    
+
     using (iteration.StartMeasurement())
     {
       // Code to be measured goes here.
     }
-    
+
     // ...per-iteration cleanup
   }
-  
+
   // ...per-test-case cleanup
 }
 ```
@@ -63,7 +63,7 @@ void EmptyBenchmark()
 For very small benchmarks that complete very quickly (microseconds), it is recommend to add an inner loop to ensure that test code runs long enough to dominate the harness overhead:
 
 1. Add the for loop using Benchmark.InnerIterationCount as the number of loop iterations
-2. Specify the value of InnerIterationsCount using the [Benchmark] attribute
+2. Specify the value of InnerIterationCount using the [Benchmark] attribute
 
 ```csharp
 [Benchmark(InnerIterationCount=500)]
@@ -76,7 +76,7 @@ void TestMethod()
 }
 ```
 
-The first iteration is the "warmup" iteration; all performance metrics are discarded by the result analyzer.  Subsequent iterations are measured. 
+The first iteration is the "warmup" iteration; all performance metrics are discarded by the result analyzer.  Subsequent iterations are measured.
 
 ## Running benchmarks
 

@@ -25,6 +25,9 @@ bld/
 # Tools
 tools/
 
+# Built Local Packages
+LocalPackages/
+
 # Visual Studio 2015 cache/options directory
 .vs/
 
@@ -216,6 +219,7 @@ ModelManifest.xml
 
 # xunit.performance specific ignores
 nuget.exe
+*.csv
 *.nuget.props
 *.nuget.targets
 *.etl
