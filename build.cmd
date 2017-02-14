@@ -69,6 +69,10 @@ setlocal
   set Init_Tools_Log=%DotNet_Path%\install.log
 
   if not exist "%DotNet_Path%" mkdir "%DotNet_Path%"
+  if not exist "%DotNet_Path%" (
+    call :print_error_message Unable to create the "%DotNet_Path%" folder.
+    exit /b 1
+  )
 
   set /p DotNet_Version=< %~dp0DotNetCLIVersion.txt
   set DotNet_Installer_Url=https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.ps1

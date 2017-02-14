@@ -20,7 +20,6 @@ namespace Microsoft.Xunit.Performance.Api
     {
         static ETWProfiler()
         {
-            EventSourceGuidFromName = TraceEventProviders.GetEventSourceGuidFromName("Xunit-Performance-API");
             RequiredProviders = new ProviderInfo[]
             {
                 new KernelProviderInfo()
@@ -30,7 +29,7 @@ namespace Microsoft.Xunit.Performance.Api
                 },
                 new UserProviderInfo()
                 {
-                    ProviderGuid = EventSourceGuidFromName, //Guid.Parse("A3B447A8-6549-4158-9BAD-76D442A47061");
+                    ProviderGuid = Guid.Parse("A3B447A8-6549-4158-9BAD-76D442A47061"),
                     Level = TraceEventLevel.Verbose,
                     Keywords = ulong.MaxValue,
                 },
@@ -99,7 +98,6 @@ namespace Microsoft.Xunit.Performance.Api
                     var stackCapture = KernelTraceEventParser.Keywords.Profile | KernelTraceEventParser.Keywords.ContextSwitch;
                     userEventSession.EnableKernelProvider(flags, stackCapture);
 
-                    var eventSourceGuid = EventSourceGuidFromName;
                     foreach (var userProviderInfo in providers.OfType<UserProviderInfo>())
                         userEventSession.EnableProvider(userProviderInfo.ProviderGuid, userProviderInfo.Level, userProviderInfo.Keywords);
 
@@ -181,8 +179,6 @@ namespace Microsoft.Xunit.Performance.Api
         private static bool IsWindows8OrGreater => IsWindows8OrGreater();
 
         private static IEnumerable<ProviderInfo> RequiredProviders { get; }
-
-        private static Guid EventSourceGuidFromName { get; }
 
         [Conditional("DEBUG")]
         private static void PrintProfilingInformation(string assemblyFileName, string sessionName, string userFullFileName)
