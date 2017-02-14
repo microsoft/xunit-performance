@@ -17,7 +17,7 @@ namespace Microsoft.Xunit.Performance.Api
                 throw new ArgumentException("The test type name cannot be white space.");
 
             // Create a runner for the specifid assembly.
-            using (var runner = AssemblyRunner.WithoutAppDomain(assemblyPath))
+            using (AssemblyRunner runner = AssemblyRunner.WithoutAppDomain(assemblyPath))
             {
                 // Start out assuming success; we'll set this to 1 if we get a failed test
                 var result = new int[] { 0 };
