@@ -22,7 +22,7 @@ namespace simpleharness
 
         public static IEnumerable<object[]> InputData()
         {
-            var args = new string[] { "FFT", "LU", "MC", "MM", "SOR" };
+            var args = new string[] { "FFT", "LU", "MC", "MM", "SOR", "\u03C3", "x\u0305" };
             foreach (var arg in args)
             {
                 yield return new object[] { new string[] { arg } };
