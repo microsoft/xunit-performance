@@ -2,6 +2,7 @@
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
   <PropertyGroup Label="Configuration">
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <RootNamespace>Microsoft.Xunit.Performance.Api</RootNamespace>
   </PropertyGroup>
   <PropertyGroup>
     <VersionPrefix>1.0.0-alpha</VersionPrefix>

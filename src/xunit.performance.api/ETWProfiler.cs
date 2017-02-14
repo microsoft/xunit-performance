@@ -20,6 +20,7 @@ namespace Microsoft.Xunit.Performance.Api
     {
         static ETWProfiler()
         {
+            // TODO: Read this from file.
             RequiredProviders = new ProviderInfo[]
             {
                 new KernelProviderInfo()
@@ -58,15 +59,7 @@ namespace Microsoft.Xunit.Performance.Api
                     ),
                 }
             };
-
-            // If !Windows then DO NOT Profile!
-            Profile = new ProfileDelegate(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-                (ProfileDelegate)ProfileWindows : ProfileNonWindows);
         }
-
-        public delegate void ProfileDelegate(string assemblyFileName, string sessionName, Action action, int bufferSizeMB = 128);
-
-        public static ProfileDelegate Profile { get; }
 
         /// <summary>
         ///     1. In the specified assembly, get the ETW providers set as assembly attributes (PerformanceTestInfo)
@@ -82,8 +75,9 @@ namespace Microsoft.Xunit.Performance.Api
         /// <param name="action"></param>
         /// <param name="bufferSizeMB"></param>
         /// <returns></returns>
-        public static void ProfileWindows(string assemblyFileName, string sessionName, Action action, int bufferSizeMB = 128)
+        public static void Record(string assemblyFileName, string sessionName, Action action)
         {
+            const int bufferSizeMB = 128;
             var sessionFileName = $"{sessionName}-{Path.GetFileNameWithoutExtension(assemblyFileName)}";
             var userFileName = $"{sessionFileName}.etl";
             var kernelFileName = $"{sessionFileName}.kernel.etl";
@@ -127,11 +121,6 @@ namespace Microsoft.Xunit.Performance.Api
             WriteInfoLine($"ETW Tracing Session saved to \"{userFullFileName}\"");
 
             WriteToXmlFile(assemblyFileName, userFullFileName, sessionName, performanceTestMessages);
-        }
-
-        public static void ProfileNonWindows(string assemblyFileName, string sessionName, Action action, int bufferSizeMB = 128)
-        {
-            action.Invoke();
         }
 
         private static AssemblyModel GetAssemblyModel(

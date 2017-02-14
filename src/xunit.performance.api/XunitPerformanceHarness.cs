@@ -5,19 +5,37 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using static Microsoft.Xunit.Performance.Api.XunitPerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
 {
     public sealed class XunitPerformanceHarness : IDisposable
     {
+        static XunitPerformanceHarness()
+        {
+            s_isWindowsPlatform = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+            //Action<string> xunitRunner = (assemblyPath) => { XunitRunner.Run(assemblyPath); };
+            //Action<string, string, Action<string>> etwProfiler = (assemblyPath, runId, xunitRunner) =>
+            //{
+            //    ETWProfiler.Record(assemblyPath, runId, xunitRunner);
+            //};
+            //Action<string, string, Action<string>> genericProfiler = (assemblyPath, runId) => { GenericProfiler.Record(assemblyPath, runId, xunitRunner); };
+
+            //// If NOT Windows then DO NOT Profile!
+            //Action profiler = s_isWindowsPlatform ? etwProfiler : genericProfiler;
+        }
+
         public XunitPerformanceHarness(string[] args)
         {
             _args = args;
             _disposed = false;
 
+            // TODO: parse arguments.
+
             // Set the run id.
-            Configuration.RunId = $"{DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss")}";
+            Configuration.RunId = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
 
             // Set the file log path.
             // TODO: Conditionally set this based on whether we want a csv file written.
@@ -32,8 +50,24 @@ namespace Microsoft.Xunit.Performance.Api
         public void RunBenchmarks(string assemblyPath)
         {
             Validate(assemblyPath);
-            ETWProfiler.Profile(assemblyPath, Configuration.RunId, () => { XunitRunner.Run(assemblyPath); });
+
+            // TODO: Lines below can be determined in static constructor.
+            Action xunitRunner = () => { XunitRunner.Run(assemblyPath); };
+            Action etwProfiler = () => { ETWProfiler.Record(assemblyPath, Configuration.RunId, xunitRunner); };
+            Action genericProfiler = () => { GenericProfiler.Record(assemblyPath, Configuration.RunId, xunitRunner); };
+
+            // If NOT Windows then DO NOT Profile!
+            Action profiler = s_isWindowsPlatform ? etwProfiler : genericProfiler;
+            profiler.Invoke();
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="assemblyFileName"></param>
+        /// <param name="sessionName"></param>
+        /// <param name="action"></param>
+        public delegate void Profile(string assemblyFileName, string sessionName, Action action);
 
         private static void Validate(string assemblyPath)
         {
@@ -224,6 +258,8 @@ namespace Microsoft.Xunit.Performance.Api
 
         #endregion IDisposable implementation
 
+        private static readonly bool s_isWindowsPlatform;
+        //private static readonly Action s_profiler;
         private readonly string[] _args;
         private bool _disposed;
     }
