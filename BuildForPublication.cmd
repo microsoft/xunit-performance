@@ -18,7 +18,7 @@ setlocal
   for /f %%l in ('git clean -xdn') do set /a count += 1
   for /f %%l in ('git status --porcelain') do set /a count += 1
   if %count% neq 0 (
-    choice /T 10 /D N /C YN /M "WARNING: Repository is not clean. Press Y to continue or N to stop. "
+    choice /T 10 /D N /C YN /M "WARNING: The repo contains uncommitted changes and you are building for publication. Press Y to continue or N to stop. "
   )
   if %errorlevel% neq 1 (
     exit /b 1
