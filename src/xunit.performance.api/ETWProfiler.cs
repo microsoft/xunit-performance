@@ -1,13 +1,15 @@
-﻿using Microsoft.Diagnostics.Tracing;
+﻿using MarkdownLog;
+using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Session;
+using Microsoft.Xunit.Performance.Api.Table;
 using Microsoft.Xunit.Performance.Sdk;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Linq;
 using Xunit;
@@ -72,18 +74,16 @@ namespace Microsoft.Xunit.Performance.Api
         /// </summary>
         /// <param name="assemblyFileName"></param>
         /// <param name="sessionName"></param>
+        /// <param name="outputDirectory"></param>
         /// <param name="action"></param>
-        /// <param name="bufferSizeMB"></param>
+        /// <param name="collectOutputFilesCallback">Callback used to collect a list of files generated.</param>
         /// <returns></returns>
-        public static void Record(string assemblyFileName, string sessionName, Action action)
+        public static void Record(string assemblyFileName, string sessionName, string outputDirectory, Action action, Action<string> collectOutputFilesCallback)
         {
             const int bufferSizeMB = 128;
             var sessionFileName = $"{sessionName}-{Path.GetFileNameWithoutExtension(assemblyFileName)}";
-            var userFileName = $"{sessionFileName}.etl";
-            var kernelFileName = $"{sessionFileName}.kernel.etl";
-            var currentWorkingDirectory = Directory.GetCurrentDirectory();
-            var userFullFileName = Path.Combine(currentWorkingDirectory, userFileName);
-            var kernelFullFileName = Path.Combine(currentWorkingDirectory, kernelFileName); /* without this parameter, EnableKernelProvider will fail */
+            var userFullFileName = Path.Combine(outputDirectory, $"{sessionFileName}.etl");
+            var kernelFullFileName = Path.Combine(outputDirectory, $"{sessionFileName}.kernel.etl"); /* without this parameter, EnableKernelProvider will fail */
 
             PrintProfilingInformation(assemblyFileName, sessionName, userFullFileName);
 
@@ -119,8 +119,59 @@ namespace Microsoft.Xunit.Performance.Api
 
             TraceEventSession.MergeInPlace(userFullFileName, Console.Out);
             WriteInfoLine($"ETW Tracing Session saved to \"{userFullFileName}\"");
+            collectOutputFilesCallback(userFullFileName);
 
-            WriteToXmlFile(assemblyFileName, userFullFileName, sessionName, performanceTestMessages);
+            var assemblyModel = GetAssemblyModel(assemblyFileName, userFullFileName, sessionName, performanceTestMessages);
+            var xmlFileName = Path.Combine(outputDirectory, $"{Path.GetFileNameWithoutExtension(userFullFileName)}.xml");
+            WriteXmlFile(xmlFileName, assemblyModel);
+            collectOutputFilesCallback(xmlFileName);
+
+            var mdFileName = Path.Combine(outputDirectory, $"{Path.GetFileNameWithoutExtension(userFullFileName)}.md");
+            DataTable dt = CreateStatistics(assemblyModel);
+            var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
+            MarkdownHelper.Write(mdFileName, mdTable);
+
+            collectOutputFilesCallback(mdFileName);
+            Console.WriteLine(mdTable);
+        }
+
+        private static DataTable CreateStatistics(AssemblyModel assemblyModel)
+        {
+            var dt = new DataTable();
+            var col0_testName = dt.AddColumn("Test Name");
+            var col1_metric = dt.AddColumn("Metric");
+            var col2_iterations = dt.AddColumn("Iterations");
+            var col3_average = dt.AddColumn("AVERAGE");
+            var col4_stdevs = dt.AddColumn("STDEV.S");
+            var col5_min = dt.AddColumn("MIN");
+            var col6_max = dt.AddColumn("MAX");
+
+            foreach (var testModel in assemblyModel.Collection)
+            {
+                foreach (var metric in testModel.Performance.Metrics)
+                {
+                    var values = testModel.Performance.IterationModels
+                        .Where(iter => iter.Iteration.ContainsKey(metric.Name))
+                        .Select(iter => iter.Iteration[metric.Name]);
+
+                    var count = values.Count();
+                    var avg = values.Average();
+                    var stdev_s = Math.Sqrt(values.Sum(x => Math.Pow(x - avg, 2)) / (values.Count() - 1));
+                    var max = values.Max();
+                    var min = values.Min();
+
+                    var newRow = dt.AppendRow();
+                    newRow[col0_testName] = testModel.Name;
+                    newRow[col1_metric] = metric.DisplayName;
+                    newRow[col2_iterations] = count.ToString();
+                    newRow[col3_average] = avg.ToString();
+                    newRow[col4_stdevs] = stdev_s.ToString();
+                    newRow[col5_min] = min.ToString();
+                    newRow[col6_max] = max.ToString();
+                }
+            }
+
+            return dt;
         }
 
         private static AssemblyModel GetAssemblyModel(
@@ -177,7 +228,26 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
-        private static void WriteXmlFile(AssemblyModel assemblyModel)
+        private static EtwPerformanceMetricEvaluationContext GetEtwReader(
+            string fileName,
+            string sessionName,
+            IEnumerable<PerformanceTestMessage> performanceTestMessages)
+        {
+            using (var source = new ETWTraceEventSource(fileName))
+            {
+                if (source.EventsLost > 0)
+                    throw new Exception($"Events were lost in trace '{fileName}'");
+
+                using (var context = new EtwPerformanceMetricEvaluationContext(
+                    fileName, source, performanceTestMessages, sessionName))
+                {
+                    source.Process();
+                    return context;
+                }
+            }
+        }
+
+        private static void WriteXmlFile(string xmlFileName, AssemblyModel assemblyModel)
         {
             var xmlAssembliesElement = new XElement("assemblies");
             var xmlAssemblyElement = new XElement("assembly", new XAttribute("name", Path.GetFileName(assemblyModel.Name)));
@@ -230,42 +300,12 @@ namespace Microsoft.Xunit.Performance.Api
                 }
             }
 
-            var xmlPath = $"{Path.GetFileNameWithoutExtension(assemblyModel.Name)}.xml";
             var xmlDoc = new XDocument(xmlAssembliesElement);
-            using (var xmlFile = File.Create(xmlPath))
+            using (var xmlFile = File.Create(xmlFileName))
             {
-                xmlDoc.Save(xmlFile);
+                xmlDoc.Save(xmlFile, SaveOptions.DisableFormatting);
             }
-            WriteInfoLine($"XML BenchView tests saved to \"{xmlPath}\"");
-        }
-
-        private static void WriteToXmlFile(
-            string assemblyFileName,
-            string etlFileName,
-            string sessionName,
-            IEnumerable<PerformanceTestMessage> performanceTestMessages)
-        {
-            WriteXmlFile(GetAssemblyModel(
-                assemblyFileName, etlFileName, sessionName, performanceTestMessages));
-        }
-
-        private static EtwPerformanceMetricEvaluationContext GetEtwReader(
-            string fileName,
-            string sessionName,
-            IEnumerable<PerformanceTestMessage> performanceTestMessages)
-        {
-            using (var source = new ETWTraceEventSource(fileName))
-            {
-                if (source.EventsLost > 0)
-                    throw new Exception($"Events were lost in trace '{fileName}'");
-
-                using (var context = new EtwPerformanceMetricEvaluationContext(
-                    fileName, source, performanceTestMessages, sessionName))
-                {
-                    source.Process();
-                    return context;
-                }
-            }
+            WriteInfoLine($"XML BenchView tests saved to \"{xmlFileName}\"");
         }
 
         private static (IEnumerable<ProviderInfo> providers, IEnumerable<PerformanceTestMessage> performanceTestMessages) GetBenchmarkMetadata(string assemblyFileName)

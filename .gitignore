@@ -224,3 +224,4 @@ nuget.exe
 *.nuget.targets
 *.etl
 *.xml
+*.md

@@ -7,16 +7,17 @@ namespace Microsoft.Xunit.Performance.Api
 {
     sealed class XunitPerformanceHarnessOptions
     {
-        static XunitPerformanceHarnessOptions()
+        public XunitPerformanceHarnessOptions()
         {
-            s_outputDirectory = Directory.GetCurrentDirectory();
-            s_runid = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
+            _outputDirectory = Directory.GetCurrentDirectory();
+            _runid = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
         }
 
         [Option("p:outputdir", Required = false, HelpText = "Specifies the output directory name.")]
         public string OutputDirectory
         {
-            get => s_outputDirectory;
+            get { return _outputDirectory; }
+
             set
             {
                 if (string.IsNullOrWhiteSpace(value))
@@ -30,10 +31,10 @@ namespace Microsoft.Xunit.Performance.Api
                     throw new Exception("Specified output directory name contains invalid path characters.");
                 }
 
-                s_outputDirectory = Path.IsPathRooted(value) ? value : Path.GetFullPath(value);
-                if (!Directory.Exists(s_outputDirectory))
+                _outputDirectory = Path.IsPathRooted(value) ? value : Path.GetFullPath(value);
+                if (!Directory.Exists(_outputDirectory))
                 {
-                    Directory.CreateDirectory(s_outputDirectory);
+                    Directory.CreateDirectory(_outputDirectory);
                 }
             }
         }
@@ -41,7 +42,8 @@ namespace Microsoft.Xunit.Performance.Api
         [Option("p:runid", Required = false, HelpText = "User defined id given to this harness. This is used to give the output files a name.")]
         public string RunId
         {
-            get => s_runid;
+            get { return _runid; }
+
             set
             {
                 if (string.IsNullOrWhiteSpace(value))
@@ -55,11 +57,11 @@ namespace Microsoft.Xunit.Performance.Api
                     throw new Exception("Specified RunId contains invalid file name characters.");
                 }
 
-                s_runid = value;
+                _runid = value;
             }
         }
 
-        private static string s_outputDirectory;
-        private static string s_runid;
+        private static string _outputDirectory;
+        private static string _runid;
     }
 }
