@@ -1,5 +1,4 @@
-﻿using MarkdownLog;
-using Microsoft.Diagnostics.Tracing;
+﻿using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Session;
 using Microsoft.Xunit.Performance.Api.Table;
@@ -7,11 +6,9 @@ using Microsoft.Xunit.Performance.Sdk;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Xml.Linq;
 using Xunit;
 using static Microsoft.Xunit.Performance.Api.Native.Windows.Kernel32;
 using static Microsoft.Xunit.Performance.Api.XunitPerformanceLogger;
@@ -123,7 +120,8 @@ namespace Microsoft.Xunit.Performance.Api
 
             var assemblyModel = GetAssemblyModel(assemblyFileName, userFullFileName, sessionName, performanceTestMessages);
             var xmlFileName = Path.Combine(outputDirectory, $"{Path.GetFileNameWithoutExtension(userFullFileName)}.xml");
-            WriteXmlFile(xmlFileName, assemblyModel);
+            AssemblyModelCollection.Serialize(xmlFileName, assemblyModel);
+            WriteInfoLine($"Performance results saved to \"{xmlFileName}\"");
             collectOutputFilesCallback(xmlFileName);
 
             var mdFileName = Path.Combine(outputDirectory, $"{Path.GetFileNameWithoutExtension(userFullFileName)}.md");
@@ -245,67 +243,6 @@ namespace Microsoft.Xunit.Performance.Api
                     return context;
                 }
             }
-        }
-
-        private static void WriteXmlFile(string xmlFileName, AssemblyModel assemblyModel)
-        {
-            var xmlAssembliesElement = new XElement("assemblies");
-            var xmlAssemblyElement = new XElement("assembly", new XAttribute("name", Path.GetFileName(assemblyModel.Name)));
-            xmlAssembliesElement.Add(xmlAssemblyElement);
-            var xmlCollectionElement = new XElement("collection");
-            xmlAssemblyElement.Add(xmlCollectionElement);
-
-            foreach (var testModel in assemblyModel.Collection)
-            {
-                var xmlTestElement = new XElement(
-                    "test",
-                    new XAttribute("name", testModel.Name),
-                    new XAttribute("type", testModel.ClassName),
-                    new XAttribute("method", testModel.Method));
-                xmlCollectionElement.Add(xmlTestElement);
-                var xmlPerformanceElement = new XElement("performance");
-                xmlTestElement.Add(xmlPerformanceElement);
-                var xmlMetricsElement = new XElement("metrics");
-                xmlPerformanceElement.Add(xmlMetricsElement);
-
-                foreach (var metric in testModel.Performance.Metrics)
-                {
-                    var xmlMetricElement = new XElement(
-                        metric.Name,
-                        new XAttribute("displayName", metric.DisplayName),
-                        new XAttribute("unit", metric.Unit));
-                    xmlMetricsElement.Add(xmlMetricElement);
-                }
-
-                var xmlIterationsElement = new XElement("iterations");
-                xmlPerformanceElement.Add(xmlIterationsElement);
-
-                var index = 0;
-                foreach (var iterationModel in testModel.Performance.IterationModels)
-                {
-                    var xmlAttributes = new List<XAttribute>
-                    {
-                        new XAttribute("index", index++)
-                    };
-
-                    foreach (var kvp in iterationModel.Iteration)
-                    {
-                        xmlAttributes.Add(new XAttribute(kvp.Key, kvp.Value));
-                    }
-
-                    var xmlIterationElement = new XElement(
-                        "iteration",
-                        xmlAttributes.ToArray());
-                    xmlIterationsElement.Add(xmlIterationElement);
-                }
-            }
-
-            var xmlDoc = new XDocument(xmlAssembliesElement);
-            using (var xmlFile = File.Create(xmlFileName))
-            {
-                xmlDoc.Save(xmlFile);
-            }
-            WriteInfoLine($"Performance results saved to \"{xmlFileName}\"");
         }
 
         private static (IEnumerable<ProviderInfo> providers, IEnumerable<PerformanceTestMessage> performanceTestMessages) GetBenchmarkMetadata(string assemblyFileName)

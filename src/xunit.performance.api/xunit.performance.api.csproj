@@ -27,6 +27,7 @@
     </PackageReference>
     <PackageReference Include="NETStandard.Library" Version="1.6.1" />
     <PackageReference Include="System.ValueTuple" Version="4.3.0" />
+    <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
     <PackageReference Include="xunit.runner.utility" Version="2.2.0-beta2-build3300" />
   </ItemGroup>
   <ItemGroup>

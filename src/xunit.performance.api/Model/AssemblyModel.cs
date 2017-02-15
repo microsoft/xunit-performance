@@ -1,33 +1,105 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal sealed class AssemblyModel
+    [Serializable]
+    [XmlRoot("assemblies")]
+    public sealed class AssemblyModelCollection : List<AssemblyModel>
     {
+        public static void Serialize(string xmlFileName, AssemblyModel assemblyModel)
+        {
+            var namespaces = new XmlSerializerNamespaces();
+            namespaces.Add("", "");
+            using (var stream = File.Create(xmlFileName))
+            {
+                using (var sw = new StreamWriter(stream))
+                {
+                    new XmlSerializer(typeof(AssemblyModelCollection))
+                        .Serialize(sw, new AssemblyModelCollection { assemblyModel }, namespaces);
+                }
+            }
+        }
+    }
+
+    [Serializable]
+    [XmlType("assembly")]
+    public sealed class AssemblyModel
+    {
+        [XmlAttribute("name")]
         public string Name { get; set; }
 
+        [XmlArray("collection")]
         public List<TestModel> Collection { get; set; }
     }
 
-    internal sealed class TestModel
+    [Serializable]
+    [XmlType("test")]
+    public sealed class TestModel
     {
+        [XmlAttribute("name")]
         public string Name { get; set; }
 
+        [XmlAttribute("type")]
         public string ClassName { get; set; }
 
+        [XmlAttribute("method")]
         public string Method { get; set; }
 
+        [XmlElement("performance")]
         public PerformanceModel Performance { get; set; }
     }
 
-    internal sealed class PerformanceModel
+    public sealed class PerformanceModel : IXmlSerializable
     {
         public List<MetricModel> Metrics { get; set; }
 
         public List<IterationModel> IterationModels { get; set; }
+
+        public XmlSchema GetSchema()
+        {
+            return null;
+        }
+
+        public void ReadXml(XmlReader reader)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void WriteXml(XmlWriter writer)
+        {
+            writer.WriteStartElement("metrics");
+            foreach (var metric in Metrics)
+            {
+                writer.WriteStartElement(metric.Name);
+                writer.WriteAttributeString("displayName", metric.DisplayName);
+                writer.WriteAttributeString("unit", metric.Unit);
+                writer.WriteEndElement();
+            }
+            writer.WriteEndElement();
+
+            writer.WriteStartElement("iterations");
+            var index = 0;
+            foreach (var iterationModel in IterationModels)
+            {
+                writer.WriteStartElement("iteration");
+                writer.WriteAttributeString("index", index.ToString());
+                ++index;
+                foreach (var kvp in iterationModel.Iteration)
+                {
+                    writer.WriteAttributeString(kvp.Key, kvp.Value.ToString());
+                }
+                writer.WriteEndElement();
+            }
+            writer.WriteEndElement();
+        }
     }
 
-    internal sealed class MetricModel
+    public sealed class MetricModel
     {
         public string Name { get; set; }
 
@@ -36,7 +108,7 @@ namespace Microsoft.Xunit.Performance.Api
         public string Unit { get; set; }
     }
 
-    internal sealed class IterationModel
+    public sealed class IterationModel
     {
         public Dictionary<string, double> Iteration { get; set; }
     }
