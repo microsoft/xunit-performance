@@ -11,7 +11,7 @@ namespace Microsoft.Xunit.Performance.Api
     [XmlRoot("assemblies")]
     public sealed class AssemblyModelCollection : List<AssemblyModel>
     {
-        public static void Serialize(string xmlFileName, AssemblyModel assemblyModel)
+        public void Serialize(string xmlFileName)
         {
             var namespaces = new XmlSerializerNamespaces();
             namespaces.Add("", "");
@@ -20,7 +20,7 @@ namespace Microsoft.Xunit.Performance.Api
                 using (var sw = new StreamWriter(stream))
                 {
                     new XmlSerializer(typeof(AssemblyModelCollection))
-                        .Serialize(sw, new AssemblyModelCollection { assemblyModel }, namespaces);
+                        .Serialize(sw, this, namespaces);
                 }
             }
         }

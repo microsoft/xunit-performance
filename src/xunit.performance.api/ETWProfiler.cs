@@ -120,7 +120,7 @@ namespace Microsoft.Xunit.Performance.Api
 
             var assemblyModel = GetAssemblyModel(assemblyFileName, userFullFileName, sessionName, performanceTestMessages);
             var xmlFileName = Path.Combine(outputDirectory, $"{Path.GetFileNameWithoutExtension(userFullFileName)}.xml");
-            AssemblyModelCollection.Serialize(xmlFileName, assemblyModel);
+            new AssemblyModelCollection { assemblyModel }.Serialize(xmlFileName);
             WriteInfoLine($"Performance results saved to \"{xmlFileName}\"");
             collectOutputFilesCallback(xmlFileName);
 
