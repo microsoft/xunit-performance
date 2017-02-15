@@ -83,7 +83,7 @@ namespace Microsoft.Xunit.Performance.Api
             const int bufferSizeMB = 128;
             var sessionFileName = $"{sessionName}-{Path.GetFileNameWithoutExtension(assemblyFileName)}";
             var userFullFileName = Path.Combine(outputDirectory, $"{sessionFileName}.etl");
-            var kernelFullFileName = Path.Combine(outputDirectory, $"{sessionFileName}.kernel.etl"); /* without this parameter, EnableKernelProvider will fail */
+            var kernelFullFileName = Path.Combine(outputDirectory, $"{sessionFileName}.kernel.etl"); // without this parameter, EnableKernelProvider will fail
 
             PrintProfilingInformation(assemblyFileName, sessionName, userFullFileName);
 
@@ -303,9 +303,9 @@ namespace Microsoft.Xunit.Performance.Api
             var xmlDoc = new XDocument(xmlAssembliesElement);
             using (var xmlFile = File.Create(xmlFileName))
             {
-                xmlDoc.Save(xmlFile, SaveOptions.DisableFormatting);
+                xmlDoc.Save(xmlFile);
             }
-            WriteInfoLine($"XML BenchView tests saved to \"{xmlFileName}\"");
+            WriteInfoLine($"Performance results saved to \"{xmlFileName}\"");
         }
 
         private static (IEnumerable<ProviderInfo> providers, IEnumerable<PerformanceTestMessage> performanceTestMessages) GetBenchmarkMetadata(string assemblyFileName)
@@ -341,11 +341,11 @@ namespace Microsoft.Xunit.Performance.Api
         {
             if (IsWindows8OrGreater)
             {
-                /*
-                 *  TODO: Add default BranchMispredictions,CacheMisses flags (if available)
-                 *    1. This reads as: flags read from config file in the case of Windows!
-                 *    2. Format { "Name" : "BranchMispredictions", "interval" : "100000" }
-                 */
+                //
+                // TODO: Add default BranchMispredictions,CacheMisses flags (if available)
+                //   1. This reads as: flags read from config file in the case of Windows!
+                //   2. Format { "Name" : "BranchMispredictions", "interval" : "100000" }
+                //
 
                 var availableCpuCounters = TraceEventProfileSources.GetInfo();
                 var profileSourceIDs = new List<int>();
@@ -362,10 +362,10 @@ namespace Microsoft.Xunit.Performance.Api
 
                 if (profileSourceIDs.Count > 0)
                 {
-                    /*
-                     * FIXME: This function changes the -pmcsources intervals machine wide.
-                     *  Maybe we should undo/revert these changes!
-                     */
+                    // 
+                    // FIXME: This function changes the -pmcsources intervals machine wide.
+                    //  Maybe we should undo/revert these changes!
+                    // 
                     TraceEventProfileSources.Set(profileSourceIDs.ToArray(), profileSourceIntervals.ToArray());
                 }
             }
@@ -382,7 +382,7 @@ namespace Microsoft.Xunit.Performance.Api
 
             // CPU counters need the special kernel session
             var keywords = (KernelTraceEventParser.Keywords)kernelProviderInfo.Keywords & KernelTraceEventParser.Keywords.PMCProfile;
-            return (keywords != 0) ? true : false;
+            return (keywords != 0);
         }
 
         private static bool IsWindows8OrGreater => IsWindows8OrGreater();

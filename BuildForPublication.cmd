@@ -1,5 +1,5 @@
 @echo off
-goto :main
+@if defined _echo echo on
 
 :main
 setlocal
