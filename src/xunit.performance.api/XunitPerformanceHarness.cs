@@ -1,8 +1,6 @@
-using MarkdownLog;
 using Microsoft.Xunit.Performance.Api.Table;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -58,7 +56,7 @@ namespace Microsoft.Xunit.Performance.Api
             };
             Action runner = s_isWindowsPlatform
                 ? (Action)(() => { s_runner(assemblyPath); })
-                : (() => { s_runner(assemblyPath); /*ProcessResults(assemblyPath, Configuration.RunId, _outputDirectory, collectOutputFilesCallback);*/ });
+                : (() => { s_runner(assemblyPath); ProcessResults(assemblyPath, Configuration.RunId, _outputDirectory, collectOutputFilesCallback); });
             s_profiler(assemblyPath, Configuration.RunId, _outputDirectory, runner, collectOutputFilesCallback);
         }
 
@@ -76,21 +74,19 @@ namespace Microsoft.Xunit.Performance.Api
             var statisticsFileName = $"{sessionName}-{Path.GetFileNameWithoutExtension(assemblyFileName)}-Statistics";
             var mdFileName = Path.Combine(outputDirectory, $"{statisticsFileName}.md");
 
-            var statisticsTable = CreateStatistics(reader);
-            var mdTable = MarkdownHelper.GenerateMarkdownTable(statisticsTable);
+            var dt = CreateStatistics(reader);
+            var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
             MarkdownHelper.Write(mdFileName, mdTable);
+            WriteInfoLine($"Markdown file saved to \"{mdFileName}\"");
             collectOutputFilesCallback(mdFileName);
             Console.WriteLine(mdTable);
 
-            var currentWorkingDirectory = Directory.GetCurrentDirectory();
             var csvFileName = Path.Combine(outputDirectory, $"{statisticsFileName}.csv");
-            statisticsTable.WriteToCSV(csvFileName);
+            dt.WriteToCSV(csvFileName);
             WriteInfoLine($"Statistics written to \"{csvFileName}\"");
             collectOutputFilesCallback(csvFileName);
-#if !DEBUG
-            // Deleting raw data not used by api users.
-            File.Delete(Configuration.FileLogPath);
-#endif
+
+            BenchmarkEventSource.Log.Clear();
         }
 
         private static IEnumerable<(string testCaseName, string metric, IEnumerable<double> values)> GetMeasurements(CSVMetricReader reader)
@@ -175,6 +171,9 @@ namespace Microsoft.Xunit.Performance.Api
             // Close the log when all test cases have completed execution.
             // HACK: This is a hack because we haven't found a way to close the file from within xunit.
             BenchmarkEventSource.Log.Close();
+
+            // Deleting raw data not used by api users.
+            File.Delete(Configuration.FileLogPath);
         }
 
         #endregion IDisposable implementation

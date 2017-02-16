@@ -5,7 +5,6 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using static Microsoft.Xunit.Performance.Api.XunitPerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -20,8 +19,6 @@ namespace Microsoft.Xunit.Performance.Api
                     sw.Write(mdTable.ToString());
                 }
             }
-
-            WriteInfoLine($"Markdown file saved to \"{mdFileName}\"");
         }
 
         public static MarkdownLog.Table GenerateMarkdownTable(DataTable dt)

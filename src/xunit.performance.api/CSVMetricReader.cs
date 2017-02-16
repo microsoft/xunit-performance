@@ -1,14 +1,11 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Microsoft.Xunit.Performance;
 using Microsoft.Xunit.Performance.Sdk;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -19,37 +16,42 @@ namespace Microsoft.Xunit.Performance.Api
             _values = new Dictionary<string, List<Dictionary<string, double>>>();
             LogPath = csvPath;
 
-            double currentIterationStart = double.NaN;
-
-            foreach (var line in File.ReadLines(csvPath, Encoding.UTF8))
+            using (var stream = new FileStream(csvPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
-                var parts = line.Split(',');
-
-                var timestamp = double.Parse(parts[0]);
-                var benchmarkName = parts[1].Replace(@"\_", ",").Replace(@"\n", "\n").Replace(@"\r", "\r").Replace(@"\\", @"\");
-                var eventName = parts[2];
-                switch (eventName)
+                using (var sr = new StreamReader(stream, Encoding.UTF8))
                 {
-                    case "BenchmarkIterationStart":
-                        currentIterationStart = timestamp;
-                        break;
+                    double currentIterationStart = double.NaN;
+                    while (!sr.EndOfStream)
+                    {
+                        var line = sr.ReadLine();
+                        var parts = line.Split(',');
+                        var timestamp = double.Parse(parts[0]);
+                        var benchmarkName = parts[1].Replace(@"\_", ",").Replace(@"\n", "\n").Replace(@"\r", "\r").Replace(@"\\", @"\");
+                        var eventName = parts[2];
+                        switch (eventName)
+                        {
+                            case "BenchmarkIterationStart":
+                                currentIterationStart = timestamp;
+                                break;
 
-                    case "BenchmarkIterationStop":
-                        var values = _values.GetOrAdd(benchmarkName);
-                        var iteration = int.Parse(parts[3]);
-                        while (values.Count < iteration)
-                            values.Add(null);
-                        var duration = timestamp - currentIterationStart;
-                        values.Add(new Dictionary<string, double>() { { "Duration", duration } });
-                        currentIterationStart = double.NaN;
-                        break;
+                            case "BenchmarkIterationStop":
+                                var values = _values.GetOrAdd(benchmarkName);
+                                var iteration = int.Parse(parts[3]);
+                                while (values.Count < iteration)
+                                    values.Add(null);
+                                var duration = timestamp - currentIterationStart;
+                                values.Add(new Dictionary<string, double>() { { "Duration", duration } });
+                                currentIterationStart = double.NaN;
+                                break;
 
-                    case "BenchmarkStart":
-                    case "BenchmarkStop":
-                        break;
+                            case "BenchmarkStart":
+                            case "BenchmarkStop":
+                                break;
 
-                    default:
-                        throw new Exception($"Found unknown event: \"{eventName}\", on \"{csvPath}\"");
+                            default:
+                                throw new Exception($"Found unknown event: \"{eventName}\", on \"{csvPath}\"");
+                        }
+                    }
                 }
             }
         }

@@ -119,18 +119,24 @@ namespace Microsoft.Xunit.Performance.Api
             collectOutputFilesCallback(userFullFileName);
 
             var assemblyModel = GetAssemblyModel(assemblyFileName, userFullFileName, sessionName, performanceTestMessages);
-            var xmlFileName = Path.Combine(outputDirectory, $"{Path.GetFileNameWithoutExtension(userFullFileName)}.xml");
+            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(userFullFileName);
+            var xmlFileName = Path.Combine(outputDirectory, $"{fileNameWithoutExtension}.xml");
             new AssemblyModelCollection { assemblyModel }.Serialize(xmlFileName);
             WriteInfoLine($"Performance results saved to \"{xmlFileName}\"");
             collectOutputFilesCallback(xmlFileName);
 
-            var mdFileName = Path.Combine(outputDirectory, $"{Path.GetFileNameWithoutExtension(userFullFileName)}.md");
-            DataTable dt = CreateStatistics(assemblyModel);
+            var mdFileName = Path.Combine(outputDirectory, $"{fileNameWithoutExtension}.md");
+            var dt = CreateStatistics(assemblyModel);
             var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
             MarkdownHelper.Write(mdFileName, mdTable);
-
+            WriteInfoLine($"Markdown file saved to \"{mdFileName}\"");
             collectOutputFilesCallback(mdFileName);
             Console.WriteLine(mdTable);
+
+            var csvFileName = Path.Combine(outputDirectory, $"{fileNameWithoutExtension}.csv");
+            dt.WriteToCSV(csvFileName);
+            WriteInfoLine($"Statistics written to \"{csvFileName}\"");
+            collectOutputFilesCallback(csvFileName);
         }
 
         private static DataTable CreateStatistics(AssemblyModel assemblyModel)

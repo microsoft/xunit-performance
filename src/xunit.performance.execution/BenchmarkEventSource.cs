@@ -33,7 +33,8 @@ namespace Microsoft.Xunit.Performance
             if (logPath == null)
                 return null;
 
-            return new StreamWriter(File.Open(logPath, FileMode.Create), encoding: Encoding.UTF8);
+            var fs = new FileStream(logPath, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
+            return new StreamWriter(fs, Encoding.UTF8);
         }
 
         [NonEvent]
@@ -41,6 +42,13 @@ namespace Microsoft.Xunit.Performance
         {
             if (_csvWriter != null)
                 _csvWriter.Flush();
+        }
+
+        [NonEvent]
+        public void Clear()
+        {
+            _csvWriter.BaseStream.SetLength(0);
+            _csvWriter.BaseStream.Flush();
         }
 
         // This can only be called when the process is done using the EventSource
