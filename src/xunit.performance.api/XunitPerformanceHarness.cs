@@ -161,12 +161,16 @@ namespace Microsoft.Xunit.Performance.Api
             if (!_disposed)
             {
                 if (disposing)
-                    FreeManagedResources();
+                {
+                }
+
+                FreeUnManagedResources();
+
                 _disposed = true;
             }
         }
 
-        private void FreeManagedResources()
+        private void FreeUnManagedResources()
         {
             // Close the log when all test cases have completed execution.
             // HACK: This is a hack because we haven't found a way to close the file from within xunit.
