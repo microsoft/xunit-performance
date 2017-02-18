@@ -15,10 +15,10 @@ setlocal enabledelayedexpansion
   if "%BuildConfiguration%"=="" set BuildConfiguration=Debug
 
   set VersionSuffix=%~2
-  if "%VersionSuffix%"=="" set VersionSuffix=build0000
+  if "%VersionSuffix%"=="" set VersionSuffix=alpha-build0000
 
   set PackageVersion=%~3
-  if "%PackageVersion%"=="" set PackageVersion=1.0.0-alpha-build0000
+  if "%PackageVersion%"=="" set PackageVersion=1.0.0-%VersionSuffix%
 
   set OutputDirectory=%~dp0LocalPackages
   call :remove_directory "%OutputDirectory%" || exit /b 1

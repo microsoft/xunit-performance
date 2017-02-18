@@ -3,39 +3,30 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Xunit.Runners;
 using static Microsoft.Xunit.Performance.Api.XunitPerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    public static class XunitRunner
+    internal static class XunitRunner
     {
-        public static int Run(string assemblyPath, string typeName = null)
+        public static int Run(string assemblyPath, List<string> typeNames = null)
         {
-            if(typeName != null && string.IsNullOrWhiteSpace(typeName))
-                throw new ArgumentException("The test type name cannot be white space.");
-
             // Create a runner for the specifid assembly.
             using (AssemblyRunner runner = AssemblyRunner.WithoutAppDomain(assemblyPath))
             {
                 // Start out assuming success; we'll set this to 1 if we get a failed test
                 var result = new int[] { 0 };
 
-                // Use an event to know when we're done
-                using (var finished = new ManualResetEvent(false))
+                if (typeNames?.Count == 0)
                 {
-                    // We use consoleLock because messages can arrive in parallel, so we want to make sure we get
-                    // consistent console output.
-                    var consoleLock = new object();
-
-                    SetupRunnerCallbacks(runner, finished, consoleLock, result);
-                    WriteInfoLine($"Discovering performance tests in \"{assemblyPath}\".");
-
-                    runner.Start(typeName);
-
-                    // Wait for tests to complete.
-                    finished.WaitOne();
+                    Run(runner, result, null);
+                }
+                else
+                {
+                    typeNames.ForEach(typeName => Run(runner, result, typeName));
                 }
 
                 // Wait for the assembly runner to go idle.
@@ -52,6 +43,24 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
+        private static void Run(AssemblyRunner runner, int[] result, string typeName)
+        {
+            if (typeName != null && string.IsNullOrWhiteSpace(typeName))
+                throw new ArgumentException("The test type name cannot be white space.");
+
+            // Use an event to know when we're done
+            using (var finished = new ManualResetEvent(false))
+            {
+                // We use consoleLock because messages can arrive in parallel, so we want to make sure we get
+                // consistent console output.
+                var consoleLock = new object();
+
+                SetupRunnerCallbacks(runner, finished, consoleLock, result);
+                runner.Start(typeName);
+                finished.WaitOne(); // Wait for tests to complete.
+            }
+        }
+
         private static void SetupRunnerCallbacks(AssemblyRunner runner, ManualResetEvent manualResetEvent, object consoleLock, int[] result)
         {
             runner.OnDiscoveryComplete = info =>
@@ -65,7 +74,7 @@ namespace Microsoft.Xunit.Performance.Api
             {
                 lock (consoleLock)
                 {
-                    WriteInfoLine($"Finished: {info.TotalTests} tests in {Math.Round(info.ExecutionTime, 3)}s ({info.TestsFailed} failed, {info.TestsSkipped} skipped)");
+                    WriteInfoLine($"Finished {info.TotalTests} tests in {Math.Round(info.ExecutionTime, 3)}s ({info.TestsFailed} failed, {info.TestsSkipped} skipped)");
                 }
 
                 manualResetEvent.Set();
@@ -74,7 +83,7 @@ namespace Microsoft.Xunit.Performance.Api
             {
                 lock (consoleLock)
                 {
-                    WriteInfoLine($"Running: {info.TestDisplayName}");
+                    WriteInfoLine($"  {info.TestDisplayName}");
                 }
             };
             runner.OnTestFailed = info =>
@@ -88,7 +97,7 @@ namespace Microsoft.Xunit.Performance.Api
                         WriteErrorLine(info.ExceptionStackTrace);
                     }
                 }
-                result[0] = 1;
+                result[0] += 1;
             };
             runner.OnTestSkipped = info =>
             {
