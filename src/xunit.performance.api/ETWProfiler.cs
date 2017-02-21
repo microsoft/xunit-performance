@@ -284,12 +284,6 @@ namespace Microsoft.Xunit.Performance.Api
         {
             if (IsWindows8OrGreater)
             {
-                //
-                // TODO: Add default BranchMispredictions,CacheMisses flags (if available)
-                //   1. This reads as: flags read from config file in the case of Windows!
-                //   2. Format { "Name" : "BranchMispredictions", "interval" : "100000" }
-                //
-
                 var availableCpuCounters = TraceEventProfileSources.GetInfo();
                 var profileSourceIDs = new List<int>();
                 var profileSourceIntervals = new List<int>();
@@ -305,10 +299,10 @@ namespace Microsoft.Xunit.Performance.Api
 
                 if (profileSourceIDs.Count > 0)
                 {
-                    // 
+                    //
                     // FIXME: This function changes the -pmcsources intervals machine wide.
                     //  Maybe we should undo/revert these changes!
-                    // 
+                    //
                     TraceEventProfileSources.Set(profileSourceIDs.ToArray(), profileSourceIntervals.ToArray());
                 }
             }

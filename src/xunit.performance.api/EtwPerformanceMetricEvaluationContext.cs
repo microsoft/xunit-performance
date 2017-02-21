@@ -88,12 +88,6 @@ namespace Microsoft.Xunit.Performance.Api
                 _currentProcesses.Remove(args.ProcessID);
             };
 
-            //benchmarkParser.Source.Kernel.All += traceEvent =>
-            //{
-            //    if (Process.GetCurrentProcess().Id == traceEvent.ProcessID)
-            //        WriteDebugLine(traceEvent.ToString());
-            //};
-
             foreach (var info in testInfo)
             {
                 var evaluators = info.Metrics.Cast<PerformanceMetric>().Select(m => new KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>(m, m.CreateEvaluator(this))).ToList();
