@@ -3,10 +3,7 @@
 
 using System;
 using System.Diagnostics;
-using System.Diagnostics.Tracing;
 using System.Text;
-using Microsoft.Diagnostics.Tracing;
-using Address = System.UInt64;
 
 #pragma warning disable 1591        // disable warnings on XML comments not being present
 
@@ -20,8 +17,10 @@ namespace Microsoft.Diagnostics.Tracing.Parsers
     [System.CodeDom.Compiler.GeneratedCode("traceparsergen", "2.0")]
     public sealed class MicrosoftXunitBenchmarkTraceEventParser : TraceEventParser
     {
-        public static string ProviderName = "Microsoft-Xunit-Benchmark";
-        public static Guid ProviderGuid = new Guid(unchecked((int)0xa3b447a8), unchecked((short)0x6549), unchecked((short)0x4158), 0x9b, 0xad, 0x76, 0xd4, 0x42, 0xa4, 0x70, 0x61);
+        public static string ProviderName => "Microsoft-Xunit-Benchmark";
+
+        public static Guid ProviderGuid => Guid.Parse("A3B447A8-6549-4158-9BAD-76D442A47061");
+
         public enum Keywords : long
         {
             Session3 = 0x100000000000,
@@ -206,6 +205,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
         public string RunId { get { return GetUnicodeStringAt(0); } }
         public string BenchmarkName { get { return GetUnicodeStringAt(SkipUnicodeString(0)); } }
         public int Iteration { get { return GetInt32At(SkipUnicodeString(SkipUnicodeString(0))); } }
+        public bool Success { get { return GetInt32At(SkipUnicodeString(SkipUnicodeString(0)) + 4) != 0; } }
 
         #region Private
         internal BenchmarkIterationStopArgs(Action<BenchmarkIterationStopArgs> target, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName)
@@ -233,6 +233,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
             XmlAttrib(sb, "RunId", RunId);
             XmlAttrib(sb, "BenchmarkName", BenchmarkName);
             XmlAttrib(sb, "Iteration", Iteration);
+            XmlAttrib(sb, "Success", Success);
             sb.Append("/>");
             return sb;
         }
@@ -242,7 +243,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
             get
             {
                 if (payloadNames == null)
-                    payloadNames = new string[] { "RunId", "BenchmarkName", "Iteration" };
+                    payloadNames = new string[] { "RunId", "BenchmarkName", "Iteration", "Success" };
                 return payloadNames;
             }
         }
@@ -257,6 +258,8 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
                     return BenchmarkName;
                 case 2:
                     return Iteration;
+                case 3:
+                    return Success;
                 default:
                     Debug.Assert(false, "Bad field index");
                     return null;

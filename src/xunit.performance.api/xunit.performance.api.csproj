@@ -2,6 +2,7 @@
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
   <PropertyGroup Label="Configuration">
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <RootNamespace>Microsoft.Xunit.Performance.Api</RootNamespace>
   </PropertyGroup>
   <PropertyGroup>
     <VersionPrefix>1.0.0-alpha</VersionPrefix>
@@ -16,6 +17,7 @@
     <EmbeddedResource Include="**\*.resx" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.1.1-beta" />
     <PackageReference Include="Microsoft.3rdpartytools.MarkdownLog" Version="0.10.0-alpha-experimental" />
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="1.0.0-alpha-experimental">
       <IncludeAssets>All</IncludeAssets>
@@ -25,6 +27,7 @@
     </PackageReference>
     <PackageReference Include="NETStandard.Library" Version="1.6.1" />
     <PackageReference Include="System.ValueTuple" Version="4.3.0" />
+    <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
     <PackageReference Include="xunit.runner.utility" Version="2.2.0-beta2-build3300" />
   </ItemGroup>
   <ItemGroup>

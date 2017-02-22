@@ -1,6 +1,8 @@
 using Microsoft.Xunit.Performance;
 using Microsoft.Xunit.Performance.Api;
+using System.Collections.Generic;
 using System.Reflection;
+using Xunit;
 
 [assembly: MeasureGCAllocations]
 [assembly: MeasureGCCounts]
@@ -15,6 +17,31 @@ namespace simpleharness
             using (var p = new XunitPerformanceHarness(args))
             {
                 p.RunBenchmarks(Assembly.GetEntryAssembly().Location);
+            }
+        }
+
+        public static IEnumerable<object[]> InputData()
+        {
+            var args = new string[] { "FFT", "LU", "MC", "MM", "SOR", "\u03C3", "x\u0305" };
+            foreach (var arg in args)
+            {
+                yield return new object[] { new string[] { arg } };
+            }
+        }
+
+        [Benchmark(InnerIterationCount = 10000)]
+        [MemberData(nameof(InputData))]
+        public static void TestBenchmark(string[] args)
+        {
+            foreach (BenchmarkIteration iter in Benchmark.Iterations)
+            {
+                using (iter.StartMeasurement())
+                {
+                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
+                    {
+                        string.Format("{0}{1}{2}{3}", args[0], args[0], args[0], args[0]);
+                    }
+                }
             }
         }
 

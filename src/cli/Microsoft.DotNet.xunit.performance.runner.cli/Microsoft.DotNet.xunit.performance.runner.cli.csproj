@@ -1,6 +1,6 @@
 ﻿<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
-  
+
   <PropertyGroup>
     <Description>Contains the tools necessary for running xunit Performance tests on .NET Core (Windows, Linux, OSX, etc.)</Description>
     <AssemblyTitle>xUnit Performance Runner for .NET Core</AssemblyTitle>
@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="bin\**;obj\**;**\*.xproj;packages\**" />
-    <Compile Include="../../xunit.performance.run/IPerformanceMetricLogger.cs;../../xunit.performance.run/IPerformanceMetricReader.cs;../../xunit.performance.run/ProgramCore.cs;../../xunit.performance.run/XunitPerformanceProject.cs" Exclude="bin\**;obj\**;**\*.xproj;packages\**" />
+    <Compile Include="../../xunit.performance.run/IPerformanceMetricLogger.cs;../../xunit.performance.metrics/IPerformanceMetricReader.cs;../../xunit.performance.run/ProgramCore.cs;../../xunit.performance.run/XunitPerformanceProject.cs" Exclude="bin\**;obj\**;**\*.xproj;packages\**" />
     <EmbeddedResource Include="**\*.resx" />
     <EmbeddedResource Include="compiler\resources\**\*" />
   </ItemGroup>
@@ -53,6 +53,6 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
   </PropertyGroup>
-  
+
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

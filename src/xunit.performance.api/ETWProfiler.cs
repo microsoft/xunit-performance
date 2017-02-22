@@ -1,16 +1,15 @@
 ﻿using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Session;
+using Microsoft.Xunit.Performance.Api.Table;
 using Microsoft.Xunit.Performance.Sdk;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using Xunit;
-using Xunit.Abstractions;
 using static Microsoft.Xunit.Performance.Api.Native.Windows.Kernel32;
 using static Microsoft.Xunit.Performance.Api.XunitPerformanceLogger;
 
@@ -20,6 +19,7 @@ namespace Microsoft.Xunit.Performance.Api
     {
         static ETWProfiler()
         {
+            // TODO: Read this from file.
             RequiredProviders = new ProviderInfo[]
             {
                 new KernelProviderInfo()
@@ -27,9 +27,19 @@ namespace Microsoft.Xunit.Performance.Api
                     Keywords = (ulong)KernelTraceEventParser.Keywords.Process | (ulong)KernelTraceEventParser.Keywords.Profile,
                     StackKeywords = (ulong)KernelTraceEventParser.Keywords.Profile
                 },
+                new CpuCounterInfo()
+                {
+                    CounterName = "BranchMispredictions",
+                    Interval = 100000
+                },
+                new CpuCounterInfo()
+                {
+                    CounterName = "CacheMisses",
+                    Interval = 100000
+                },
                 new UserProviderInfo()
                 {
-                    ProviderGuid = Guid.Parse("A3B447A8-6549-4158-9BAD-76D442A47061"),
+                    ProviderGuid = MicrosoftXunitBenchmarkTraceEventParser.ProviderGuid,
                     Level = TraceEventLevel.Verbose,
                     Keywords = ulong.MaxValue,
                 },
@@ -61,29 +71,28 @@ namespace Microsoft.Xunit.Performance.Api
         /// </summary>
         /// <param name="assemblyFileName"></param>
         /// <param name="sessionName"></param>
+        /// <param name="outputDirectory"></param>
         /// <param name="action"></param>
-        /// <param name="bufferSizeMB"></param>
+        /// <param name="collectOutputFilesCallback">Callback used to collect a list of files generated.</param>
         /// <returns></returns>
-        public static void Profile(string assemblyFileName, string sessionName, Action action, int bufferSizeMB = 128)
+        public static void Record(string assemblyFileName, string sessionName, string outputDirectory, Action action, Action<string> collectOutputFilesCallback)
         {
+            const int bufferSizeMB = 128;
             var sessionFileName = $"{sessionName}-{Path.GetFileNameWithoutExtension(assemblyFileName)}";
-            var userFileName = $"{sessionFileName}.etl";
-            var kernelFileName = $"{sessionFileName}.kernel.etl";
-            var currentWorkingDirectory = Directory.GetCurrentDirectory();
-            var userFullFileName = Path.Combine(currentWorkingDirectory, userFileName);
-            var kernelFullFileName = Path.Combine(currentWorkingDirectory, kernelFileName);
+            var userFullFileName = Path.Combine(outputDirectory, $"{sessionFileName}.etl");
+            var kernelFullFileName = Path.Combine(outputDirectory, $"{sessionFileName}.kernel.etl"); // without this parameter, EnableKernelProvider will fail
 
             PrintProfilingInformation(assemblyFileName, sessionName, userFullFileName);
 
-            var providers = GetProviders(assemblyFileName);
+            (var providers, var performanceTestMessages) = GetBenchmarkMetadata(assemblyFileName);
             var kernelProviderInfo = providers.OfType<KernelProviderInfo>().FirstOrDefault();
-            SetPreciseMachineCounters(providers);
 
             var needKernelSession = NeedSeparateKernelSession(kernelProviderInfo);
             using (var kernelSession = needKernelSession ? new TraceEventSession(KernelTraceEventParser.KernelSessionName, kernelFullFileName) : null)
             {
                 if (kernelSession != null)
                 {
+                    SetPreciseMachineCounters(providers);
                     kernelSession.BufferSizeMB = bufferSizeMB;
                     var flags = (KernelTraceEventParser.Keywords)kernelProviderInfo.Keywords;
                     var stackCapture = (KernelTraceEventParser.Keywords)kernelProviderInfo.StackKeywords;
@@ -107,9 +116,142 @@ namespace Microsoft.Xunit.Performance.Api
 
             TraceEventSession.MergeInPlace(userFullFileName, Console.Out);
             WriteInfoLine($"ETW Tracing Session saved to \"{userFullFileName}\"");
+            collectOutputFilesCallback(userFullFileName);
+
+            var assemblyModel = GetAssemblyModel(assemblyFileName, userFullFileName, sessionName, performanceTestMessages);
+            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(userFullFileName);
+            var xmlFileName = Path.Combine(outputDirectory, $"{fileNameWithoutExtension}.xml");
+            new AssemblyModelCollection { assemblyModel }.Serialize(xmlFileName);
+            WriteInfoLine($"Performance results saved to \"{xmlFileName}\"");
+            collectOutputFilesCallback(xmlFileName);
+
+            var mdFileName = Path.Combine(outputDirectory, $"{fileNameWithoutExtension}.md");
+            var dt = CreateStatistics(assemblyModel);
+            var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
+            MarkdownHelper.Write(mdFileName, mdTable);
+            WriteInfoLine($"Markdown file saved to \"{mdFileName}\"");
+            collectOutputFilesCallback(mdFileName);
+            Console.WriteLine(mdTable);
+
+            var csvFileName = Path.Combine(outputDirectory, $"{fileNameWithoutExtension}.csv");
+            dt.WriteToCSV(csvFileName);
+            WriteInfoLine($"Statistics written to \"{csvFileName}\"");
+            collectOutputFilesCallback(csvFileName);
         }
 
-        private static IEnumerable<ProviderInfo> GetProviders(string assemblyFileName)
+        private static DataTable CreateStatistics(AssemblyModel assemblyModel)
+        {
+            var dt = new DataTable();
+            var col0_testName = dt.AddColumn("Test Name");
+            var col1_metric = dt.AddColumn("Metric");
+            var col2_iterations = dt.AddColumn("Iterations");
+            var col3_average = dt.AddColumn("AVERAGE");
+            var col4_stdevs = dt.AddColumn("STDEV.S");
+            var col5_min = dt.AddColumn("MIN");
+            var col6_max = dt.AddColumn("MAX");
+
+            foreach (var testModel in assemblyModel.Collection)
+            {
+                foreach (var metric in testModel.Performance.Metrics)
+                {
+                    var values = testModel.Performance.IterationModels
+                        .Where(iter => iter.Iteration.ContainsKey(metric.Name))
+                        .Select(iter => iter.Iteration[metric.Name]);
+
+                    var count = values.Count();
+                    var avg = values.Average();
+                    var stdev_s = Math.Sqrt(values.Sum(x => Math.Pow(x - avg, 2)) / (values.Count() - 1));
+                    var max = values.Max();
+                    var min = values.Min();
+
+                    var newRow = dt.AppendRow();
+                    newRow[col0_testName] = testModel.Name;
+                    newRow[col1_metric] = metric.DisplayName;
+                    newRow[col2_iterations] = count.ToString();
+                    newRow[col3_average] = avg.ToString();
+                    newRow[col4_stdevs] = stdev_s.ToString();
+                    newRow[col5_min] = min.ToString();
+                    newRow[col6_max] = max.ToString();
+                }
+            }
+
+            return dt;
+        }
+
+        private static AssemblyModel GetAssemblyModel(
+            string assemblyFileName,
+            string etlFileName,
+            string sessionName,
+            IEnumerable<PerformanceTestMessage> performanceTestMessages)
+        {
+            using (var reader = GetEtwReader(etlFileName, sessionName, performanceTestMessages))
+            {
+                var assemblyModel = new AssemblyModel
+                {
+                    Name = Path.GetFileName(assemblyFileName),
+                    Collection = new List<TestModel>()
+                };
+
+                foreach (var test in performanceTestMessages)
+                {
+                    var metrics = new List<MetricModel>();
+                    foreach (var metric in test.Metrics)
+                    {
+                        metrics.Add(new MetricModel
+                        {
+                            DisplayName = metric.DisplayName,
+                            Name = metric.Id,
+                            Unit = metric.Unit,
+                        });
+                    }
+
+                    var testModel = new TestModel
+                    {
+                        Name = test.TestCase.DisplayName,
+                        Method = test.TestCase.TestMethod.Method.Name,
+                        ClassName = test.TestCase.TestMethod.TestClass.Class.Name,
+                        Performance = new PerformanceModel { Metrics = metrics, IterationModels = new List<IterationModel>() },
+                    };
+
+                    var values = reader.GetValues(testModel.Name);
+                    foreach (var dict in values)
+                    {
+                        var iterationModel = new IterationModel { Iteration = new Dictionary<string, double>() };
+
+                        foreach (var kvp in dict)
+                            iterationModel.Iteration.Add(kvp.Key, kvp.Value);
+
+                        if (iterationModel.Iteration.Count > 0)
+                            testModel.Performance.IterationModels.Add(iterationModel);
+                    }
+
+                    assemblyModel.Collection.Add(testModel);
+                }
+
+                return assemblyModel;
+            }
+        }
+
+        private static EtwPerformanceMetricEvaluationContext GetEtwReader(
+            string fileName,
+            string sessionName,
+            IEnumerable<PerformanceTestMessage> performanceTestMessages)
+        {
+            using (var source = new ETWTraceEventSource(fileName))
+            {
+                if (source.EventsLost > 0)
+                    throw new Exception($"Events were lost in trace '{fileName}'");
+
+                using (var context = new EtwPerformanceMetricEvaluationContext(
+                    fileName, source, performanceTestMessages, sessionName))
+                {
+                    source.Process();
+                    return context;
+                }
+            }
+        }
+
+        private static (IEnumerable<ProviderInfo> providers, IEnumerable<PerformanceTestMessage> performanceTestMessages) GetBenchmarkMetadata(string assemblyFileName)
         {
             using (var controller = new XunitFrontController(
                 assemblyFileName: assemblyFileName,
@@ -133,7 +275,7 @@ namespace Microsoft.Xunit.Performance.Api
                         select provider;
 
                     providers = ProviderInfo.Merge(providers);
-                    return ProviderInfo.Merge(RequiredProviders.Concat(providers));
+                    return (ProviderInfo.Merge(RequiredProviders.Concat(providers)), testMessageVisitor.Tests);
                 }
             }
         }
@@ -156,7 +298,13 @@ namespace Microsoft.Xunit.Performance.Api
                 }
 
                 if (profileSourceIDs.Count > 0)
+                {
+                    //
+                    // FIXME: This function changes the -pmcsources intervals machine wide.
+                    //  Maybe we should undo/revert these changes!
+                    //
                     TraceEventProfileSources.Set(profileSourceIDs.ToArray(), profileSourceIntervals.ToArray());
+                }
             }
         }
 
@@ -170,10 +318,8 @@ namespace Microsoft.Xunit.Performance.Api
                 return true;
 
             // CPU counters need the special kernel session
-            if (((KernelTraceEventParser.Keywords)kernelProviderInfo.Keywords & KernelTraceEventParser.Keywords.PMCProfile) != 0)
-                return true;
-
-            return false;
+            var keywords = (KernelTraceEventParser.Keywords)kernelProviderInfo.Keywords & KernelTraceEventParser.Keywords.PMCProfile;
+            return (keywords != 0);
         }
 
         private static bool IsWindows8OrGreater => IsWindows8OrGreater();
@@ -187,6 +333,8 @@ namespace Microsoft.Xunit.Performance.Api
             WriteDebugLine($"       Assembly: {assemblyFileName}");
             WriteDebugLine($"   Session name: {sessionName}");
             WriteDebugLine($"  ETW file name: {userFullFileName}");
+            WriteDebugLine($"  Provider guid: {MicrosoftXunitBenchmarkTraceEventParser.ProviderGuid}");
+            WriteDebugLine($"  Provider name: {MicrosoftXunitBenchmarkTraceEventParser.ProviderName}");
             WriteDebugLine("  =====================================");
         }
 
@@ -210,87 +358,6 @@ namespace Microsoft.Xunit.Performance.Api
             }
 
             WriteDebugLine(sb.ToString());
-        }
-
-        private sealed class PerformanceTestMessage
-        {
-            public ITestCase TestCase;
-            public IEnumerable<PerformanceMetricInfo> Metrics;
-        }
-
-        private sealed class PerformanceTestMessageVisitor : TestMessageVisitor<IDiscoveryCompleteMessage>
-        {
-            public PerformanceTestMessageVisitor()
-            {
-                Tests = new List<PerformanceTestMessage>();
-            }
-
-            public List<PerformanceTestMessage> Tests { get; }
-
-            protected override bool Visit(ITestCaseDiscoveryMessage testCaseDiscovered)
-            {
-                var testCase = testCaseDiscovered.TestCase;
-                if (string.IsNullOrEmpty(testCase.SkipReason)) /* TODO: Currently there are not filters */
-                {
-                    var testMethod = testCaseDiscovered.TestMethod;
-                    var metrics = new List<PerformanceMetricInfo>();
-                    var attributesInfo = GetMetricAttributes(testMethod);
-
-                    foreach (var attributeInfo in attributesInfo)
-                    {
-                        var assemblyQualifiedAttributeTypeName = typeof(PerformanceMetricDiscovererAttribute).AssemblyQualifiedName;
-                        var discovererAttr = attributeInfo.GetCustomAttributes(assemblyQualifiedAttributeTypeName).FirstOrDefault();
-                        var discoverer = GetPerformanceMetricDiscoverer(discovererAttr);
-                        metrics.AddRange(discoverer.GetMetrics(attributeInfo));
-                    }
-
-                    if (metrics.Count > 0)
-                    {
-                        Tests.Add(new PerformanceTestMessage
-                        {
-                            TestCase = testCaseDiscovered.TestCase,
-                            Metrics = metrics
-                        });
-                    }
-                }
-                return true;
-            }
-
-            private static IEnumerable<IAttributeInfo> GetMetricAttributes(ITestMethod testMethod)
-            {
-                return testMethod.Method.GetCustomAttributes(typeof(IPerformanceMetricAttribute).AssemblyQualifiedName)
-                    .Concat(testMethod.TestClass.Class.GetCustomAttributes(typeof(IPerformanceMetricAttribute).AssemblyQualifiedName))
-                    .Concat(testMethod.TestClass.Class.Assembly.GetCustomAttributes(typeof(IPerformanceMetricAttribute).AssemblyQualifiedName));
-            }
-
-            private static IPerformanceMetricDiscoverer GetPerformanceMetricDiscoverer(IAttributeInfo metricDiscovererAttribute)
-            {
-                if (metricDiscovererAttribute == null)
-                    throw new ArgumentNullException();
-
-                var args = metricDiscovererAttribute.GetConstructorArguments().Cast<string>().ToList();
-                var discovererType = GetType(args[1], args[0]);
-                if (discovererType == null)
-                    return null;
-
-                return (IPerformanceMetricDiscoverer)Activator.CreateInstance(discovererType);
-            }
-
-            private static Type GetType(string assemblyName, string typeName)
-            {
-                try
-                {
-                    // Make sure we only use the short form
-                    var an = new AssemblyName(assemblyName);
-                    Assembly assembly = Assembly.Load(new AssemblyName { Name = an.Name, Version = an.Version });
-                    return assembly.GetType(typeName);
-                }
-                catch
-                {
-                }
-
-                return null;
-            }
         }
     }
 }

@@ -33,7 +33,8 @@ namespace Microsoft.Xunit.Performance
             if (logPath == null)
                 return null;
 
-            return new StreamWriter(File.Open(logPath, FileMode.Create), encoding: Encoding.UTF8);
+            var fs = new FileStream(logPath, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
+            return new StreamWriter(fs, Encoding.UTF8);
         }
 
         [NonEvent]
@@ -43,11 +44,18 @@ namespace Microsoft.Xunit.Performance
                 _csvWriter.Flush();
         }
 
+        [NonEvent]
+        public void Clear()
+        {
+            _csvWriter.BaseStream.SetLength(0);
+            _csvWriter.BaseStream.Flush();
+        }
+
         // This can only be called when the process is done using the EventSource
         // and all test cases have completed running.
         // TODO: Remove once the CSV functionality is no longer needed.
         [NonEvent]
-        internal void Close()
+        public void Close()
         {
             if (_csvWriter != null)
                 _csvWriter.Dispose();
@@ -67,12 +75,12 @@ namespace Microsoft.Xunit.Performance
 
         [NonEvent]
         private void WriteCSV(
-            string benchmarkName, 
+            string benchmarkName,
             [CallerMemberName]string eventName = null,
             string stopReason = "",
             int? iteration = null,
             bool? success = null)
-        { 
+        {
             // TODO: this is going to add a lot of overhead; it's just here to get us running while we wait for an ETW-equivalent on Linux.
             _csvWriter.WriteLine($"{GetTimestamp()},{Escape(benchmarkName)},{eventName},{iteration?.ToString(CultureInfo.InvariantCulture) ?? ""},{success?.ToString() ?? ""},{stopReason}");
         }

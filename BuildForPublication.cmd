@@ -1,8 +1,8 @@
 @echo off
-goto :main
+@if defined _echo echo on
 
 :main
-setlocal
+setlocal EnableDelayedExpansion
   set errorlevel=
   set BuildConfiguration=Release
   set VersionSuffix=build0047
@@ -18,10 +18,8 @@ setlocal
   for /f %%l in ('git clean -xdn') do set /a count += 1
   for /f %%l in ('git status --porcelain') do set /a count += 1
   if %count% neq 0 (
-    choice /T 10 /D N /C YN /M "WARNING: The repo contains uncommitted changes and you are building for publication. Press Y to continue or N to stop. "
-  )
-  if %errorlevel% neq 1 (
-    exit /b 1
+    choice.exe /T 10 /D N /C YN /M "WARNING: The repo contains uncommitted changes and you are building for publication. Press Y to continue or N to stop. "
+    if !errorlevel! neq 1 exit /b 1
   )
 
   set LocalDotNet_ToolsDir=%~dp0tools

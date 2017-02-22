@@ -1,39 +1,63 @@
-using MarkdownLog;
 using Microsoft.Xunit.Performance.Api.Table;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Xml.Linq;
+using System.Runtime.InteropServices;
 using static Microsoft.Xunit.Performance.Api.XunitPerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
 {
     public sealed class XunitPerformanceHarness : IDisposable
     {
+        static XunitPerformanceHarness()
+        {
+            s_isWindowsPlatform = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            s_runner = (assemblyPath) => { XunitRunner.Run(assemblyPath); };
+
+            Action<string, string, string, Action, Action<string>> etwProfiler = (assemblyPath, runId, outputDirectory, runner, collectOutputFilesCallback) =>
+            {
+                ETWProfiler.Record(assemblyPath, runId, outputDirectory, runner, collectOutputFilesCallback);
+            };
+            Action<string, string, string, Action, Action<string>> genericProfiler = (assemblyPath, runId, outputDirectory, runner, collectOutputFilesCallback) =>
+            {
+                GenericProfiler.Record(assemblyPath, runId, outputDirectory, runner, collectOutputFilesCallback);
+            };
+            s_profiler = s_isWindowsPlatform ? etwProfiler : genericProfiler;
+        }
+
         public XunitPerformanceHarness(string[] args)
         {
             _args = args;
             _disposed = false;
+            _outputDirectory = Directory.GetCurrentDirectory();
+            _outputFiles = new List<string>();
+
+            // TODO: parse arguments.
 
             // Set the run id.
-            Configuration.RunId = $"{DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss")}";
+            Configuration.RunId = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
 
             // Set the file log path.
             // TODO: Conditionally set this based on whether we want a csv file written.
             Configuration.FileLogPath = Configuration.RunId + ".csv";
         }
 
-        public BenchmarkConfiguration Configuration
-        {
-            get { return BenchmarkConfiguration.Instance; }
-        }
+        public BenchmarkConfiguration Configuration => BenchmarkConfiguration.Instance;
 
         public void RunBenchmarks(string assemblyPath)
         {
             Validate(assemblyPath);
-            ETWProfiler.Profile(assemblyPath, Configuration.RunId, () => { XunitRunner.Run(assemblyPath); });
+
+            Action<string> collectOutputFilesCallback = fileName =>
+            {
+                // FIXME: This will need safe guards when the client calls RunBenchmarks in different threads.
+                _outputFiles.Add(fileName);
+            };
+            Action runner = s_isWindowsPlatform
+                ? (Action)(() => { s_runner(assemblyPath); })
+                : (() => { s_runner(assemblyPath); ProcessResults(assemblyPath, Configuration.RunId, _outputDirectory, collectOutputFilesCallback); });
+            s_profiler(assemblyPath, Configuration.RunId, _outputDirectory, runner, collectOutputFilesCallback);
         }
 
         private static void Validate(string assemblyPath)
@@ -44,15 +68,25 @@ namespace Microsoft.Xunit.Performance.Api
                 throw new FileNotFoundException(assemblyPath);
         }
 
-        private void ProcessResults()
+        private void ProcessResults(string assemblyFileName, string sessionName, string outputDirectory, Action<string> collectOutputFilesCallback)
         {
             var reader = new CSVMetricReader(Configuration.FileLogPath);
-            WriteStatisticsToFile(Configuration.RunId, reader);
+            var statisticsFileName = $"{sessionName}-{Path.GetFileNameWithoutExtension(assemblyFileName)}-Statistics";
+            var mdFileName = Path.Combine(outputDirectory, $"{statisticsFileName}.md");
 
-#if !DEBUG
-            // Deleting raw data not used by api users.
-            File.Delete(Configuration.FileLogPath);
-#endif
+            var dt = CreateStatistics(reader);
+            var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
+            MarkdownHelper.Write(mdFileName, mdTable);
+            WriteInfoLine($"Markdown file saved to \"{mdFileName}\"");
+            collectOutputFilesCallback(mdFileName);
+            Console.WriteLine(mdTable);
+
+            var csvFileName = Path.Combine(outputDirectory, $"{statisticsFileName}.csv");
+            dt.WriteToCSV(csvFileName);
+            WriteInfoLine($"Statistics written to \"{csvFileName}\"");
+            collectOutputFilesCallback(csvFileName);
+
+            BenchmarkEventSource.Log.Clear();
         }
 
         private static IEnumerable<(string testCaseName, string metric, IEnumerable<double> values)> GetMeasurements(CSVMetricReader reader)
@@ -83,10 +117,10 @@ namespace Microsoft.Xunit.Performance.Api
             var col0_testName = statisticsTable.AddColumn("Test Name");
             var col1_metric = statisticsTable.AddColumn("Metric");
             var col2_iterations = statisticsTable.AddColumn("Iterations");
-            var col3_average = statisticsTable.AddColumn("Average");
-            var col4_stdevs = statisticsTable.AddColumn("Sample standard deviation");
-            var col5_min = statisticsTable.AddColumn("Minimum");
-            var col6_max = statisticsTable.AddColumn("Maximum");
+            var col3_average = statisticsTable.AddColumn("AVERAGE");
+            var col4_stdevs = statisticsTable.AddColumn("STDEV.S");
+            var col5_min = statisticsTable.AddColumn("MIN");
+            var col6_max = statisticsTable.AddColumn("MAX");
 
             foreach (var (testCaseName, metric, values) in GetMeasurements(reader))
             {
@@ -109,87 +143,6 @@ namespace Microsoft.Xunit.Performance.Api
             return statisticsTable;
         }
 
-        private static string ConvertToDoubleFormattedString(string data)
-        {
-            const string fixedFotmat = "F3";
-            const string scientificNotationFormat = "E3";
-            var d = Convert.ToDouble(data);
-            var format = d > 99999 ? scientificNotationFormat : fixedFotmat;
-            return d.ToString(format, CultureInfo.InvariantCulture);
-        }
-
-        private static void PrintStatistics(DataTable statisticsTable)
-        {
-            var rows = statisticsTable.ColumnNames.Count() > 0 ?
-                statisticsTable.Rows.OrderBy(columns => columns[statisticsTable.ColumnNames.First()]) :
-                statisticsTable.Rows;
-
-            var cellValueFunctions = new Func<Row, object>[] {
-                (row) => {
-                    return row[statisticsTable.ColumnNames["Test Name"]];
-                },
-                (row) => {
-                    return row[statisticsTable.ColumnNames["Metric"]];
-                },
-                (row) => {
-                    return row[statisticsTable.ColumnNames["Iterations"]];
-                },
-                (row) => {
-                    return ConvertToDoubleFormattedString(row[statisticsTable.ColumnNames["Average"]]);
-                },
-                (row) => {
-                    return ConvertToDoubleFormattedString(row[statisticsTable.ColumnNames["Sample standard deviation"]]);
-                },
-                (row) => {
-                    return ConvertToDoubleFormattedString(row[statisticsTable.ColumnNames["Minimum"]]);
-                },
-                (row) => {
-                    return ConvertToDoubleFormattedString(row[statisticsTable.ColumnNames["Maximum"]]);
-                },
-            };
-
-            var mdTable = rows.ToMarkdownTable(cellValueFunctions);
-            mdTable.Columns = from column in statisticsTable.ColumnNames
-                              select new TableColumn
-                              {
-                                  HeaderCell = new TableCell() { Text = column.Name }
-                              };
-            mdTable.Columns = new TableColumn[]
-            {
-                new TableColumn(){ HeaderCell = new TableCell() { Text = "Test Name" }, Alignment = TableColumnAlignment.Left },
-                new TableColumn(){ HeaderCell = new TableCell() { Text = "Metric" }, Alignment = TableColumnAlignment.Left },
-                new TableColumn(){ HeaderCell = new TableCell() { Text = "Iterations" }, Alignment = TableColumnAlignment.Center },
-                new TableColumn(){ HeaderCell = new TableCell() { Text = "AVERAGE" }, Alignment = TableColumnAlignment.Right },
-                new TableColumn(){ HeaderCell = new TableCell() { Text = "STDEV.S" }, Alignment = TableColumnAlignment.Right },
-                new TableColumn(){ HeaderCell = new TableCell() { Text = "MIN" }, Alignment = TableColumnAlignment.Right },
-                new TableColumn(){ HeaderCell = new TableCell() { Text = "MAX" }, Alignment = TableColumnAlignment.Right },
-            };
-
-            Console.WriteLine(mdTable);
-
-            // TODO: Save table as Markdown file!
-        }
-
-        /// <summary>
-        /// Generate CSV data (Probably not the most efficient way, e.g. How big can this become).
-        /// </summary>
-        /// <param name="reader"></param>
-        private static void WriteStatisticsToFile(string configurationRunId, CSVMetricReader reader)
-        {
-            var statisticsTable = CreateStatistics(reader);
-
-            // Only create output statistics if there is data.
-            if (statisticsTable.Rows.Count() > 0)
-            {
-                PrintStatistics(statisticsTable);
-
-                var currentWorkingDirectory = Directory.GetCurrentDirectory();
-                var statisticsFilePath = Path.Combine(currentWorkingDirectory, $"{configurationRunId}-Statistics.csv");
-                statisticsTable.WriteToCSV(statisticsFilePath);
-                WriteInfoLine($"Statistics written to \"{statisticsFilePath}\"");
-            }
-        }
-
         #region IDisposable implementation
 
         public void Dispose()
@@ -208,24 +161,34 @@ namespace Microsoft.Xunit.Performance.Api
             if (!_disposed)
             {
                 if (disposing)
-                    FreeManagedResources();
+                {
+                }
+
+                FreeUnManagedResources();
+
                 _disposed = true;
             }
         }
 
-        private void FreeManagedResources()
+        private void FreeUnManagedResources()
         {
             // Close the log when all test cases have completed execution.
             // HACK: This is a hack because we haven't found a way to close the file from within xunit.
             BenchmarkEventSource.Log.Close();
 
-            // Process the results now that we know we're done executing tests.
-            ProcessResults();
+            // Deleting raw data not used by api users.
+            File.Delete(Configuration.FileLogPath);
         }
 
         #endregion IDisposable implementation
 
+        private static readonly bool s_isWindowsPlatform;
+        private static readonly Action<string, string, string, Action, Action<string>> s_profiler;
+        private static readonly Action<string> s_runner;
+
         private readonly string[] _args;
+        private string _outputDirectory;
+        private List<string> _outputFiles;
         private bool _disposed;
     }
 }
