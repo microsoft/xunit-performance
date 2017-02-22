@@ -36,7 +36,6 @@ namespace Microsoft.Xunit.Performance.Api
             _typeNames = new List<string>(options.TypeNames);
             _runner = (assemblyPath) =>
             {
-                //_typeNames.ForEach(typeName => XunitRunner.Run(assemblyPath, typeName));
                 XunitRunner.Run(assemblyPath, _typeNames);
             };
 
