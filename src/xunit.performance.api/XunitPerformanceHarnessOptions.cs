@@ -44,7 +44,7 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
-        [Option("perf:id", Required = false, HelpText = "User defined id given to the performance harness.")]
+        [Option("perf:runid", Required = false, HelpText = "User defined id given to the performance harness.")]
         public string RunId
         {
             get { return _runid; }
