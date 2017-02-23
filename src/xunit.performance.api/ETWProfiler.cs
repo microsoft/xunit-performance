@@ -15,6 +15,11 @@ namespace Microsoft.Xunit.Performance.Api
 {
     internal static class ETWProfiler
     {
+        private static SafeTerminateHandler<TraceEventSession> MakeSafeTerminateTraceEventSession(string sessionName, string fileName)
+        {
+            return new SafeTerminateHandler<TraceEventSession>(() => new TraceEventSession(sessionName, fileName));
+        }
+
         /// <summary>
         ///     1. In the specified assembly, get the ETW providers set as assembly attributes (PerformanceTestInfo)
         ///     2. Check if the benchmark assembly request Precise Machine Counters(PMC) to be collected
@@ -25,17 +30,18 @@ namespace Microsoft.Xunit.Performance.Api
         ///     7. Merge ETL files.
         /// </summary>
         /// <param name="assemblyFileName"></param>
-        /// <param name="sessionName"></param>
+        /// <param name="runId"></param>
         /// <param name="outputDirectory"></param>
         /// <param name="action"></param>
         /// <param name="collectOutputFilesCallback">Callback used to collect a list of files generated.</param>
         /// <returns></returns>
-        public static void Record(string assemblyFileName, string sessionName, string outputDirectory, Action action, Action<string> collectOutputFilesCallback)
+        public static void Record(string assemblyFileName, string runId, string outputDirectory, Action action, Action<string> collectOutputFilesCallback)
         {
             const int bufferSizeMB = 128;
-            var sessionFileName = $"{sessionName}-{Path.GetFileNameWithoutExtension(assemblyFileName)}";
-            var userFullFileName = Path.Combine(outputDirectory, $"{sessionFileName}.etl");
-            var kernelFullFileName = Path.Combine(outputDirectory, $"{sessionFileName}.kernel.etl"); // without this parameter, EnableKernelProvider will fail
+            var sessionName = $"Performance-Api-Session-{runId}";
+            var name = $"{runId}-{Path.GetFileNameWithoutExtension(assemblyFileName)}";
+            var userFullFileName = Path.Combine(outputDirectory, $"{name}.etl");
+            var kernelFullFileName = Path.Combine(outputDirectory, $"{name}.kernel.etl"); // without this parameter, EnableKernelProvider will fail
 
             PrintProfilingInformation(assemblyFileName, sessionName, userFullFileName);
 
@@ -43,8 +49,9 @@ namespace Microsoft.Xunit.Performance.Api
             var kernelProviderInfo = providers.OfType<KernelProviderInfo>().FirstOrDefault();
 
             var needKernelSession = NeedSeparateKernelSession(kernelProviderInfo);
-            using (var kernelSession = needKernelSession ? new TraceEventSession(KernelTraceEventParser.KernelSessionName, kernelFullFileName) : null)
+            using (var safeKernelSession = needKernelSession ? MakeSafeTerminateTraceEventSession(KernelTraceEventParser.KernelSessionName, kernelFullFileName) : null)
             {
+                var kernelSession = safeKernelSession.BaseDisposableObject;
                 if (kernelSession != null)
                 {
                     SetPreciseMachineCounters(providers);
@@ -54,8 +61,9 @@ namespace Microsoft.Xunit.Performance.Api
                     kernelSession.EnableKernelProvider(flags, stackCapture);
                 }
 
-                using (var userEventSession = new TraceEventSession(sessionName, userFullFileName))
+                using (var safeUserEventSession = MakeSafeTerminateTraceEventSession(sessionName, userFullFileName))
                 {
+                    var userEventSession = safeUserEventSession.BaseDisposableObject;
                     userEventSession.BufferSizeMB = bufferSizeMB;
 
                     var flags = KernelTraceEventParser.Keywords.Process | KernelTraceEventParser.Keywords.ImageLoad | KernelTraceEventParser.Keywords.Thread;
@@ -73,14 +81,13 @@ namespace Microsoft.Xunit.Performance.Api
             WriteInfoLine($"ETW Tracing Session saved to \"{userFullFileName}\"");
             collectOutputFilesCallback(userFullFileName);
 
-            var assemblyModel = GetAssemblyModel(assemblyFileName, userFullFileName, sessionName, performanceTestMessages);
-            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(userFullFileName);
-            var xmlFileName = Path.Combine(outputDirectory, $"{fileNameWithoutExtension}.xml");
+            var assemblyModel = GetAssemblyModel(assemblyFileName, userFullFileName, runId, performanceTestMessages);
+            var xmlFileName = Path.Combine(outputDirectory, $"{name}.xml");
             new AssemblyModelCollection { assemblyModel }.Serialize(xmlFileName);
             WriteInfoLine($"Performance results saved to \"{xmlFileName}\"");
             collectOutputFilesCallback(xmlFileName);
 
-            var mdFileName = Path.Combine(outputDirectory, $"{fileNameWithoutExtension}.md");
+            var mdFileName = Path.Combine(outputDirectory, $"{name}.md");
             var dt = assemblyModel.GetStatistics();
             var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
             MarkdownHelper.Write(mdFileName, mdTable);
@@ -88,7 +95,7 @@ namespace Microsoft.Xunit.Performance.Api
             collectOutputFilesCallback(mdFileName);
             Console.WriteLine(mdTable);
 
-            var csvFileName = Path.Combine(outputDirectory, $"{fileNameWithoutExtension}.csv");
+            var csvFileName = Path.Combine(outputDirectory, $"{name}.csv");
             dt.WriteToCSV(csvFileName);
             WriteInfoLine($"Statistics written to \"{csvFileName}\"");
             collectOutputFilesCallback(csvFileName);
