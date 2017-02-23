@@ -1,9 +1,6 @@
-using System;
-using System.Reflection;
-using Microsoft.Xunit.Performance.Api;
-using Xunit;
 using Microsoft.Xunit.Performance;
-
+using Microsoft.Xunit.Performance.Api;
+using System.Reflection;
 
 public class Program
 {

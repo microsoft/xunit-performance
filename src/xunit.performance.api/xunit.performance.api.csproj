@@ -1,21 +1,31 @@
 ﻿<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
+
   <PropertyGroup Label="Configuration">
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     <RootNamespace>Microsoft.Xunit.Performance.Api</RootNamespace>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
   <PropertyGroup>
     <VersionPrefix>1.0.0-alpha</VersionPrefix>
     <TargetFrameworks>netstandard1.5</TargetFrameworks>
     <AssemblyName>xunit.performance.api</AssemblyName>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
+    <OutputType>library</OutputType>
   </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="**\*.cs" />
     <Compile Include="..\common\GlobalAssemblyInfo.cs" />
     <EmbeddedResource Include="**\*.resx" />
   </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.1.1-beta" />
     <PackageReference Include="Microsoft.3rdpartytools.MarkdownLog" Version="0.10.0-alpha-experimental" />
@@ -25,17 +35,19 @@
     <PackageReference Include="Microsoft.NET.Sdk" Version="1.0.0-alpha-20161104-2">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="NETStandard.Library" Version="1.6.1" />
     <PackageReference Include="System.ValueTuple" Version="4.3.0" />
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
     <PackageReference Include="xunit.runner.utility" Version="2.2.0-beta2-build3300" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\xunit.performance.core\xunit.performance.core.csproj" />
     <ProjectReference Include="..\xunit.performance.execution\xunit.performance.execution.csproj" />
     <ProjectReference Include="..\xunit.performance.metrics\xunit.performance.metrics.csproj" />
   </ItemGroup>
+
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
   <Target Name="PrePackage" BeforeTargets="BuildPackage">
     <PropertyGroup>
       <BuildCommand>$(BuildCommand) -IncludeReferencedProjects</BuildCommand>
