@@ -87,5 +87,22 @@ namespace Microsoft.Xunit.Performance.Api.Native.Windows
             ulong dwlConditionMask,
             TypeMask dwTypeBitMask,
             ConditionMask dwConditionMask);
+
+        [Flags]
+        public enum CtrlTypes : uint
+        {
+            CTRL_C_EVENT = 0,
+            CTRL_BREAK_EVENT = 1,
+            CTRL_CLOSE_EVENT = 2,
+            CTRL_LOGOFF_EVENT = 5,
+            CTRL_SHUTDOWN_EVENT = 6
+        }
+
+        public delegate bool PHANDLER_ROUTINE(CtrlTypes dwCtrlType);
+
+        [DllImport("kernel32.dll", SetLastError = true, CallingConvention = CallingConvention.Winapi)]
+        public static extern bool SetConsoleCtrlHandler(
+            [In, MarshalAs(UnmanagedType.FunctionPtr)]PHANDLER_ROUTINE HandlerRoutine,
+            bool Add);
     }
 }
