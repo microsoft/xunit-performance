@@ -1,5 +1,4 @@
-﻿using CSharpx;
-using Microsoft.Xunit.Performance.Api.Table;
+﻿using Microsoft.Xunit.Performance.Api.Table;
 using Microsoft.Xunit.Performance.Sdk;
 using System;
 using System.Collections.Generic;
@@ -120,13 +119,13 @@ namespace Microsoft.Xunit.Performance.Api
                     });
                 }
 
-                values.ForEach(value =>
+                foreach (var value in values)
                 {
                     var iterationModel = new IterationModel { Iteration = new Dictionary<string, double>() };
                     iterationModel.Iteration.Add(metric, value);
                     if (iterationModel.Iteration.Count > 0)
                         testModel.Performance.IterationModels.Add(iterationModel);
-                });
+                }
 
                 assemblyModel.Collection.Add(testModel);
             }

@@ -1,5 +1,4 @@
-﻿using CSharpx;
-using MarkdownLog;
+﻿using MarkdownLog;
 using Microsoft.Xunit.Performance.Api.Table;
 using System;
 using System.Globalization;
