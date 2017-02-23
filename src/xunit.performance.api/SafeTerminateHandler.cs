@@ -44,12 +44,11 @@ namespace Microsoft.Xunit.Performance.Api
                 return false;
             };
 
-            if (!Kernel32.SetConsoleCtrlHandler(_HandlerRoutine, true))
-                throw new Exception("SetConsoleCtrlHandler failed to add handler.");
-
             lock (_lock)
             {
                 _disposedValue = false;
+                if (!Kernel32.SetConsoleCtrlHandler(_HandlerRoutine, true))
+                    throw new Exception("SetConsoleCtrlHandler failed to add handler.");
                 BaseDisposableObject = createCallback();
             }
         }
