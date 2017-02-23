@@ -51,7 +51,7 @@ namespace Microsoft.Xunit.Performance.Api
             var needKernelSession = NeedSeparateKernelSession(kernelProviderInfo);
             using (var safeKernelSession = needKernelSession ? MakeSafeTerminateTraceEventSession(KernelTraceEventParser.KernelSessionName, kernelFullFileName) : null)
             {
-                var kernelSession = safeKernelSession.BaseDisposableObject;
+                var kernelSession = safeKernelSession?.BaseDisposableObject;
                 if (kernelSession != null)
                 {
                     SetPreciseMachineCounters(providers);
@@ -213,7 +213,7 @@ namespace Microsoft.Xunit.Performance.Api
 
             // CPU counters need the special kernel session
             var keywords = (KernelTraceEventParser.Keywords)kernelProviderInfo.Keywords & KernelTraceEventParser.Keywords.PMCProfile;
-            return (keywords != 0);
+            return (keywords != KernelTraceEventParser.Keywords.None);
         }
 
         private static bool IsWindows8OrGreater => IsWindows8OrGreater();

@@ -3,6 +3,15 @@ using System;
 
 namespace Microsoft.Xunit.Performance.Api
 {
+    /// <summary>
+    /// Provides a mechanism for releasing disposable resources when CTRL+C,
+    /// CTRL+BREAK, or Close event (when the user closes the console by either
+    /// clicking Close on the console windows's window menu, or by clicking the
+    /// "End Task" button on the Task Manager) signals are received by the
+    /// application.
+    /// </summary>
+    /// <remarks>This class it is currently adding support for Windows only.</remarks>
+    /// <typeparam name="T"></typeparam>
     internal sealed class SafeTerminateHandler<T> : IDisposable
         where T : class, IDisposable
     {
@@ -19,8 +28,7 @@ namespace Microsoft.Xunit.Performance.Api
                     case Kernel32.CtrlTypes.CTRL_CLOSE_EVENT:
                         BaseDisposableObject?.Dispose();
                         break;
-                    case Kernel32.CtrlTypes.CTRL_LOGOFF_EVENT:
-                    case Kernel32.CtrlTypes.CTRL_SHUTDOWN_EVENT:
+                    default:
                         break;
                 }
                 return false;
@@ -45,20 +53,18 @@ namespace Microsoft.Xunit.Performance.Api
             {
                 if (disposing)
                 {
-                    // TODO: dispose managed state (managed objects).
                     BaseDisposableObject?.Dispose();
                 }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
                 if (!Kernel32.SetConsoleCtrlHandler(_HandlerRoutine, false))
+                {
                     throw new ObjectDisposedException("SetConsoleCtrlHandler failed to remove handler.");
+                }
 
                 _disposedValue = true;
             }
         }
 
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
         ~SafeTerminateHandler()
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
@@ -70,7 +76,6 @@ namespace Microsoft.Xunit.Performance.Api
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
-            // TODO: uncomment the following line if the finalizer is overridden above.
             GC.SuppressFinalize(this);
         }
         #endregion
