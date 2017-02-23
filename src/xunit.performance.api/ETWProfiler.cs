@@ -1,7 +1,6 @@
 ﻿using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Session;
-using Microsoft.Xunit.Performance.Api.Table;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
