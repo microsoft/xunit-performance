@@ -1,38 +1,24 @@
-﻿<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
-  
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
+    <AssemblyTitle>xunit.performance.analysis</AssemblyTitle>
     <Description>xUnit Performance Analysis tools</Description>
-    <VersionPrefix>1.0.0-alpha</VersionPrefix>
-    <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
-    <AssemblyName>xunit.performance.analysis</AssemblyName>
     <OutputType>Exe</OutputType>
+    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
+    <TargetFramework>net46</TargetFramework>
+
     <PackageIconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</PackageIconUrl>
     <PackageProjectUrl>https://github.com/Microsoft/xunit-performance</PackageProjectUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/Microsoft/xunit-performance/master/LICENSE</PackageLicenseUrl>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="**\*.cs" />
-	<Compile Include="..\common\GlobalAssemblyInfo.cs" />
-    <EmbeddedResource Include="**\*.resx" />
-    <EmbeddedResource Include="compiler\resources\**\*" />
+    <Compile Include="..\common\GlobalAssemblyInfo.cs" Link="GlobalAssemblyInfo.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Sdk">
-      <Version>1.0.0-alpha-20161104-2</Version>
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent">
-      <Version>1.0.41</Version>
-    </PackageReference>
-    <PackageReference Include="MathNet.Numerics">
-      <Version>3.12.0</Version>
-    </PackageReference>
+    <PackageReference Include="MathNet.Numerics" Version="3.12.0" />
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="1.0.41" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
@@ -45,6 +31,5 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
   </PropertyGroup>
-  
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
 </Project>

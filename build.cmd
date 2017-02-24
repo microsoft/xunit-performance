@@ -23,11 +23,7 @@ setlocal enabledelayedexpansion
   set OutputDirectory=%~dp0LocalPackages
   call :remove_directory "%OutputDirectory%" || exit /b 1
 
-  set DotNet=%~dp0\tools\bin\dotnet.exe
-
-  if not exist "%DotNet%" (
-    call :install_dotnet_cli || exit /b 1
-  )
+  call "%~dp0.\dotnet-install.cmd" || exit /b 1
 
   set procedures=
 
@@ -36,14 +32,14 @@ setlocal enabledelayedexpansion
     set procedures=!procedures! build_xunit_performance_analysis
     set procedures=!procedures! build_xunit_performance_core
     set procedures=!procedures! build_xunit_performance_execution
-    set procedures=!procedures! build_xunit_performance_logger
     set procedures=!procedures! build_xunit_performance_metrics
+    set procedures=!procedures! build_xunit_performance_logger
     set procedures=!procedures! build_xunit_performance_run
     set procedures=!procedures! build_microsoft_dotnet_xunit_performance_runner_cli
     set procedures=!procedures! build_microsoft_dotnet_xunit_performance_analysis_cli
     set procedures=!procedures! build_samples_classlibrary_net46
     set procedures=!procedures! build_samples_simpleperftests
-    set procedures=!procedures! nuget_pack_src
+    REM set procedures=!procedures! nuget_pack_src
   ) else (
     set procedures=!procedures! build_xunit_performance_core
     set procedures=!procedures! build_xunit_performance_execution
@@ -61,39 +57,6 @@ setlocal enabledelayedexpansion
   )
   exit /b %errorlevel%
 
-:install_dotnet_cli
-setlocal
-  echo Installing Dotnet CLI
-
-  set DotNet_Path=%~dp0tools\bin
-  set Init_Tools_Log=%DotNet_Path%\install.log
-
-  if not exist "%DotNet_Path%" mkdir "%DotNet_Path%"
-  if not exist "%DotNet_Path%" (
-    call :print_error_message Unable to create the "%DotNet_Path%" folder.
-    exit /b 1
-  )
-
-  set /p DotNet_Version=< %~dp0DotNetCLIVersion.txt
-  set DotNet_Installer_Url=https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.ps1
-
-  echo Downloading dotnet installer script dotnet-install.ps1
-  powershell -NoProfile -ExecutionPolicy unrestricted -Command "Invoke-WebRequest -Uri '%DotNet_Installer_Url%' -OutFile '%DotNet_Path%\dotnet-install.ps1'"
-  if not exist "%DotNet_Path%\dotnet-install.ps1" (
-    call :print_error_message Failed to download "%DotNet_Path%\dotnet-install.ps1"
-    exit /b 1
-  )
-
-  echo Executing dotnet installer script "%DotNet_Path%\dotnet-install.ps1"
-  powershell -NoProfile -ExecutionPolicy unrestricted -Command "&'%DotNet_Path%\dotnet-install.ps1' -InstallDir '%DotNet_Path%' -Version '%DotNet_Version%'"
-  if not exist "%DotNet%" (
-    call :print_error_message Could not install dotnet cli correctly. See '%Init_Tools_Log%' for more details.
-    exit /b 1
-  )
-
-  call "%DotNet%" --version
-endlocal& exit /b 0
-
 :build_procdomain
 setlocal
   cd /d %~dp0src\procdomain
@@ -103,7 +66,7 @@ setlocal
 :build_xunit_performance_analysis
 setlocal
   cd /d %~dp0src\xunit.performance.analysis
-  call :dotnet_pack
+  call :dotnet_build
   exit /b %errorlevel%
 
 :build_xunit_performance_core
@@ -139,13 +102,13 @@ setlocal
 :build_microsoft_dotnet_xunit_performance_runner_cli
 setlocal
   cd /d %~dp0src\cli\Microsoft.DotNet.xunit.performance.runner.cli
-  call :dotnet_pack
+  call :dotnet_build
   exit /b %errorlevel%
 
 :build_microsoft_dotnet_xunit_performance_analysis_cli
 setlocal
   cd /d %~dp0src\cli\Microsoft.DotNet.xunit.performance.analysis.cli
-  call :dotnet_pack
+  call :dotnet_build
   exit /b %errorlevel%
 
 :build_samples_classlibrary_net46
@@ -163,8 +126,11 @@ setlocal
 :nuget_pack_src
 setlocal
   cd /d %~dp0src
-  call "%DotNet%" nuget pack xunit.performance.nuspec                -p Configuration=%BuildConfiguration% --version=%PackageVersion% --output-directory "%OutputDirectory%" --symbols  || exit /b 1
-  call "%DotNet%" nuget pack xunit.performance.runner.Windows.nuspec -p Configuration=%BuildConfiguration% --version=%PackageVersion% --output-directory "%OutputDirectory%" --symbols  || exit /b 1
+  dotnet.exe restore xunit.performance.csproj                                                                                                                           || exit /b 1
+  dotnet.exe pack xunit.performance.csproj                 --no-build -c %BuildConfiguration% -o "%OutputDirectory%" --version-suffix %VersionSuffix% --include-symbols || exit /b 1
+
+  dotnet.exe restore xunit.performance.runner.Windows.csproj                                                                                                            || exit /b 1
+  dotnet.exe pack xunit.performance.runner.Windows.csproj  --no-build -c %BuildConfiguration% -o "%OutputDirectory%" --version-suffix %VersionSuffix% --include-symbols || exit /b 1
   exit /b 0
 
 :build_xunit_performance_api
@@ -176,12 +142,12 @@ setlocal
 :build_tests_simpleharness
 setlocal
   cd /d %~dp0tests\simpleharness
-  call :dotnet_build  || exit /b 1
+  call :dotnet_build || exit /b 1
   net.exe session 1>nul 2>&1 || (
     call :print_error_message Cannot run simpleharness test because this is not an administrator window
     exit /b 1
   )
-  call "%DotNet%" run -c %BuildConfiguration% "bin\%BuildConfiguration%\netcoreapp1.0\simpleharness.dll" || exit /b 1
+  dotnet.exe run -c %BuildConfiguration% "bin\%BuildConfiguration%\netcoreapp1.0\simpleharness.dll" || exit /b 1
   exit /b %errorlevel%
 
 :dotnet_build
@@ -189,10 +155,10 @@ setlocal
   echo/  ==========
   echo/   Building %cd%
   echo/  ==========
-  call :remove_directory bin                                                      || exit /b 1
-  call :remove_directory obj                                                      || exit /b 1
-  call "%DotNet%" restore                                                         || exit /b 1
-  call "%DotNet%" build -c %BuildConfiguration% --version-suffix %VersionSuffix%  || exit /b 1
+  call :remove_directory bin                                                                  || exit /b 1
+  call :remove_directory obj                                                                  || exit /b 1
+  dotnet.exe restore                                                                          || exit /b 1
+  dotnet.exe build --no-dependencies -c %BuildConfiguration% --version-suffix %VersionSuffix% || exit /b 1
   exit /b 0
 
 :dotnet_pack
@@ -200,14 +166,8 @@ setlocal
   echo/  ==========
   echo/   Packing %cd%
   echo/  ==========
-  call :remove_directory bin                                                                                                    || exit /b 1
-  call :remove_directory obj                                                                                                    || exit /b 1
-  call "%DotNet%" restore                                                                                                       || exit /b 1
-  call "%DotNet%" build -c %BuildConfiguration% --version-suffix %VersionSuffix%                                                || exit /b 1
-  call "%DotNet%" pack  -c %BuildConfiguration% --version-suffix %VersionSuffix% --output "%OutputDirectory%" --include-symbols || exit /b 1
-
-  :: FIXME: pack sources does not work with the current mixed version of the Tracing library (EXCEPTION THROWN).
-  ::call "%DotNet%" pack  -c %BuildConfiguration% --version-suffix %VersionSuffix% --output "%OutputDirectory%" --include-symbols --include-source  || exit /b 1
+  call :dotnet_build                                                                                                                                    || exit /b 1
+  dotnet.exe pack  --no-build -c %BuildConfiguration% --version-suffix %VersionSuffix% --output "%OutputDirectory%" --include-symbols --include-source  || exit /b 1
   exit /b 0
 
 :print_error_message

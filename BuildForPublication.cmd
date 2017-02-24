@@ -5,7 +5,7 @@
 setlocal EnableDelayedExpansion
   set errorlevel=
   set BuildConfiguration=Release
-  set VersionSuffix=alpha-build0049
+  set VersionSuffix=beta-build0001
   set PackageVersion=1.0.0-%VersionSuffix%
 
   REM Check that git is on path.

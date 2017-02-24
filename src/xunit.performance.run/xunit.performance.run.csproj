@@ -1,21 +1,15 @@
-﻿<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
-  
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <VersionPrefix>1.0.0-alpha</VersionPrefix>
-    <TargetFramework>net46</TargetFramework>
-    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
-    <AssemblyName>xunit.performance.run</AssemblyName>
+    <AssemblyTitle>xunit.performance.run</AssemblyTitle>
+    <Description>xUnit Performance Run</Description>
     <OutputType>Exe</OutputType>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
+    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
+    <TargetFramework>net46</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="**\*.cs" />
-	<Compile Include="..\common\GlobalAssemblyInfo.cs" />
-    <EmbeddedResource Include="**\*.resx" />
-    <EmbeddedResource Include="compiler\resources\**\*" />
+    <Compile Include="..\common\GlobalAssemblyInfo.cs" Link="GlobalAssemblyInfo.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,37 +22,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Sdk">
-      <Version>1.0.0-alpha-20161104-2</Version>
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent">
-      <Version>1.0.41</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.abstractions">
-      <Version>2.0.1</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.extensibility.core">
-      <Version>2.2.0-beta2-build3300</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.console">
-      <Version>2.2.0-beta2-build3300</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.utility">
-      <Version>2.2.0-beta2-build3300</Version>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System" />
-    <Reference Include="Microsoft.CSharp" />
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="1.0.41" />
+    <PackageReference Include="xunit.abstractions" Version="2.0.1" />
+    <PackageReference Include="xunit.extensibility.core" Version="2.2.0-beta2-build3300" />
+    <PackageReference Include="xunit.runner.console" Version="2.2.0-beta2-build3300" />
+    <PackageReference Include="xunit.runner.utility" Version="2.2.0-beta2-build3300" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
   </PropertyGroup>
-  
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
 </Project>
