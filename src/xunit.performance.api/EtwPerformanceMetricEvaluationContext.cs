@@ -31,9 +31,7 @@ namespace Microsoft.Xunit.Performance.Api
             benchmarkParser.BenchmarkIterationStart += delegate (BenchmarkIterationStartArgs args)
             {
                 if (args.RunId != _runid)
-                {
                     return;
-                }
 
                 if (_currentTestCase != null)
                     throw new InvalidOperationException(args.TimeStampRelativeMSec.ToString());

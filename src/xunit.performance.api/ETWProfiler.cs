@@ -36,7 +36,7 @@ namespace Microsoft.Xunit.Performance.Api
         /// <returns></returns>
         public static void Record(string assemblyFileName, string runId, string outputDirectory, Action action, Action<string> collectOutputFilesCallback)
         {
-            const int bufferSizeMB = 128;
+            const int bufferSizeMB = 256;
             var sessionName = $"Performance-Api-Session-{runId}";
             var name = $"{runId}-{Path.GetFileNameWithoutExtension(assemblyFileName)}";
             var userFullFileName = Path.Combine(outputDirectory, $"{name}.etl");
