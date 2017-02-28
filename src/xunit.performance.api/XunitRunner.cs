@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Xunit.Abstractions;
 using Xunit.Runners;
 using static Microsoft.Xunit.Performance.Api.XunitPerformanceLogger;
 
@@ -63,11 +64,13 @@ namespace Microsoft.Xunit.Performance.Api
 
         private static void SetupRunnerCallbacks(AssemblyRunner runner, ManualResetEvent manualResetEvent, object consoleLock, int[] result)
         {
+            runner.TestCaseFilter = (ITestCase testCase) => testCase.GetType() == typeof(BenchmarkTestCase);
+
             runner.OnDiscoveryComplete = info =>
             {
                 lock (consoleLock)
                 {
-                    WriteInfoLine($"Running {info.TestCasesToRun} of {info.TestCasesDiscovered} tests...");
+                    WriteInfoLine($"Running {info.TestCasesToRun} Benchmarks out of {info.TestCasesDiscovered} Xunit Facts...");
                 }
             };
             runner.OnExecutionComplete = info =>

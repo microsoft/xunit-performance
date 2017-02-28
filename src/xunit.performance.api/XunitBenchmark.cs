@@ -14,22 +14,24 @@ namespace Microsoft.Xunit.Performance.Api
             // TODO: Read this from file.
             //   1. This reads as: flags read from config file based on running platform!
             //   2. Format could be something like this: `{ "Name" : "BranchMispredictions", "interval" : "100000" }`
-            RequiredProviders = new ProviderInfo[]
+            PerformanceMonitorCounters = new List<IPerformanceMonitorCounter>
+            {
+                new BranchMispredictionsPerformanceMonitorCounter(),
+                new CacheMissesPerformanceMonitorCounter(),
+            };
+
+            PerformanceMetricInfos = new List<BasePerformanceMonitorCounter>
+            {
+                new GenericPerformanceMonitorCounterMetric<BranchMispredictionsPerformanceMonitorCounter>(new BranchMispredictionsPerformanceMonitorCounter()),
+                new GenericPerformanceMonitorCounterMetric<CacheMissesPerformanceMonitorCounter>(new CacheMissesPerformanceMonitorCounter()),
+            };
+
+            RequiredProviders = new List<ProviderInfo>
             {
                 new KernelProviderInfo()
                 {
                     Keywords = (ulong)KernelTraceEventParser.Keywords.Process | (ulong)KernelTraceEventParser.Keywords.Profile,
                     StackKeywords = (ulong)KernelTraceEventParser.Keywords.Profile
-                },
-                new CpuCounterInfo()
-                {
-                    CounterName = "BranchMispredictions",
-                    Interval = 100000
-                },
-                new CpuCounterInfo()
-                {
-                    CounterName = "CacheMisses",
-                    Interval = 100000
                 },
                 new UserProviderInfo()
                 {
@@ -52,6 +54,15 @@ namespace Microsoft.Xunit.Performance.Api
                     ),
                 }
             };
+
+            foreach (var pmc in PerformanceMonitorCounters)
+            {
+                RequiredProviders.Add(new CpuCounterInfo()
+                {
+                    CounterName = pmc.Name,
+                    Interval = pmc.Interval,
+                });
+            }
         }
 
         public static (IEnumerable<ProviderInfo> providers, IEnumerable<PerformanceTestMessage> performanceTestMessages) GetMetadata(string assemblyFileName)
@@ -78,11 +89,26 @@ namespace Microsoft.Xunit.Performance.Api
                         select provider;
 
                     providers = ProviderInfo.Merge(providers);
+
+                    // Inject implicit pmc counters
+                    foreach (var test in testMessageVisitor.Tests)
+                    {
+                        var metrics = new List<PerformanceMetricInfo>(test.Metrics);
+                        foreach (var performanceMetricInfo in PerformanceMetricInfos)
+                            if (performanceMetricInfo.IsValidPmc)
+                                metrics.Add(performanceMetricInfo);
+                        test.Metrics = metrics;
+                    }
+
                     return (ProviderInfo.Merge(RequiredProviders.Concat(providers)), testMessageVisitor.Tests);
                 }
             }
         }
 
-        public static IEnumerable<ProviderInfo> RequiredProviders { get; }
+        public static List<ProviderInfo> RequiredProviders { get; }
+
+        private static List<IPerformanceMonitorCounter> PerformanceMonitorCounters { get; }
+
+        private static List<BasePerformanceMonitorCounter> PerformanceMetricInfos { get; }
     }
 }
