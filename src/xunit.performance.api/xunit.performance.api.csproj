@@ -20,16 +20,13 @@
     <Compile Include="..\common\GlobalAssemblyInfo.cs" Link="GlobalAssemblyInfo.cs" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
-  </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.1.1-beta" />
     <PackageReference Include="Microsoft.3rdpartytools.MarkdownLog" Version="0.10.0-alpha-experimental" />
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="1.0.0-alpha-experimental">
       <IncludeAssets>All</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="System.Security.Principal.Windows" Version="4.3.0" />
     <PackageReference Include="System.ValueTuple" Version="4.3.0" />
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
     <PackageReference Include="xunit.runner.utility" Version="2.2.0-beta2-build3300" />

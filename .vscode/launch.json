@@ -7,7 +7,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceRoot}/tools/bin/dotnet.exe",
-            "args": ["${workspaceRoot}/tests/simpleharness/bin/Debug/netcoreapp1.0/simpleharness.dll"],
+            "args": ["${workspaceRoot}/tests/simpleharness/bin/Debug/netcoreapp1.1/simpleharness.dll"],
             "cwd": "${workspaceRoot}/tests/simpleharness",
             "stopAtEntry": false,
             "externalConsole": false

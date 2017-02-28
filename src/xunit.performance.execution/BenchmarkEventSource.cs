@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Microsoft.Xunit.Performance.Execution;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
@@ -14,17 +15,11 @@ namespace Microsoft.Xunit.Performance
     [EventSource(Name = "Microsoft-Xunit-Benchmark", Guid = "A3B447A8-6549-4158-9BAD-76D442A47061")]
     public sealed class BenchmarkEventSource : EventSource
     {
-        public class Tasks
+        public static class Tasks
         {
-            public const EventTask BenchmarkStart = (EventTask)1;
-            public const EventTask BenchmarkStop = (EventTask)2;
-            public const EventTask BenchmarkIterationStart = (EventTask)3;
-            public const EventTask BenchmarkIterationStop = (EventTask)4;
+            public const EventTask Benchmark = (EventTask)1;
+            public const EventTask BenchmarkIteration = (EventTask)2;
         }
-
-        public static readonly BenchmarkEventSource Log = new BenchmarkEventSource();
-
-        private static readonly StreamWriter _csvWriter = OpenCSV();
 
         [NonEvent]
         private static StreamWriter OpenCSV()
@@ -40,15 +35,14 @@ namespace Microsoft.Xunit.Performance
         [NonEvent]
         internal void Flush()
         {
-            if (_csvWriter != null)
-                _csvWriter.Flush();
+            _csvWriter?.Flush();
         }
 
         [NonEvent]
         public void Clear()
         {
-            _csvWriter.BaseStream.SetLength(0);
-            _csvWriter.BaseStream.Flush();
+            _csvWriter?.BaseStream.SetLength(0);
+            _csvWriter?.BaseStream.Flush();
         }
 
         // This can only be called when the process is done using the EventSource
@@ -57,14 +51,13 @@ namespace Microsoft.Xunit.Performance
         [NonEvent]
         public void Close()
         {
-            if (_csvWriter != null)
-                _csvWriter.Dispose();
+            _csvWriter?.Dispose();
         }
 
         [NonEvent]
         private double GetTimestamp()
         {
-            return 1000.0 * (double)Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency;
+            return (1000.0 * Stopwatch.GetTimestamp()) / Stopwatch.Frequency;
         }
 
         [NonEvent]
@@ -85,7 +78,7 @@ namespace Microsoft.Xunit.Performance
             _csvWriter.WriteLine($"{GetTimestamp()},{Escape(benchmarkName)},{eventName},{iteration?.ToString(CultureInfo.InvariantCulture) ?? ""},{success?.ToString() ?? ""},{stopReason}");
         }
 
-        [Event(1, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkStart)]
+        [Event(1, Opcode = EventOpcode.Start, Task = Tasks.Benchmark)]
         public unsafe void BenchmarkStart(string RunId, string BenchmarkName)
         {
             if (_csvWriter != null)
@@ -99,17 +92,18 @@ namespace Microsoft.Xunit.Performance
                 fixed (char* pRunId = RunId)
                 fixed (char* pBenchmarkName = BenchmarkName)
                 {
-                    EventData* data = stackalloc EventData[2];
+                    const int eventDataCount = 2;
+                    EventData* data = stackalloc EventData[eventDataCount];
                     data[0].Size = (RunId.Length + 1) * sizeof(char);
                     data[0].DataPointer = (IntPtr)pRunId;
-                    data[1].Size = (BenchmarkName.Length + 1) * 2;
+                    data[1].Size = (BenchmarkName.Length + 1) * sizeof(char);
                     data[1].DataPointer = (IntPtr)pBenchmarkName;
-                    WriteEventCore(1, 2, data);
+                    WriteEventCore(1, eventDataCount, data);
                 }
             }
         }
 
-        [Event(2, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkStop)]
+        [Event(2, Opcode = EventOpcode.Stop, Task = Tasks.Benchmark)]
         public unsafe void BenchmarkStop(string RunId, string BenchmarkName, string StopReason)
         {
             if (IsEnabled())
@@ -121,14 +115,15 @@ namespace Microsoft.Xunit.Performance
                 fixed (char* pBenchmarkName = BenchmarkName)
                 fixed (char* pStopReason = StopReason)
                 {
-                    EventData* data = stackalloc EventData[3];
+                    const int eventDataCount = 3;
+                    EventData* data = stackalloc EventData[eventDataCount];
                     data[0].Size = (RunId.Length + 1) * sizeof(char);
                     data[0].DataPointer = (IntPtr)pRunId;
-                    data[1].Size = (BenchmarkName.Length + 1) * 2;
+                    data[1].Size = (BenchmarkName.Length + 1) * sizeof(char);
                     data[1].DataPointer = (IntPtr)pBenchmarkName;
                     data[2].Size = (StopReason.Length + 1) * 2;
                     data[2].DataPointer = (IntPtr)pStopReason;
-                    WriteEventCore(2, 3, data);
+                    WriteEventCore(2, eventDataCount, data);
                 }
             }
 
@@ -136,8 +131,11 @@ namespace Microsoft.Xunit.Performance
                 WriteCSV(BenchmarkName, stopReason: StopReason);
         }
 
-        [Event(3, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkIterationStart)]
-        public unsafe void BenchmarkIterationStart(string RunId, string BenchmarkName, int Iteration)
+        [Event(3,
+            Level = EventLevel.LogAlways,
+            Opcode = EventOpcode.Start,
+            Task = Tasks.BenchmarkIteration)]
+        public unsafe void BenchmarkIterationStart(string RunId, string BenchmarkName, int Iteration, long AllocatedBytes)
         {
             if (_csvWriter != null)
                 WriteCSV(BenchmarkName, iteration: Iteration);
@@ -147,45 +145,61 @@ namespace Microsoft.Xunit.Performance
                 if (RunId == null)
                     RunId = "";
 
+                AllocatedBytes = AllocatedBytesForCurrentThread.LastAllocatedBytes;
                 fixed (char* pRunId = RunId)
                 fixed (char* pBenchmarkName = BenchmarkName)
                 {
-                    EventData* data = stackalloc EventData[3];
+                    const int eventDataCount = 4;
+                    EventData* data = stackalloc EventData[eventDataCount];
                     data[0].Size = (RunId.Length + 1) * sizeof(char);
                     data[0].DataPointer = (IntPtr)pRunId;
                     data[1].Size = (BenchmarkName.Length + 1) * sizeof(char);
                     data[1].DataPointer = (IntPtr)pBenchmarkName;
                     data[2].Size = sizeof(int);
                     data[2].DataPointer = (IntPtr)(&Iteration);
-                    WriteEventCore(3, 3, data);
+                    data[3].Size = sizeof(long);
+                    data[3].DataPointer = (IntPtr)(&AllocatedBytes);
+
+                    WriteEventCore(3, eventDataCount, data);
                 }
             }
         }
 
-        [Event(4, Opcode = EventOpcode.Info, Task = Tasks.BenchmarkIterationStop)]
-        public unsafe void BenchmarkIterationStop(string RunId, string BenchmarkName, int Iteration)
+        [Event(4,
+            Level = EventLevel.LogAlways,
+            Opcode = EventOpcode.Stop,
+            Task = Tasks.BenchmarkIteration)]
+        public unsafe void BenchmarkIterationStop(string RunId, string BenchmarkName, int Iteration, long AllocatedBytes)
         {
             if (IsEnabled())
             {
                 if (RunId == null)
                     RunId = "";
 
+                AllocatedBytes = AllocatedBytesForCurrentThread.LastAllocatedBytes;
                 fixed (char* pRunId = RunId)
                 fixed (char* pBenchmarkName = BenchmarkName)
                 {
-                    EventData* data = stackalloc EventData[3];
+                    const int eventDataCount = 4;
+                    EventData* data = stackalloc EventData[eventDataCount];
                     data[0].Size = (RunId.Length + 1) * sizeof(char);
                     data[0].DataPointer = (IntPtr)pRunId;
-                    data[1].Size = (BenchmarkName.Length + 1) * 2;
+                    data[1].Size = (BenchmarkName.Length + 1) * sizeof(char);
                     data[1].DataPointer = (IntPtr)pBenchmarkName;
                     data[2].Size = sizeof(int);
                     data[2].DataPointer = (IntPtr)(&Iteration);
-                    WriteEventCore(4, 3, data);
+                    data[3].Size = sizeof(long);
+                    data[3].DataPointer = (IntPtr)(&AllocatedBytes);
+
+                    WriteEventCore(4, eventDataCount, data);
                 }
             }
 
             if (_csvWriter != null)
                 WriteCSV(BenchmarkName, iteration: Iteration);
         }
+
+        public static readonly BenchmarkEventSource Log = new BenchmarkEventSource();
+        private static readonly StreamWriter _csvWriter = OpenCSV();
     }
 }

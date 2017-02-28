@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
 using System.Threading;
 using Xunit.Abstractions;
 using Xunit.Runners;
@@ -70,7 +72,25 @@ namespace Microsoft.Xunit.Performance.Api
             {
                 lock (consoleLock)
                 {
-                    WriteInfoLine($"Running {info.TestCasesToRun} Benchmarks out of {info.TestCasesDiscovered} Xunit Facts...");
+                    var diff = info.TestCasesDiscovered - info.TestCasesToRun;
+                    if (diff < 0) // This should never happen.
+                    {
+                        // TODO: Add error handling. Throwing exception is not enough because we are waiting for the async runner to finish.
+                        WriteErrorLine("There are more benchmarks than facts.");
+                    }
+                    var message = (diff == 0) ? $"Running {info.TestCasesToRun} Benchmarks..." : $"Running {info.TestCasesToRun} Benchmarks out of {info.TestCasesDiscovered} Xunit Facts...";
+                    WriteInfoLine(message);
+                }
+            };
+            runner.OnErrorMessage = info =>
+            {
+                lock (consoleLock)
+                {
+                    var sb = new StringBuilder();
+                    sb.AppendLine("Got an unhandled exception outside test.");
+                    sb.AppendLine($"  {info.ExceptionType}: {info.MesssageType}: {info.ExceptionMessage}");
+                    sb.AppendLine($"  {info.ExceptionStackTrace}");
+                    WriteErrorLine(sb.ToString());
                 }
             };
             runner.OnExecutionComplete = info =>

@@ -7,7 +7,7 @@
   <PropertyGroup>
     <AssemblyTitle>xunit.performance.metrics</AssemblyTitle>
     <Description>xUnit Performance Metrics</Description>
-    <TargetFrameworks>netstandard1.5;net46</TargetFrameworks>
+    <TargetFrameworks>netstandard1.5</TargetFrameworks>
     <Title>xUnit Performance Metrics</Title>
 
     <PackageIconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</PackageIconUrl>
@@ -19,25 +19,14 @@
     <Compile Include="..\common\GlobalAssemblyInfo.cs" Link="GlobalAssemblyInfo.cs" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\xunit.performance.core\xunit.performance.core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="xunit.abstractions" Version="2.0.1" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
-    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="1.0.41" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' != 'net46' ">
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="1.0.0-alpha-experimental" />
     <PackageReference Include="System.Runtime.Serialization.Formatters" Version="4.3.0" />
+    <PackageReference Include="xunit.abstractions" Version="2.0.1" />
   </ItemGroup>
 
 </Project>

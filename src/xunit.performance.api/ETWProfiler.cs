@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using static Microsoft.Xunit.Performance.Api.Common;
 using static Microsoft.Xunit.Performance.Api.Native.Windows.Kernel32;
 using static Microsoft.Xunit.Performance.Api.XunitPerformanceLogger;
 
@@ -36,6 +37,13 @@ namespace Microsoft.Xunit.Performance.Api
         /// <returns></returns>
         public static void Record(string assemblyFileName, string runId, string outputDirectory, Action action, Action<string> collectOutputFilesCallback)
         {
+            if (!IsRunningAsAdministrator)
+            {
+                const string errMessage = "In order to profile, application is required to run as Administrator.";
+                WriteErrorLine(errMessage);
+                throw new InvalidOperationException(errMessage);
+            }
+
             const int bufferSizeMB = 256;
             var sessionName = $"Performance-Api-Session-{runId}";
             var name = $"{runId}-{Path.GetFileNameWithoutExtension(assemblyFileName)}";
@@ -92,7 +100,7 @@ namespace Microsoft.Xunit.Performance.Api
             MarkdownHelper.Write(mdFileName, mdTable);
             WriteInfoLine($"Markdown file saved to \"{mdFileName}\"");
             collectOutputFilesCallback(mdFileName);
-            Console.WriteLine(mdTable);
+            Console.WriteLine(MarkdownHelper.ToTrimmedTable(mdTable));
 
             var csvFileName = Path.Combine(outputDirectory, $"{name}.csv");
             dt.WriteToCSV(csvFileName);

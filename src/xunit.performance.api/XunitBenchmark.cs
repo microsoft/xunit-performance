@@ -93,7 +93,10 @@ namespace Microsoft.Xunit.Performance.Api
                     // Inject implicit pmc counters
                     foreach (var test in testMessageVisitor.Tests)
                     {
-                        var metrics = new List<PerformanceMetricInfo>(test.Metrics);
+                        var metrics = new List<PerformanceMetricInfo>(test.Metrics)
+                        {
+                            new GCAllocatedBytesForCurrentThreadMetric()
+                        };
                         foreach (var performanceMetricInfo in PerformanceMetricInfos)
                             if (performanceMetricInfo.IsValidPmc)
                                 metrics.Add(performanceMetricInfo);

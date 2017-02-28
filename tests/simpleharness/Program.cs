@@ -25,7 +25,7 @@ namespace simpleharness
 
         public static IEnumerable<object[]> InputData()
         {
-            var args = new string[] { "FFT", "LU", "MC", "MM", "SOR", "\u03C3", "x\u0305" };
+            var args = new string[] { "FOO", "\u03C3", "x\u0305" };
             foreach (var arg in args)
                 yield return new object[] { new string[] { arg } };
         }
@@ -34,16 +34,16 @@ namespace simpleharness
         [MemberData(nameof(InputData))]
         private static void TestMultipleStringInputs(string[] args)
         {
-           foreach (BenchmarkIteration iter in Benchmark.Iterations)
-           {
-               using (iter.StartMeasurement())
-               {
-                   for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                   {
-                       FormattedString(args[0], args[0], args[0], args[0]);
-                   }
-               }
-           }
+            foreach (BenchmarkIteration iter in Benchmark.Iterations)
+            {
+                using (iter.StartMeasurement())
+                {
+                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
+                    {
+                        FormattedString(args[0], args[0], args[0], args[0]);
+                    }
+                }
+            }
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -65,6 +65,17 @@ namespace simpleharness
                         {
                             string.Format("{0}{1}{2}{3}", "a", "b", "c", "d");
                         }
+                    }
+                }
+            }
+
+            [Benchmark]
+            private static void EmptyBenchmark()
+            {
+                foreach (BenchmarkIteration iter in Benchmark.Iterations)
+                {
+                    using (iter.StartMeasurement())
+                    {
                     }
                 }
             }

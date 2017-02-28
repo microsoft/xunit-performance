@@ -58,12 +58,15 @@ namespace Microsoft.Xunit.Performance.Api
                         .Where(iter => iter.Iteration.ContainsKey(metric.Name))
                         .Select(iter => iter.Iteration[metric.Name]);
 
-                    var count = values.Count();
-                    if (count == 0) // Cannot compute statistics when there are not results (e.g. user only ran a subset of all tests).
+                    if (values.Count() == 0) // Cannot compute statistics when there are not results (e.g. user only ran a subset of all tests).
                         continue;
 
+                    // Skip the warmup run.
+                    if (values.Count() > 1)
+                        values = values.Skip(1);
+
                     var avg = values.Average();
-                    var stdev_s = Math.Sqrt(values.Sum(x => Math.Pow(x - avg, 2)) / (count - 1));
+                    var stdev_s = Math.Sqrt(values.Sum(x => Math.Pow(x - avg, 2)) / (values.Count() - 1));
                     var max = values.Max();
                     var min = values.Min();
 
@@ -71,7 +74,7 @@ namespace Microsoft.Xunit.Performance.Api
                     newRow[col0_testName] = testModel.Name;
                     newRow[col1_metric] = metric.DisplayName;
 
-                    newRow[col2_iterations] = count.ToString();
+                    newRow[col2_iterations] = values.Count().ToString();
                     newRow[col3_average] = avg.ToString();
                     newRow[col4_stdevs] = stdev_s.ToString();
                     newRow[col5_min] = min.ToString();
