@@ -15,10 +15,3 @@ using System.Runtime.CompilerServices;
 																"3B9033A979BC4EBC504773C60E5F48A0" +
 																"B09B18B5806BCCC12C03858C0141E0E5" +
 																"270E48830EBFAEC006071BD2830559E2")]
-
-// General Information about an assembly is controlled through the following 
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
-[assembly: AssemblyTitle("xunit.performance execution")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyCulture("")]
