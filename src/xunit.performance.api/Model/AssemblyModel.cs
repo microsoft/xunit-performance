@@ -175,6 +175,143 @@ namespace Microsoft.Xunit.Performance.Api
     }
 
     [Serializable]
+    [XmlRoot("BenchmarkScenario")]
+    public sealed class BenchmarkScenario
+    {
+        [XmlAttribute("Name")]
+        public string Name { get; set; }
+
+        [XmlAttribute("Namespace")]
+        public string Namespace { get; set; }
+        
+        [XmlArray("Assemblies")]
+        public List<NetcoreAssembly> Assemblies { get; set; }
+
+        public BenchmarkScenario()
+        {
+            Assemblies = new List<NetcoreAssembly>();
+            Namespace = "";
+        }
+
+        public BenchmarkScenario(string name)
+        {
+            Name = name;
+            Namespace = "";
+            Assemblies = new List<NetcoreAssembly>();
+        }
+
+        public void Serialize(string xmlFileName)
+        {
+            var namespaces = new XmlSerializerNamespaces();
+            namespaces.Add("", "");
+            using (var stream = File.Create(xmlFileName))
+            {
+                using (var sw = new StreamWriter(stream))
+                {
+                    new XmlSerializer(typeof(BenchmarkScenario))
+                        .Serialize(sw, this, namespaces);
+                }
+            }
+        }
+
+        internal DataTable GetStatistics()
+        {
+            var dt = new DataTable();
+            var col0_testName = dt.AddColumn("Test Name");
+            var col1_metric = dt.AddColumn("Metric");
+            var col2_iterations = dt.AddColumn("Iterations");
+            var col3_average = dt.AddColumn("AVERAGE");
+            var col4_stdevs = dt.AddColumn("STDEV.S");
+            var col5_min = dt.AddColumn("MIN");
+            var col6_max = dt.AddColumn("MAX");
+
+            foreach (var asm in Assemblies)
+            {
+                foreach (var test in asm.Tests)
+                {
+                    foreach (var metric in test.Performance.Metrics)
+                    {
+                        var values = test.Performance.IterationModels
+                            .Where(iter => iter.Iteration.ContainsKey(metric.Name))
+                            .Select(iter => iter.Iteration[metric.Name]);
+
+                        var count = values.Count();
+                        if (count == 0) // Cannot compute statistics when there are not results (e.g. user only ran a subset of all tests).
+                            continue;
+
+                        var avg = values.Average();
+                        var stdev_s = Math.Sqrt(values.Sum(x => Math.Pow(x - avg, 2)) / (count - 1));
+                        var max = values.Max();
+                        var min = values.Min();
+
+                        var newRow = dt.AppendRow();
+                        newRow[col0_testName] = test.Name;
+                        newRow[col1_metric] = metric.DisplayName;
+
+                        newRow[col2_iterations] = count.ToString();
+                        newRow[col3_average] = avg.ToString();
+                        newRow[col4_stdevs] = stdev_s.ToString();
+                        newRow[col5_min] = min.ToString();
+                        newRow[col6_max] = max.ToString();
+                    }
+                }
+            }
+
+            return dt;
+        }
+    }
+
+    
+    [Serializable]
+    [XmlType("NetcoreAssembly")]
+    public sealed class NetcoreAssembly
+    {
+        [XmlAttribute("Name")]
+        public string Name { get; set; }
+
+        [XmlElement("Tests")]
+        public List<NetcoreAssemblyTest> Tests { get; set; }
+
+        public NetcoreAssembly()
+        {
+            Tests = new List<NetcoreAssemblyTest>();
+        }
+
+        public NetcoreAssembly(string name)
+        {
+            Name = name;
+            Tests = new List<NetcoreAssemblyTest>();
+        }
+    }
+
+    [Serializable]
+    [XmlType("Test")]
+    public sealed class NetcoreAssemblyTest
+    {
+        [XmlAttribute("Name")]
+        public string Name { get; set; }
+
+        [XmlAttribute("Namespace")]
+        public string Namespace { get; set; }
+
+        [XmlElement("Performance")]
+        public PerformanceModel Performance { get; set; }
+
+        public NetcoreAssemblyTest()
+        {
+            Performance = new PerformanceModel();
+            Namespace = "";
+        }
+
+        public NetcoreAssemblyTest(string name)
+        {
+            Name = name;
+            Namespace = "";
+            Performance = new PerformanceModel();
+        }
+    }
+
+    [Serializable]
     [XmlType("test")]
     public sealed class TestModel
     {
@@ -196,6 +333,12 @@ namespace Microsoft.Xunit.Performance.Api
         public List<MetricModel> Metrics { get; set; }
 
         public List<IterationModel> IterationModels { get; set; }
+
+        public PerformanceModel()
+        {
+            Metrics = new List<MetricModel>();
+            IterationModels = new List<IterationModel>();
+        }
 
         public XmlSchema GetSchema()
         {

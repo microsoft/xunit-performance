@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 using static Microsoft.Xunit.Performance.Api.XunitPerformanceLogger;
+using static Microsoft.Xunit.Performance.Api.AssemblyModel;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -28,8 +30,10 @@ namespace Microsoft.Xunit.Performance.Api
             _args = args;
             _disposed = false;
             _outputFiles = new List<string>();
+            _performanceTestConfig = new PerformanceTestConfig();
 
             var options = XunitPerformanceHarnessOptions.Parse(args);
+            _performanceTestConfig.tmpDir = options.TmpDirectory;
 
             // Set the run id.
             _outputDirectory = options.OutputDirectory;
@@ -70,6 +74,66 @@ namespace Microsoft.Xunit.Performance.Api
 
             s_profiler(assemblyPath, Configuration.RunId, _outputDirectory, runner, collectOutputFilesCallback);
         }
+
+        public void RunStartupBenchmark(string[] args, ProcessStartInfo psi, PreDel pre, MidDel mid, PostDel post)
+        {
+            pre(_performanceTestConfig, psi);
+            int iterations = _performanceTestConfig.iterations;
+            int timeout = _performanceTestConfig.timeout;
+            psi.RedirectStandardOutput = true;
+
+            // Warmup run.
+            using (var p = new Process()) 
+            {
+                p.StartInfo = psi;
+                p.Start();
+                if (p.WaitForExit(timeout) == false) 
+                {
+                    if (p != null)
+                    {
+                        p.Kill();
+                    }
+                    Console.WriteLine("Timeouted!");
+                    return;
+                }
+            }
+
+            for (int i = 0; i < iterations; i++)
+            {
+                using(var p = new Process())
+                {
+                    p.StartInfo = psi;
+                    p.Start();
+                    if (p.WaitForExit(timeout) == false) 
+                    {
+                        if (p != null)
+                        {
+                            p.Kill();
+                        }
+                        Console.WriteLine("Timeouted!");
+                        return;
+                    }
+                    mid(_performanceTestConfig);
+                }
+            }
+
+            BenchmarkScenario bs = post(_performanceTestConfig);
+            bs.Serialize("out.xml");
+
+            var statisticsFileName = $"JitBench-Statistics";
+            var mdFileName = "JitBench-Statistics.md";
+
+            var dt = bs.GetStatistics();
+            var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
+            MarkdownHelper.Write(mdFileName, mdTable);
+            WriteInfoLine($"Markdown file saved to \"{mdFileName}\"");
+            Console.WriteLine(mdTable);
+
+            var csvFileName = "JitBench-Statistics.csv";
+            dt.WriteToCSV(csvFileName);
+            WriteInfoLine($"Statistics written to \"{csvFileName}\"");
+        }
+
 
         public static string Usage()
         {
@@ -160,5 +224,10 @@ namespace Microsoft.Xunit.Performance.Api
         private readonly List<string> _outputFiles;
         private readonly List<string> _typeNames;
         private bool _disposed;
+        public delegate void PreDel(PerformanceTestConfig config, ProcessStartInfo psi);
+        public delegate void MidDel(PerformanceTestConfig config);
+        public delegate BenchmarkScenario PostDel(PerformanceTestConfig config);
+
+        public PerformanceTestConfig _performanceTestConfig;
     }
 }
