@@ -78,8 +78,9 @@ namespace Microsoft.Xunit.Performance.Api
                         // TODO: Add error handling. Throwing exception is not enough because we are waiting for the async runner to finish.
                         WriteErrorLine("There are more benchmarks than facts.");
                     }
-                    var message = (diff == 0) ? $"Running {info.TestCasesToRun} Benchmarks..." : $"Running {info.TestCasesToRun} Benchmarks out of {info.TestCasesDiscovered} Xunit Facts...";
-                    WriteInfoLine(message);
+                    WriteInfoLine($"Running {info.TestCasesToRun} [Benchmark]s");
+                    if (diff != 0)
+                        WriteInfoLine($"Skipping {diff} Xunit [Fact]s because they are not [Benchmark]s");
                 }
             };
             runner.OnErrorMessage = info =>

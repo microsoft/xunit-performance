@@ -7,7 +7,7 @@
   <PropertyGroup>
     <AssemblyTitle>xunit.performance.metrics</AssemblyTitle>
     <Description>xUnit Performance Metrics</Description>
-    <TargetFrameworks>netstandard1.5</TargetFrameworks>
+    <TargetFramework>netstandard1.5</TargetFramework>
     <Title>xUnit Performance Metrics</Title>
 
     <PackageIconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</PackageIconUrl>

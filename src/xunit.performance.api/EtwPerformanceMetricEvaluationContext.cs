@@ -8,7 +8,6 @@ using Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark;
 using Microsoft.Xunit.Performance.Sdk;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
 using System.Linq;
 
 namespace Microsoft.Xunit.Performance.Api
