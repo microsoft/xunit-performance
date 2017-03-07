@@ -131,10 +131,7 @@ namespace Microsoft.Xunit.Performance
                 WriteCSV(BenchmarkName, stopReason: StopReason);
         }
 
-        [Event(3,
-            Level = EventLevel.LogAlways,
-            Opcode = EventOpcode.Start,
-            Task = Tasks.BenchmarkIteration)]
+        [Event(3, Level = EventLevel.LogAlways, Opcode = EventOpcode.Start, Task = Tasks.BenchmarkIteration)]
         public unsafe void BenchmarkIterationStart(string RunId, string BenchmarkName, int Iteration, long AllocatedBytes)
         {
             if (_csvWriter != null)
@@ -165,10 +162,7 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
-        [Event(4,
-            Level = EventLevel.LogAlways,
-            Opcode = EventOpcode.Stop,
-            Task = Tasks.BenchmarkIteration)]
+        [Event(4, Level = EventLevel.LogAlways, Opcode = EventOpcode.Stop, Task = Tasks.BenchmarkIteration)]
         public unsafe void BenchmarkIterationStop(string RunId, string BenchmarkName, int Iteration, long AllocatedBytes)
         {
             if (IsEnabled())

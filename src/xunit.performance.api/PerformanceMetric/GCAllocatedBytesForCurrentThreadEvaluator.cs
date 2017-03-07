@@ -7,10 +7,8 @@ namespace Microsoft.Xunit.Performance.Api
 {
     internal class GCAllocatedBytesForCurrentThreadEvaluator : PerformanceMetricEvaluator
     {
-        public GCAllocatedBytesForCurrentThreadEvaluator(PerformanceMetricEvaluationContext context)
+        public GCAllocatedBytesForCurrentThreadEvaluator()
         {
-            _context = context;
-            //_context.TraceEventSource.UserData
         }
 
         public override void BeginIteration(TraceEvent traceEvent)
@@ -25,7 +23,6 @@ namespace Microsoft.Xunit.Performance.Api
                 _bytesBeforeIteration, bytesAfterIteration);
         }
 
-        private readonly PerformanceMetricEvaluationContext _context;
         private long _bytesBeforeIteration;
     }
 }

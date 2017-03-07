@@ -32,7 +32,7 @@ namespace simpleharness
 
         [Benchmark(InnerIterationCount = 10)]
         [MemberData(nameof(InputData))]
-        private static void TestMultipleStringInputs(string[] args)
+        public static void TestMultipleStringInputs(string[] args)
         {
             foreach (BenchmarkIteration iter in Benchmark.Iterations)
             {
@@ -65,17 +65,6 @@ namespace simpleharness
                         {
                             string.Format("{0}{1}{2}{3}", "a", "b", "c", "d");
                         }
-                    }
-                }
-            }
-
-            [Benchmark]
-            private static void EmptyBenchmark()
-            {
-                foreach (BenchmarkIteration iter in Benchmark.Iterations)
-                {
-                    using (iter.StartMeasurement())
-                    {
                     }
                 }
             }
@@ -163,6 +152,20 @@ namespace simpleharness
                 }
 
                 return deck;
+            }
+        }
+
+        public static class Type_3
+        {
+            [Benchmark]
+            public static void EmptyBenchmark()
+            {
+                foreach (BenchmarkIteration iter in Benchmark.Iterations)
+                {
+                    using (iter.StartMeasurement())
+                    {
+                    }
+                }
             }
         }
     }

@@ -19,15 +19,15 @@ namespace Microsoft.Xunit.Performance.Api
                 yield return new UserProviderInfo()
                 {
                     ProviderGuid = MicrosoftXunitBenchmarkTraceEventParser.ProviderGuid,
-                    Level = TraceEventLevel.Informational,
-                    Keywords = ulong.MaxValue
+                    Level = TraceEventLevel.Always,
+                    Keywords = (ulong)KernelTraceEventParser.Keywords.None
                 };
             }
         }
 
         public override PerformanceMetricEvaluator CreateEvaluator(PerformanceMetricEvaluationContext context)
         {
-            return new GCAllocatedBytesForCurrentThreadEvaluator(context);
+            return new GCAllocatedBytesForCurrentThreadEvaluator();
         }
     }
 }
