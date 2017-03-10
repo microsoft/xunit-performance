@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="1.0.0-alpha-experimental">
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="1.0.2-alpha-experimental">
       <IncludeAssets>All</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.NETCore.App" Version="1.0.1" />

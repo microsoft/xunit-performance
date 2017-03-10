@@ -6,10 +6,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using static Microsoft.Xunit.Performance.Api.Common;
 using static Microsoft.Xunit.Performance.Api.Native.Windows.Kernel32;
-using static Microsoft.Xunit.Performance.Api.XunitPerformanceLogger;
+using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -242,22 +241,24 @@ namespace Microsoft.Xunit.Performance.Api
         private static void PrintAvailableProfileSources()
         {
             var availableProfileSources = TraceEventProfileSources.GetInfo();
-            var cpuCounterIds = new List<int>();
-            var cpuCounterIntervals = new List<int>();
-            var sb = new StringBuilder();
 
             foreach (var kvp in availableProfileSources)
             {
-                sb.AppendLine();
-                sb.AppendLine($"Profile name: {kvp.Key}");
-                sb.AppendLine($"  ID :          {kvp.Value.ID}");
-                sb.AppendLine($"  Interval :    {kvp.Value.Interval}");
-                sb.AppendLine($"  MaxInterval : {kvp.Value.MaxInterval}");
-                sb.AppendLine($"  MinInterval : {kvp.Value.MinInterval}");
-                sb.AppendLine();
+                Debug.WriteLine("");
+                Debug.WriteLine($"Profile name: {kvp.Key}");
+                Debug.WriteLine($"  ID :          {kvp.Value.ID}");
+                Debug.WriteLine($"  Interval :    {kvp.Value.Interval}");
+                Debug.WriteLine($"  MaxInterval : {kvp.Value.MaxInterval}");
+                Debug.WriteLine($"  MinInterval : {kvp.Value.MinInterval}");
+                Debug.WriteLine("");
             }
+        }
 
-            WriteDebugLine(sb.ToString());
+        [Conditional("DEBUG")]
+        private static void GetRegisteredProvidersInProcess()
+        {
+            new List<string>(TraceEventProviders.GetRegisteredProvidersInProcess(Process.GetCurrentProcess().Id)
+                .Select(p => TraceEventProviders.GetProviderName(p))).ForEach(name => Debug.WriteLine(name));
         }
     }
 }

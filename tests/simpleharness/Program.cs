@@ -7,12 +7,11 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Xunit;
 
-[assembly: MeasureGCAllocations]
-[assembly: MeasureGCCounts]
 [assembly: MeasureInstructionsRetired]
 
 namespace simpleharness
 {
+    [MeasureGCAllocations]
     public class Program
     {
         public static void Main(string[] args)
@@ -30,6 +29,7 @@ namespace simpleharness
                 yield return new object[] { new string[] { arg } };
         }
 
+        [MeasureGCCounts]
         [Benchmark(InnerIterationCount = 10)]
         [MemberData(nameof(InputData))]
         public static void TestMultipleStringInputs(string[] args)
@@ -52,8 +52,10 @@ namespace simpleharness
             return string.Format("{0}{1}{2}{3}", a, b, c, d);
         }
 
+        [MeasureGCAllocations]
         public sealed class Type_1
         {
+            [MeasureGCCounts]
             [Benchmark(InnerIterationCount = 10000)]
             public void TestBenchmark()
             {
@@ -152,20 +154,6 @@ namespace simpleharness
                 }
 
                 return deck;
-            }
-        }
-
-        public static class Type_3
-        {
-            [Benchmark]
-            public static void EmptyBenchmark()
-            {
-                foreach (BenchmarkIteration iter in Benchmark.Iterations)
-                {
-                    using (iter.StartMeasurement())
-                    {
-                    }
-                }
             }
         }
     }

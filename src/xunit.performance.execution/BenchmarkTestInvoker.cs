@@ -136,7 +136,7 @@ namespace Microsoft.Xunit.Performance
                 }
             }
 
-            protected override IEnumerable<BenchmarkIteration> Iterations
+            protected internal override IEnumerable<BenchmarkIteration> Iterations
             {
                 get
                 {
@@ -171,7 +171,7 @@ namespace Microsoft.Xunit.Performance
                 }
             }
 
-            protected override long InnerIterationCount
+            protected internal override long InnerIterationCount
             {
                 get
                 {
@@ -179,7 +179,7 @@ namespace Microsoft.Xunit.Performance
                 }
             }
 
-            protected override void StartMeasurement(int iterationNumber)
+            protected internal override void StartMeasurement(int iterationNumber)
             {
                 if (iterationNumber == _currentIteration)
                 {
@@ -190,7 +190,7 @@ namespace Microsoft.Xunit.Performance
 
                     RandomizeMeasurementStartTime();
 
-                    BenchmarkEventSource.Log.BenchmarkIterationStart(BenchmarkConfiguration.Instance.RunId, _testName, iterationNumber, 0);
+                    BenchmarkEventSource.Log.BenchmarkIterationStart(BenchmarkConfiguration.Instance.RunId, _testName, iterationNumber);
                 }
             }
 
@@ -245,14 +245,14 @@ namespace Microsoft.Xunit.Performance
                     Volatile.Read(ref _randomDelayGenerator);
             }
 
-            protected override void StopMeasurement(int iterationNumber)
+            protected internal override void StopMeasurement(int iterationNumber)
             {
                 if (iterationNumber == _currentIteration && !_currentIterationMesaurementStopped)
                 {
                     Debug.Assert(_currentIterationMeasurementStarted);
                     _currentIterationMesaurementStopped = true;
 
-                    BenchmarkEventSource.Log.BenchmarkIterationStop(BenchmarkConfiguration.Instance.RunId, _testName, iterationNumber, 0);
+                    BenchmarkEventSource.Log.BenchmarkIterationStop(BenchmarkConfiguration.Instance.RunId, _testName, iterationNumber);
                 }
             }
         }

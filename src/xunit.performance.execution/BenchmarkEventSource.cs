@@ -12,7 +12,7 @@ using System.Text;
 
 namespace Microsoft.Xunit.Performance
 {
-    [EventSource(Name = "Microsoft-Xunit-Benchmark", Guid = "A3B447A8-6549-4158-9BAD-76D442A47061")]
+    [EventSource(Name = "Microsoft-Xunit-Benchmark")]
     public sealed class BenchmarkEventSource : EventSource
     {
         public static class Tasks
@@ -87,7 +87,7 @@ namespace Microsoft.Xunit.Performance
             if (IsEnabled())
             {
                 if (RunId == null)
-                    RunId = "";
+                    RunId = DefaultRunId;
 
                 fixed (char* pRunId = RunId)
                 fixed (char* pBenchmarkName = BenchmarkName)
@@ -109,7 +109,7 @@ namespace Microsoft.Xunit.Performance
             if (IsEnabled())
             {
                 if (RunId == null)
-                    RunId = "";
+                    RunId = DefaultRunId;
 
                 fixed (char* pRunId = RunId)
                 fixed (char* pBenchmarkName = BenchmarkName)
@@ -132,7 +132,7 @@ namespace Microsoft.Xunit.Performance
         }
 
         [Event(3, Level = EventLevel.LogAlways, Opcode = EventOpcode.Start, Task = Tasks.BenchmarkIteration)]
-        public unsafe void BenchmarkIterationStart(string RunId, string BenchmarkName, int Iteration, long AllocatedBytes)
+        public unsafe void BenchmarkIterationStart(string RunId, string BenchmarkName, int Iteration)
         {
             if (_csvWriter != null)
                 WriteCSV(BenchmarkName, iteration: Iteration);
@@ -140,13 +140,15 @@ namespace Microsoft.Xunit.Performance
             if (IsEnabled())
             {
                 if (RunId == null)
-                    RunId = "";
+                    RunId = DefaultRunId;
 
-                AllocatedBytes = AllocatedBytesForCurrentThread.LastAllocatedBytes;
+                // Capture the allocated bytes just before writing an event.
+                _allocatedBytes = AllocatedBytesForCurrentThread.LastAllocatedBytes;
+
                 fixed (char* pRunId = RunId)
                 fixed (char* pBenchmarkName = BenchmarkName)
                 {
-                    const int eventDataCount = 4;
+                    const int eventDataCount = 3;
                     EventData* data = stackalloc EventData[eventDataCount];
                     data[0].Size = (RunId.Length + 1) * sizeof(char);
                     data[0].DataPointer = (IntPtr)pRunId;
@@ -154,8 +156,6 @@ namespace Microsoft.Xunit.Performance
                     data[1].DataPointer = (IntPtr)pBenchmarkName;
                     data[2].Size = sizeof(int);
                     data[2].DataPointer = (IntPtr)(&Iteration);
-                    data[3].Size = sizeof(long);
-                    data[3].DataPointer = (IntPtr)(&AllocatedBytes);
 
                     WriteEventCore(3, eventDataCount, data);
                 }
@@ -163,14 +163,16 @@ namespace Microsoft.Xunit.Performance
         }
 
         [Event(4, Level = EventLevel.LogAlways, Opcode = EventOpcode.Stop, Task = Tasks.BenchmarkIteration)]
-        public unsafe void BenchmarkIterationStop(string RunId, string BenchmarkName, int Iteration, long AllocatedBytes)
+        public unsafe void BenchmarkIterationStop(string RunId, string BenchmarkName, int Iteration, long AllocatedBytes = 0 /*dummy value for the TraceParserGen tool*/)
         {
             if (IsEnabled())
             {
                 if (RunId == null)
-                    RunId = "";
+                    RunId = DefaultRunId;
 
-                AllocatedBytes = AllocatedBytesForCurrentThread.LastAllocatedBytes;
+                var allocatedBytes = AllocatedBytesForCurrentThread.LastAllocatedBytes;
+                allocatedBytes = AllocatedBytesForCurrentThread.GetTotalAllocatedBytes(
+                    _allocatedBytes, allocatedBytes);
                 fixed (char* pRunId = RunId)
                 fixed (char* pBenchmarkName = BenchmarkName)
                 {
@@ -183,7 +185,7 @@ namespace Microsoft.Xunit.Performance
                     data[2].Size = sizeof(int);
                     data[2].DataPointer = (IntPtr)(&Iteration);
                     data[3].Size = sizeof(long);
-                    data[3].DataPointer = (IntPtr)(&AllocatedBytes);
+                    data[3].DataPointer = (IntPtr)(&allocatedBytes);
 
                     WriteEventCore(4, eventDataCount, data);
                 }
@@ -194,6 +196,9 @@ namespace Microsoft.Xunit.Performance
         }
 
         public static readonly BenchmarkEventSource Log = new BenchmarkEventSource();
+
+        private const string DefaultRunId = "";
         private static readonly StreamWriter _csvWriter = OpenCSV();
+        private static long _allocatedBytes = 0;
     }
 }

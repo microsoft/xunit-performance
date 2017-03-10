@@ -1,9 +1,11 @@
 ﻿using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
+using Microsoft.Xunit.Performance.Execution;
 using Microsoft.Xunit.Performance.Sdk;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
+using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -45,7 +47,6 @@ namespace Microsoft.Xunit.Performance.Api
                     Level = TraceEventLevel.Verbose,
                     Keywords =
                     (
-                        //(ulong)ClrTraceEventParser.Keywords.Default // TODO: Should we be using this instead?
                         (ulong)ClrTraceEventParser.Keywords.Jit |
                         (ulong)ClrTraceEventParser.Keywords.JittedMethodILToNativeMap |
                         (ulong)ClrTraceEventParser.Keywords.Loader |
@@ -90,18 +91,23 @@ namespace Microsoft.Xunit.Performance.Api
 
                     providers = ProviderInfo.Merge(providers);
 
+                    // Create the list of default metrics
+                    IEnumerable<PerformanceMetricInfo> defaultMetricInfos =
+                        from pmcMetricInfo in PerformanceMetricInfos
+                        where pmcMetricInfo.IsValidPmc
+                        select pmcMetricInfo;
+
+                    if (AllocatedBytesForCurrentThread.IsAvailable)
+                        defaultMetricInfos = defaultMetricInfos.Concat(new[] { new GCAllocatedBytesForCurrentThreadMetric() });
+                    else
+                    {
+                        WriteWarningLine(AllocatedBytesForCurrentThread.NoAvailabilityReason);
+                        WriteWarningLine("The 'Allocations In Current Thread' metric will not be collected.");
+                    }
+
                     // Inject implicit pmc counters
                     foreach (var test in testMessageVisitor.Tests)
-                    {
-                        var metrics = new List<PerformanceMetricInfo>(test.Metrics)
-                        {
-                            new GCAllocatedBytesForCurrentThreadMetric()
-                        };
-                        foreach (var performanceMetricInfo in PerformanceMetricInfos)
-                            if (performanceMetricInfo.IsValidPmc)
-                                metrics.Add(performanceMetricInfo);
-                        test.Metrics = metrics;
-                    }
+                        test.Metrics = test.Metrics.Concat(defaultMetricInfos);
 
                     return (ProviderInfo.Merge(RequiredProviders.Concat(providers)), testMessageVisitor.Tests);
                 }

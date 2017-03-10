@@ -4,7 +4,7 @@ using System.Reflection;
 namespace Microsoft.Xunit.Performance.Execution
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     internal static class AllocatedBytesForCurrentThread
     {
@@ -19,27 +19,55 @@ namespace Microsoft.Xunit.Performance.Execution
         /// </remarks>
         static AllocatedBytesForCurrentThread()
         {
-            var typeInfo = typeof(GC).GetTypeInfo();
-            var method = typeInfo.GetMethod("GetAllocatedBytesForCurrentThread",
-                            BindingFlags.Public | BindingFlags.Static)
-                      ?? typeInfo.GetMethod("GetAllocatedBytesForCurrentThread",
-                            BindingFlags.NonPublic | BindingFlags.Static);
+            var method = typeof(GC)
+                .GetTypeInfo()
+                .GetMethod("GetAllocatedBytesForCurrentThread", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
 
-            // TODO: Add meaningful error message.
-
-            _GetAllocatedBytesForCurrentThread = method == null ?
-                (Func<long>)(() => 0xBAAAAAAD) : () => (long)method.Invoke(null, null);
+            if (method == null)
+            {
+                _GetAllocatedBytesForCurrentThread = () => -0xBAAAAAAD;
+                IsAvailable = false;
+                NoAvailabilityReason = "The running implementation netcoreapp does not expose 'GC.GetAllocatedBytesForCurrentThread'.";
+            }
+            else
+            {
+                _GetAllocatedBytesForCurrentThread = () => (long)method.Invoke(null, null);
+                if (IsBugFixed())
+                {
+                    IsAvailable = true;
+                    NoAvailabilityReason = "";
+                }
+                else
+                {
+                    IsAvailable = false;
+                    NoAvailabilityReason = "There is a bug on the GC.GetAllocatedBytesForCurrentThread implementation for this version of netcoreapp.";
+                }
+            }
 
             var allocatedBytesBefore = LastAllocatedBytes;
             var allocatedBytesAfter = LastAllocatedBytes;
             s_minAllocatedBytes = allocatedBytesAfter - allocatedBytesBefore;
         }
 
+        private static bool IsBugFixed()
+        {
+            GC.Collect();
+            var allocatedBytesBeforeTest = LastAllocatedBytes;
+            GC.Collect();
+            var allocatedBytesAfterTest = LastAllocatedBytes;
+
+            return (allocatedBytesAfterTest - allocatedBytesBeforeTest == 24);
+        }
+
         public static long LastAllocatedBytes => _GetAllocatedBytesForCurrentThread.Invoke();
+
+        public static bool IsAvailable { get; }
+
+        public static string NoAvailabilityReason { get; }
 
         public static long GetTotalAllocatedBytes(long allocatedBytesBefore, long allocatedBytesAfter)
         {
-            return allocatedBytesAfter - allocatedBytesBefore; // FIXME: (allocatedBytesAfter - allocatedBytesBefore - s_minAllocatedBytes) sometimes returns a negative value!
+            return (allocatedBytesAfter - allocatedBytesBefore - s_minAllocatedBytes);
         }
 
         private static readonly Func<long> _GetAllocatedBytesForCurrentThread;

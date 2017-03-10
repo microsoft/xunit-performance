@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using Xunit.Abstractions;
 using Xunit.Runners;
-using static Microsoft.Xunit.Performance.Api.XunitPerformanceLogger;
+using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -113,6 +113,7 @@ namespace Microsoft.Xunit.Performance.Api
             {
                 lock (consoleLock)
                 {
+                    // TODO: Stop reporting performance results of failed test!
                     WriteErrorLine($"{info.TestDisplayName}: {info.ExceptionMessage}");
 
                     if (info.ExceptionStackTrace != null)

@@ -22,9 +22,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\xunit.performance.core\xunit.performance.core.csproj" />
-    <!--<ProjectReference Include="..\xunit.performance.core\xunit.performance.core.csproj">
-      <FromP2P>true</FromP2P>
-    </ProjectReference>-->
   </ItemGroup>
 
   <ItemGroup>

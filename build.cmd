@@ -8,7 +8,7 @@ setlocal enabledelayedexpansion
   if "%BuildConfiguration%"=="" set BuildConfiguration=Debug
 
   set VersionSuffix=%~2
-  if "%VersionSuffix%"=="" set VersionSuffix=alpha-build0000
+  if "%VersionSuffix%"=="" set VersionSuffix=beta-build0000
 
   set PackageVersion=%~3
   if "%PackageVersion%"=="" set PackageVersion=1.0.0-%VersionSuffix%
@@ -65,7 +65,13 @@ setlocal
     call :print_error_message Cannot run simpleharness test because this is not an administrator window
     exit /b 1
   )
-  dotnet.exe run -c %BuildConfiguration% "bin\%BuildConfiguration%\netcoreapp1.0\simpleharness.dll" || exit /b 1
+
+  dotnet.exe publish -c %BuildConfiguration% --framework netcoreapp1.0  || exit /b 1
+  dotnet.exe publish -c %BuildConfiguration% --framework netcoreapp1.1  || exit /b 1
+
+  rem Use this as a prefix for dotnet.exe in order to launch the process on a different window: START "TITLE GOES HERE" /WAIT
+  dotnet.exe "bin\%BuildConfiguration%\netcoreapp1.0\simpleharness.dll" || exit /b 1
+  dotnet.exe "bin\%BuildConfiguration%\netcoreapp1.1\simpleharness.dll" || exit /b 1
   exit /b %errorlevel%
 
 :dotnet_build

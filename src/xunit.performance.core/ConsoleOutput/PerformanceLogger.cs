@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Text;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -8,7 +9,7 @@ namespace Microsoft.Xunit.Performance.Api
     /// to log: information, warning, errors and debug messages in a standard
     /// way with timestamp.
     /// </summary>
-    internal static class XunitPerformanceLogger
+    internal static class PerformanceLogger
     {
         public static void WriteInfoLine(string value)
         {
@@ -33,21 +34,23 @@ namespace Microsoft.Xunit.Performance.Api
 
         private static void WriteLine(string value, ConsoleColor background, ConsoleColor foreground)
         {
-            using (var conColor = new ConColor(background, foreground))
+            using (var conColor = new ConsoleSettings(background, foreground))
                 Console.Out.WriteLine($"[{DateTime.Now}]{value}");
         }
 
-        private sealed class ConColor : IDisposable
+        private sealed class ConsoleSettings : IDisposable
         {
-            public ConColor(ConsoleColor background, ConsoleColor foreground)
+            public ConsoleSettings(ConsoleColor background, ConsoleColor foreground)
             {
                 // Save previous setting.
                 _background = Console.BackgroundColor;
                 _foreground = Console.ForegroundColor;
+                _encoding = Console.OutputEncoding;
 
                 // Set new setting.
                 Console.BackgroundColor = background;
                 Console.ForegroundColor = foreground;
+                Console.OutputEncoding = Encoding.UTF8;
             }
 
             public void Dispose()
@@ -55,10 +58,12 @@ namespace Microsoft.Xunit.Performance.Api
                 // Restore previous setting.
                 Console.BackgroundColor = _background;
                 Console.ForegroundColor = _foreground;
+                Console.OutputEncoding = _encoding;
             }
 
-            private ConsoleColor _background;
-            private ConsoleColor _foreground;
+            private readonly ConsoleColor _background;
+            private readonly ConsoleColor _foreground;
+            private readonly Encoding _encoding;
         }
     }
 }

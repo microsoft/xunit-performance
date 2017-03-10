@@ -13,13 +13,14 @@ using System.Text;
 namespace Microsoft.Diagnostics.Tracing.Parsers
 {
     using Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark;
+    using Microsoft.Diagnostics.Tracing.Session;
 
     [System.CodeDom.Compiler.GeneratedCode("traceparsergen", "2.0")]
     public sealed class MicrosoftXunitBenchmarkTraceEventParser : TraceEventParser
     {
         public static string ProviderName => "Microsoft-Xunit-Benchmark";
 
-        public static Guid ProviderGuid => Guid.Parse("A3B447A8-6549-4158-9BAD-76D442A47061");
+        public static Guid ProviderGuid => TraceEventProviders.GetEventSourceGuidFromName(ProviderName);
 
         public enum Keywords : long
         {
@@ -140,7 +141,6 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
         public string RunId { get { return GetUnicodeStringAt(0); } }
         public string BenchmarkName { get { return GetUnicodeStringAt(SkipUnicodeString(0)); } }
         public int Iteration { get { return GetInt32At(SkipUnicodeString(SkipUnicodeString(0))); } }
-        public long AllocatedBytes { get { return GetInt64At(SkipUnicodeString(SkipUnicodeString(0)) + 4); } }
 
         #region Private
         internal BenchmarkIterationStartArgs(Action<BenchmarkIterationStartArgs> target, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName)
@@ -168,7 +168,6 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
             XmlAttrib(sb, "RunId", RunId);
             XmlAttrib(sb, "BenchmarkName", BenchmarkName);
             XmlAttrib(sb, "Iteration", Iteration);
-            XmlAttrib(sb, "AllocatedBytes", AllocatedBytes);
             sb.Append("/>");
             return sb;
         }
@@ -178,7 +177,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
             get
             {
                 if (payloadNames == null)
-                    payloadNames = new string[] { "RunId", "BenchmarkName", "Iteration", "AllocatedBytes" };
+                    payloadNames = new string[] { "RunId", "BenchmarkName", "Iteration" };
                 return payloadNames;
             }
         }
@@ -193,8 +192,6 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
                     return BenchmarkName;
                 case 2:
                     return Iteration;
-                case 3:
-                    return AllocatedBytes;
                 default:
                     Debug.Assert(false, "Bad field index");
                     return null;

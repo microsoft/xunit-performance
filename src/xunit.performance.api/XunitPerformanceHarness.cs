@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using static Microsoft.Xunit.Performance.Api.Common;
-using static Microsoft.Xunit.Performance.Api.XunitPerformanceLogger;
+using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
 {

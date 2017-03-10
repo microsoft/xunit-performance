@@ -2,12 +2,27 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Launch (console)",
+            "name": ".NET Core 1.0",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceRoot}/tools/bin/dotnet.exe",
-            "args": ["${workspaceRoot}/tests/simpleharness/bin/Debug/netcoreapp1.1/simpleharness.dll"],
+            "preLaunchTask": "build-debug",
+            "program": "${workspaceRoot}/tools/dotnet/1.0.0/dotnet.exe",
+            "args": [
+                "${workspaceRoot}/tests/simpleharness/bin/Debug/netcoreapp1.0/simpleharness.dll"
+            ],
+            "cwd": "${workspaceRoot}/tests/simpleharness",
+            "stopAtEntry": false,
+            "externalConsole": false
+        },
+        {
+            "name": ".NET Core 1.1",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-debug",
+            "program": "${workspaceRoot}/tools/dotnet/1.0.0/dotnet.exe",
+            "args": [
+                "${workspaceRoot}/tests/simpleharness/bin/Debug/netcoreapp1.1/simpleharness.dll"
+            ],
             "cwd": "${workspaceRoot}/tests/simpleharness",
             "stopAtEntry": false,
             "externalConsole": false
