@@ -10,9 +10,6 @@ setlocal enabledelayedexpansion
   set VersionSuffix=%~2
   if "%VersionSuffix%"=="" set VersionSuffix=beta-build0000
 
-  set PackageVersion=%~3
-  if "%PackageVersion%"=="" set PackageVersion=1.0.0-%VersionSuffix%
-
   set OutputDirectory=%~dp0LocalPackages
   call :remove_directory "%OutputDirectory%" || exit /b 1
 

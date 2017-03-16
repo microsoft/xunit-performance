@@ -14,12 +14,12 @@
 # set -x
 
 declare currentDir=`pwd`
+declare dotnetVersion=`cat DotNetCliVersion.txt`
 declare outputDirectory=${currentDir}/LocalPackages
-declare dotnetPath=${currentDir}/tools/bin/ubuntu
+declare dotnetPath=${currentDir}/tools/dotnet/${dotnetVersion}
 declare dotnetCmd=${dotnetPath}/dotnet
 declare dotnetInstallerUrl=https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.sh
 declare dotnetInstallerScript=${dotnetPath}/dotnet-install.sh
-declare dotnetVersion=`cat DotNetCliVersion.txt`
 
 if ! [ -f $dotnetCmd ]
 then
@@ -50,17 +50,9 @@ fi
 declare versionSuffix=$2
 if [ "$versionSuffix" == "" ]
 then
-	versionSuffix="build0000"
+	versionSuffix="beta-build0000"
 fi
 
-$dotnetCmd restore
-pushd ${currentDir}/src/cli/Microsoft.DotNet.xunit.performance.runner.cli > /dev/null
-$dotnetCmd build -c $buildConfiguration --version-suffix $versionSuffix
-$dotnetCmd pack -c $buildConfiguration -o $outputDirectory --version-suffix $versionSuffix
-popd > /dev/null
-pushd ${currentDir}/src/cli/Microsoft.DotNet.xunit.performance.analysis.cli > /dev/null
-$dotnetCmd build -c $buildConfiguration --version-suffix $versionSuffix
-$dotnetCmd pack -c $buildConfiguration -o $outputDirectory --version-suffix $versionSuffix
-popd > /dev/null
+# TODO: Update groovy file and this file.
 
 echo Build complete
