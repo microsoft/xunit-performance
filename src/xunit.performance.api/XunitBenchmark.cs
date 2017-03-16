@@ -102,7 +102,7 @@ namespace Microsoft.Xunit.Performance.Api
                     else
                     {
                         WriteWarningLine(AllocatedBytesForCurrentThread.NoAvailabilityReason);
-                        WriteWarningLine("The 'Allocations In Current Thread' metric will not be collected.");
+                        WriteWarningLine($"The '{GCAllocatedBytesForCurrentThreadMetric.GetAllocatedBytesForCurrentThreadDisplayName}' metric will not be collected.");
                     }
 
                     // Inject implicit pmc counters

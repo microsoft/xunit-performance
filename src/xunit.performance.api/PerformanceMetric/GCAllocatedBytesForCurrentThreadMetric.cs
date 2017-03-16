@@ -7,8 +7,12 @@ namespace Microsoft.Xunit.Performance.Api
 {
     internal class GCAllocatedBytesForCurrentThreadMetric : PerformanceMetric
     {
+        public static string GetAllocatedBytesForCurrentThreadId => "GC.GetAllocatedBytesForCurrentThread";
+
+        public static string GetAllocatedBytesForCurrentThreadDisplayName => "Allocation Size on Benchmark Execution Thread";
+
         public GCAllocatedBytesForCurrentThreadMetric()
-            : base("GCAllocatedBytesForCurrentThread", "Allocations In Current Thread", PerformanceMetricUnits.Bytes)
+            : base(GetAllocatedBytesForCurrentThreadId, GetAllocatedBytesForCurrentThreadDisplayName, PerformanceMetricUnits.Bytes)
         {
         }
 

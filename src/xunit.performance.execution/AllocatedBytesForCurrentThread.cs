@@ -40,7 +40,7 @@ namespace Microsoft.Xunit.Performance.Execution
                 else
                 {
                     IsAvailable = false;
-                    NoAvailabilityReason = "There is a bug on the GC.GetAllocatedBytesForCurrentThread implementation for this version of netcoreapp.";
+                    NoAvailabilityReason = "Not capturing because the targeted runtime does not contain the fix for 'https://github.com/dotnet/coreclr/issues/10207'";
                 }
             }
 
