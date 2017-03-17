@@ -3,10 +3,15 @@
 
 :install_dotnet_cli
 setlocal
-  set DotNet=%~dp0\tools\bin\dotnet.exe
-  set DotNet_Path=%~dp0tools\bin
-  set Init_Tools_Log=%DotNet_Path%\install.log
   set /p DotNet_Version=<"%~dp0DotNetCLIVersion.txt"
+  if not defined DotNet_Version (
+    call :print_error_message Unknown DotNet CLI Version.
+    exit /b 1
+  )
+
+  set DotNet_Path=%~dp0tools\dotnet\%DotNet_Version%
+  set DotNet=%DotNet_Path%\dotnet.exe
+  set Init_Tools_Log=%DotNet_Path%\install.log
   set DotNet_Installer_Url=https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.ps1
 
   REM dotnet.exe might exist, but it might not be the right version.

@@ -7,7 +7,7 @@
   <PropertyGroup>
     <AssemblyTitle>xunit.performance.execution</AssemblyTitle>
     <Description>xUnit Performance Execution</Description>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard1.5</TargetFramework>
     <Title>xUnit Performance Core</Title>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
@@ -22,9 +22,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\xunit.performance.core\xunit.performance.core.csproj" />
-    <!--<ProjectReference Include="..\xunit.performance.core\xunit.performance.core.csproj">
-      <FromP2P>true</FromP2P>
-    </ProjectReference>-->
   </ItemGroup>
 
   <ItemGroup>

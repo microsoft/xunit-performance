@@ -6,7 +6,6 @@ setlocal EnableDelayedExpansion
   set errorlevel=
   set BuildConfiguration=Release
   set VersionSuffix=beta-build0001
-  set PackageVersion=1.0.0-%VersionSuffix%
 
   REM Check that git is on path.
   where.exe /Q git.exe || (
@@ -30,7 +29,7 @@ setlocal EnableDelayedExpansion
   )
 
   echo/==================
-  echo/ Building version %PackageVersion% NuGet packages.
+  echo/ Building version %VersionSuffix% NuGet packages.
   echo/==================
-  call build.cmd %BuildConfiguration% %VersionSuffix% %PackageVersion%
+  call build.cmd %BuildConfiguration% %VersionSuffix%
 endlocal& exit /b %errorlevel%

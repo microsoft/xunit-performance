@@ -4,10 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using Xunit.Abstractions;
 using Xunit.Runners;
-using static Microsoft.Xunit.Performance.Api.XunitPerformanceLogger;
+using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -70,7 +71,26 @@ namespace Microsoft.Xunit.Performance.Api
             {
                 lock (consoleLock)
                 {
-                    WriteInfoLine($"Running {info.TestCasesToRun} Benchmarks out of {info.TestCasesDiscovered} Xunit Facts...");
+                    var diff = info.TestCasesDiscovered - info.TestCasesToRun;
+                    if (diff < 0) // This should never happen.
+                    {
+                        // TODO: Add error handling. Throwing exception is not enough because we are waiting for the async runner to finish.
+                        WriteErrorLine("There are more benchmarks than facts.");
+                    }
+                    WriteInfoLine($"Running {info.TestCasesToRun} [Benchmark]s");
+                    if (diff != 0)
+                        WriteInfoLine($"Skipping {diff} Xunit [Fact]s because they are not [Benchmark]s");
+                }
+            };
+            runner.OnErrorMessage = info =>
+            {
+                lock (consoleLock)
+                {
+                    var sb = new StringBuilder();
+                    sb.AppendLine("Got an unhandled exception outside test.");
+                    sb.AppendLine($"  {info.ExceptionType}: {info.MesssageType}: {info.ExceptionMessage}");
+                    sb.AppendLine($"  {info.ExceptionStackTrace}");
+                    WriteErrorLine(sb.ToString());
                 }
             };
             runner.OnExecutionComplete = info =>
@@ -93,6 +113,7 @@ namespace Microsoft.Xunit.Performance.Api
             {
                 lock (consoleLock)
                 {
+                    // TODO: Stop reporting performance results of failed test!
                     WriteErrorLine($"{info.TestDisplayName}: {info.ExceptionMessage}");
 
                     if (info.ExceptionStackTrace != null)

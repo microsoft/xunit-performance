@@ -7,12 +7,11 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Xunit;
 
-[assembly: MeasureGCAllocations]
-[assembly: MeasureGCCounts]
 [assembly: MeasureInstructionsRetired]
 
 namespace simpleharness
 {
+    [MeasureGCAllocations]
     public class Program
     {
         public static void Main(string[] args)
@@ -25,25 +24,26 @@ namespace simpleharness
 
         public static IEnumerable<object[]> InputData()
         {
-            var args = new string[] { "FFT", "LU", "MC", "MM", "SOR", "\u03C3", "x\u0305" };
+            var args = new string[] { "FOO", "\u03C3", "x\u0305" };
             foreach (var arg in args)
                 yield return new object[] { new string[] { arg } };
         }
 
+        [MeasureGCCounts]
         [Benchmark(InnerIterationCount = 10)]
         [MemberData(nameof(InputData))]
-        private static void TestMultipleStringInputs(string[] args)
+        public static void TestMultipleStringInputs(string[] args)
         {
-           foreach (BenchmarkIteration iter in Benchmark.Iterations)
-           {
-               using (iter.StartMeasurement())
-               {
-                   for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                   {
-                       FormattedString(args[0], args[0], args[0], args[0]);
-                   }
-               }
-           }
+            foreach (BenchmarkIteration iter in Benchmark.Iterations)
+            {
+                using (iter.StartMeasurement())
+                {
+                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
+                    {
+                        FormattedString(args[0], args[0], args[0], args[0]);
+                    }
+                }
+            }
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -52,8 +52,10 @@ namespace simpleharness
             return string.Format("{0}{1}{2}{3}", a, b, c, d);
         }
 
+        [MeasureGCAllocations]
         public sealed class Type_1
         {
+            [MeasureGCCounts]
             [Benchmark(InnerIterationCount = 10000)]
             public void TestBenchmark()
             {

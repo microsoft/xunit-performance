@@ -100,7 +100,7 @@ namespace Microsoft.Xunit.Performance
                 _overallTimer = new Stopwatch();
                 _currentIteration = -1;
                 _innerIterations = innerIterationsCount;
-                if(_innerIterations > 1)
+                if (_innerIterations > 1)
                 {
                     _maxIterations = BenchmarkConfiguration.Instance.MaxIterationWhenInnerSpecified;
                 }
@@ -125,7 +125,7 @@ namespace Microsoft.Xunit.Performance
                         return true;
                     }
 
-                    if (_currentIteration > BenchmarkConfiguration.Instance.MinIteration && 
+                    if (_currentIteration > BenchmarkConfiguration.Instance.MinIteration &&
                         _overallTimer.ElapsedMilliseconds > BenchmarkConfiguration.Instance.MaxTotalMilliseconds)
                     {
                         IterationStopReason = "MaxTime";
@@ -136,7 +136,7 @@ namespace Microsoft.Xunit.Performance
                 }
             }
 
-            protected override IEnumerable<BenchmarkIteration> Iterations
+            protected internal override IEnumerable<BenchmarkIteration> Iterations
             {
                 get
                 {
@@ -149,7 +149,7 @@ namespace Microsoft.Xunit.Performance
 
             private IEnumerable<BenchmarkIteration> GetIterations()
             {
-                GC.Collect(2);
+                GC.Collect(2, GCCollectionMode.Forced);
                 GC.WaitForPendingFinalizers();
 
                 for (_currentIteration = 0; !DoneIterating; _currentIteration++)
@@ -171,7 +171,7 @@ namespace Microsoft.Xunit.Performance
                 }
             }
 
-            protected override long InnerIterationCount
+            protected internal override long InnerIterationCount
             {
                 get
                 {
@@ -179,7 +179,7 @@ namespace Microsoft.Xunit.Performance
                 }
             }
 
-            protected override void StartMeasurement(int iterationNumber)
+            protected internal override void StartMeasurement(int iterationNumber)
             {
                 if (iterationNumber == _currentIteration)
                 {
@@ -245,7 +245,7 @@ namespace Microsoft.Xunit.Performance
                     Volatile.Read(ref _randomDelayGenerator);
             }
 
-            protected override void StopMeasurement(int iterationNumber)
+            protected internal override void StopMeasurement(int iterationNumber)
             {
                 if (iterationNumber == _currentIteration && !_currentIterationMesaurementStopped)
                 {
