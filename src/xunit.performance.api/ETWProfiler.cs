@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using static Microsoft.Xunit.Performance.Api.Common;
 using static Microsoft.Xunit.Performance.Api.Native.Windows.Kernel32;
 using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 
@@ -36,7 +35,8 @@ namespace Microsoft.Xunit.Performance.Api
         /// <returns></returns>
         public static void Record(string assemblyFileName, string runId, string outputDirectory, Action action, Action<string> collectOutputFilesCallback)
         {
-            if (!IsRunningAsAdministrator)
+            bool? isElevated = TraceEventSession.IsElevated();
+            if (!isElevated.HasValue || isElevated.Value == false)
             {
                 const string errMessage = "In order to profile, application is required to run as Administrator.";
                 WriteErrorLine(errMessage);

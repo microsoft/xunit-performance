@@ -5,6 +5,7 @@ using Microsoft.Xunit.Performance.Sdk;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
+using static Microsoft.Xunit.Performance.Api.Common;
 using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
@@ -22,11 +23,12 @@ namespace Microsoft.Xunit.Performance.Api
                 new CacheMissesPerformanceMonitorCounter(),
             };
 
-            PerformanceMetricInfos = new List<BasePerformanceMonitorCounter>
+            PerformanceMetricInfos = IsWindowsPlatform ? new List<BasePerformanceMonitorCounter>
             {
                 new GenericPerformanceMonitorCounterMetric<BranchMispredictionsPerformanceMonitorCounter>(new BranchMispredictionsPerformanceMonitorCounter()),
                 new GenericPerformanceMonitorCounterMetric<CacheMissesPerformanceMonitorCounter>(new CacheMissesPerformanceMonitorCounter()),
-            };
+            } :
+            new List<BasePerformanceMonitorCounter>();
 
             RequiredProviders = new List<ProviderInfo>
             {
