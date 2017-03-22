@@ -35,8 +35,7 @@ namespace Microsoft.Xunit.Performance.Api
         /// <returns></returns>
         public static void Record(string assemblyFileName, string runId, string outputDirectory, Action action, Action<string> collectOutputFilesCallback)
         {
-            bool? isElevated = TraceEventSession.IsElevated();
-            if (!isElevated.HasValue || isElevated.Value == false)
+            if (TraceEventSession.IsElevated() != true)
             {
                 const string errMessage = "In order to profile, application is required to run as Administrator.";
                 WriteErrorLine(errMessage);

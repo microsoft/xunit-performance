@@ -13,7 +13,7 @@
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="1.0.3-alpha-experimental">
       <IncludeAssets>All</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="xunit.performance.api" Version="1.0.0-*" />
+    <PackageReference Include="xunit.performance.api" Version="1.0.0-alpha-build0049" />
   </ItemGroup>
 
 </Project>
