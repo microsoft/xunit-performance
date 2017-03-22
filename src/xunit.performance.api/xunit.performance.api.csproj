@@ -23,7 +23,7 @@
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.1.1-beta" />
     <PackageReference Include="Microsoft.3rdpartytools.MarkdownLog" Version="0.10.0-alpha-experimental" />
-    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="1.0.2-alpha-experimental">
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="1.0.3-alpha-experimental">
       <IncludeAssets>All</IncludeAssets>
     </PackageReference>
     <PackageReference Include="System.Security.Principal.Windows" Version="4.3.0" />
