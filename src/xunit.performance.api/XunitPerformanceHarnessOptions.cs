@@ -15,7 +15,7 @@ namespace Microsoft.Xunit.Performance.Api
         public XunitPerformanceHarnessOptions()
         {
             _outputDirectory = Directory.GetCurrentDirectory();
-            _tmpDirectory = Directory.GetCurrentDirectory();
+            _temporaryDirectory = Path.GetTempPath();
             _runid = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
             _typeNames = new List<string>();
         }
@@ -40,32 +40,46 @@ namespace Microsoft.Xunit.Performance.Api
                 _outputDirectory = Path.IsPathRooted(value) ? value : Path.GetFullPath(value);
                 if (!Directory.Exists(_outputDirectory))
                 {
-                    Directory.CreateDirectory(_outputDirectory);
+                    try 
+                    {
+                        Directory.CreateDirectory(_temporaryDirectory);
+                    } catch (System.Exception) 
+                    {
+                        Console.Error.WriteLine("Couldn't create Directory " + _temporaryDirectory);
+                        throw;
+                    }
                 }
             }
         }
 
-        [Option("perf:tmpdir", Required = false, HelpText = "Specifies a writable directory to storage temporal files.")]
-        public string TmpDirectory
+        [Option("perf:tmpdir", Required = false, HelpText = "Specifies a writable directory to store temporary files.")]
+        public string TemporaryDirectory
         {
-            get { return _tmpDirectory; }
+            get { return _temporaryDirectory; }
 
             set
             {
                 if (string.IsNullOrWhiteSpace(value))
                 {
-                    throw new Exception("The temporal directory name cannot be null, empty or white space.");
+                    throw new Exception("The temporary directory name cannot be null, empty or white space.");
                 }
 
                 if (value.Any(c => Path.GetInvalidPathChars().Contains(c)))
                 {
-                    throw new Exception("Specified temporal directory name contains invalid path characters.");
+                    throw new Exception("Specified temporary directory name contains invalid path characters.");
                 }
 
-                _tmpDirectory = Path.IsPathRooted(value) ? value : Path.GetFullPath(value);
-                if (!Directory.Exists(_tmpDirectory))
+                _temporaryDirectory = Path.IsPathRooted(value) ? value : Path.GetFullPath(value);
+                if (!Directory.Exists(_temporaryDirectory))
                 {
-                    Directory.CreateDirectory(_tmpDirectory);
+                    try 
+                    {
+                        Directory.CreateDirectory(_temporaryDirectory);
+                    } catch (System.Exception) 
+                    {
+                        Console.Error.WriteLine("Couldn't create Directory " + _temporaryDirectory);
+                        throw;
+                    }
                 }
             }
         }
@@ -174,7 +188,7 @@ namespace Microsoft.Xunit.Performance.Api
 
 
         private string _outputDirectory;
-        private string _tmpDirectory;
+        private string _temporaryDirectory;
         private string _runid;
         private List<string> _typeNames;
     }

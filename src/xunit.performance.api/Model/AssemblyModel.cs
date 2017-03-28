@@ -41,6 +41,7 @@ namespace Microsoft.Xunit.Performance.Api
 
         internal DataTable GetStatistics()
         {
+            //fixme. Column names should be defined as constant methods
             var dt = new DataTable();
             var col0_testName = dt.AddColumn("Test Name");
             var col1_metric = dt.AddColumn("Metric");
@@ -175,8 +176,8 @@ namespace Microsoft.Xunit.Performance.Api
     }
 
     [Serializable]
-    [XmlRoot("BenchmarkScenario")]
-    public sealed class BenchmarkScenario
+    [XmlRoot("ScenarioBenchmark")]
+    public sealed class ScenarioBenchmark
     {
         [XmlAttribute("Name")]
         public string Name { get; set; }
@@ -184,20 +185,20 @@ namespace Microsoft.Xunit.Performance.Api
         [XmlAttribute("Namespace")]
         public string Namespace { get; set; }
         
-        [XmlArray("Assemblies")]
-        public List<NetcoreAssembly> Assemblies { get; set; }
+        [XmlArray("Tests")]
+        public List<ScenarioTestModel> Tests { get; set; }
 
-        public BenchmarkScenario()
+        public ScenarioBenchmark()
         {
-            Assemblies = new List<NetcoreAssembly>();
+            Tests = new List<ScenarioTestModel>();
             Namespace = "";
         }
 
-        public BenchmarkScenario(string name)
+        public ScenarioBenchmark(string name)
         {
             Name = name;
             Namespace = "";
-            Assemblies = new List<NetcoreAssembly>();
+            Tests = new List<ScenarioTestModel>();
         }
 
         public void Serialize(string xmlFileName)
@@ -208,7 +209,7 @@ namespace Microsoft.Xunit.Performance.Api
             {
                 using (var sw = new StreamWriter(stream))
                 {
-                    new XmlSerializer(typeof(BenchmarkScenario))
+                    new XmlSerializer(typeof(ScenarioBenchmark))
                         .Serialize(sw, this, namespaces);
                 }
             }
@@ -216,6 +217,7 @@ namespace Microsoft.Xunit.Performance.Api
 
         internal DataTable GetStatistics()
         {
+            //fixme. Column names should be defined as constant methods
             var dt = new DataTable();
             var col0_testName = dt.AddColumn("Test Name");
             var col1_metric = dt.AddColumn("Metric");
@@ -225,35 +227,32 @@ namespace Microsoft.Xunit.Performance.Api
             var col5_min = dt.AddColumn("MIN");
             var col6_max = dt.AddColumn("MAX");
 
-            foreach (var asm in Assemblies)
+            foreach (var test in Tests)
             {
-                foreach (var test in asm.Tests)
+                foreach (var metric in test.Performance.Metrics)
                 {
-                    foreach (var metric in test.Performance.Metrics)
-                    {
-                        var values = test.Performance.IterationModels
-                            .Where(iter => iter.Iteration.ContainsKey(metric.Name))
-                            .Select(iter => iter.Iteration[metric.Name]);
+                    var values = test.Performance.IterationModels
+                        .Where(iter => iter.Iteration.ContainsKey(metric.Name))
+                        .Select(iter => iter.Iteration[metric.Name]);
 
-                        var count = values.Count();
-                        if (count == 0) // Cannot compute statistics when there are not results (e.g. user only ran a subset of all tests).
-                            continue;
+                    var count = values.Count();
+                    if (count == 0) // Cannot compute statistics when there are not results (e.g. user only ran a subset of all tests).
+                        continue;
 
-                        var avg = values.Average();
-                        var stdev_s = Math.Sqrt(values.Sum(x => Math.Pow(x - avg, 2)) / (count - 1));
-                        var max = values.Max();
-                        var min = values.Min();
+                    var avg = values.Average();
+                    var stdev_s = Math.Sqrt(values.Sum(x => Math.Pow(x - avg, 2)) / (count - 1));
+                    var max = values.Max();
+                    var min = values.Min();
 
-                        var newRow = dt.AppendRow();
-                        newRow[col0_testName] = test.Name;
-                        newRow[col1_metric] = metric.DisplayName;
+                    var newRow = dt.AppendRow();
+                    newRow[col0_testName] = test.Name;
+                    newRow[col1_metric] = metric.DisplayName;
 
-                        newRow[col2_iterations] = count.ToString();
-                        newRow[col3_average] = avg.ToString();
-                        newRow[col4_stdevs] = stdev_s.ToString();
-                        newRow[col5_min] = min.ToString();
-                        newRow[col6_max] = max.ToString();
-                    }
+                    newRow[col2_iterations] = count.ToString();
+                    newRow[col3_average] = avg.ToString();
+                    newRow[col4_stdevs] = stdev_s.ToString();
+                    newRow[col5_min] = min.ToString();
+                    newRow[col6_max] = max.ToString();
                 }
             }
 
@@ -261,32 +260,9 @@ namespace Microsoft.Xunit.Performance.Api
         }
     }
 
-    
-    [Serializable]
-    [XmlType("NetcoreAssembly")]
-    public sealed class NetcoreAssembly
-    {
-        [XmlAttribute("Name")]
-        public string Name { get; set; }
-
-        [XmlElement("Tests")]
-        public List<NetcoreAssemblyTest> Tests { get; set; }
-
-        public NetcoreAssembly()
-        {
-            Tests = new List<NetcoreAssemblyTest>();
-        }
-
-        public NetcoreAssembly(string name)
-        {
-            Name = name;
-            Tests = new List<NetcoreAssemblyTest>();
-        }
-    }
-
     [Serializable]
     [XmlType("Test")]
-    public sealed class NetcoreAssemblyTest
+    public sealed class ScenarioTestModel
     {
         [XmlAttribute("Name")]
         public string Name { get; set; }
@@ -297,13 +273,13 @@ namespace Microsoft.Xunit.Performance.Api
         [XmlElement("Performance")]
         public PerformanceModel Performance { get; set; }
 
-        public NetcoreAssemblyTest()
+        public ScenarioTestModel()
         {
             Performance = new PerformanceModel();
             Namespace = "";
         }
 
-        public NetcoreAssemblyTest(string name)
+        public ScenarioTestModel(string name)
         {
             Name = name;
             Namespace = "";

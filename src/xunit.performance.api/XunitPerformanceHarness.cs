@@ -33,7 +33,7 @@ namespace Microsoft.Xunit.Performance.Api
             _performanceTestConfig = new PerformanceTestConfig();
 
             var options = XunitPerformanceHarnessOptions.Parse(args);
-            _performanceTestConfig.tmpDir = options.TmpDirectory;
+            _performanceTestConfig.TemporaryDirectory = options.TemporaryDirectory;
 
             // Set the run id.
             _outputDirectory = options.OutputDirectory;
@@ -75,34 +75,18 @@ namespace Microsoft.Xunit.Performance.Api
             s_profiler(assemblyPath, Configuration.RunId, _outputDirectory, runner, collectOutputFilesCallback);
         }
 
-        public void RunStartupBenchmark(string[] args, ProcessStartInfo psi, PreDel pre, MidDel mid, PostDel post)
+        public void RunScenario(ProcessStartInfo processStartInfo, Action<PerformanceTestConfig> preIterationDel,
+            Action<PerformanceTestConfig> postIterationDel, Func<PerformanceTestConfig, ScenarioBenchmark> teardownDel)
         {
-            pre(_performanceTestConfig, psi);
-            int iterations = _performanceTestConfig.iterations;
-            int timeout = _performanceTestConfig.timeout;
-            psi.RedirectStandardOutput = true;
-
-            // Warmup run.
-            using (var p = new Process()) 
-            {
-                p.StartInfo = psi;
-                p.Start();
-                if (p.WaitForExit(timeout) == false) 
-                {
-                    if (p != null)
-                    {
-                        p.Kill();
-                    }
-                    Console.WriteLine("Timeouted!");
-                    return;
-                }
-            }
+            int iterations = _performanceTestConfig.Iterations;
+            int timeout = (int)(_performanceTestConfig.TimeoutPerIteration.TotalMilliseconds);
 
             for (int i = 0; i < iterations; i++)
             {
+                preIterationDel(_performanceTestConfig);
                 using(var p = new Process())
                 {
-                    p.StartInfo = psi;
+                    p.StartInfo = processStartInfo;
                     p.Start();
                     if (p.WaitForExit(timeout) == false) 
                     {
@@ -113,23 +97,30 @@ namespace Microsoft.Xunit.Performance.Api
                         Console.WriteLine("Timeouted!");
                         return;
                     }
-                    mid(_performanceTestConfig);
+                    postIterationDel(_performanceTestConfig);
                 }
             }
 
-            BenchmarkScenario bs = post(_performanceTestConfig);
-            bs.Serialize("out.xml");
+            ScenarioBenchmark scenarioBenchmark = teardownDel(_performanceTestConfig);
+            if (scenarioBenchmark == null) 
+            {
+                Console.Error.WriteLine ("The Teardown Delegate should return a valid instance of ScenarioBenchmark.");
+            }
 
-            var statisticsFileName = $"JitBench-Statistics";
-            var mdFileName = "JitBench-Statistics.md";
+            string scenarioName = scenarioBenchmark.Name;
 
-            var dt = bs.GetStatistics();
+            scenarioBenchmark.Serialize(scenarioName + ".xml");
+
+            var statisticsFileName = scenarioName+"-Statistics";
+            var mdFileName = scenarioName + "-Statistics.md";
+
+            var dt = scenarioBenchmark.GetStatistics();
             var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
             MarkdownHelper.Write(mdFileName, mdTable);
             WriteInfoLine($"Markdown file saved to \"{mdFileName}\"");
             Console.WriteLine(mdTable);
 
-            var csvFileName = "JitBench-Statistics.csv";
+            var csvFileName = scenarioName + "-Statistics.csv";
             dt.WriteToCSV(csvFileName);
             WriteInfoLine($"Statistics written to \"{csvFileName}\"");
         }
@@ -224,9 +215,9 @@ namespace Microsoft.Xunit.Performance.Api
         private readonly List<string> _outputFiles;
         private readonly List<string> _typeNames;
         private bool _disposed;
-        public delegate void PreDel(PerformanceTestConfig config, ProcessStartInfo psi);
-        public delegate void MidDel(PerformanceTestConfig config);
-        public delegate BenchmarkScenario PostDel(PerformanceTestConfig config);
+        public delegate void SetupDelegate(PerformanceTestConfig config, ProcessStartInfo processStartInfo);
+        public delegate void PostIterationDelegate(PerformanceTestConfig config);
+        public delegate ScenarioBenchmark TeardownDelegate(PerformanceTestConfig config);
 
         public PerformanceTestConfig _performanceTestConfig;
     }
