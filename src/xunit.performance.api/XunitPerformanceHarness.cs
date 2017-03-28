@@ -107,12 +107,12 @@ namespace Microsoft.Xunit.Performance.Api
                 Console.Error.WriteLine ("The Teardown Delegate should return a valid instance of ScenarioBenchmark.");
             }
 
-            string scenarioName = scenarioBenchmark.Name;
+            string scenarioNamespace = scenarioBenchmark.Namespace;
 
-            scenarioBenchmark.Serialize(scenarioName + ".xml");
+            scenarioBenchmark.Serialize(Configuration.RunId + "-" + scenarioNamespace + ".xml");
 
-            var statisticsFileName = scenarioName+"-Statistics";
-            var mdFileName = scenarioName + "-Statistics.md";
+            var mdFileName = Configuration.RunId + "-" + scenarioNamespace + "-Statistics.md";
+            var csvFileName = Configuration.RunId + "-" + scenarioNamespace + "-Statistics.csv";
 
             var dt = scenarioBenchmark.GetStatistics();
             var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
@@ -120,7 +120,6 @@ namespace Microsoft.Xunit.Performance.Api
             WriteInfoLine($"Markdown file saved to \"{mdFileName}\"");
             Console.WriteLine(mdTable);
 
-            var csvFileName = scenarioName + "-Statistics.csv";
             dt.WriteToCSV(csvFileName);
             WriteInfoLine($"Statistics written to \"{csvFileName}\"");
         }
