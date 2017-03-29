@@ -23,7 +23,7 @@ namespace Microsoft.Xunit.Performance.Api
                 }
                 else 
                 {
-                    Console.Error.WriteLine("Timeout per iteration should be a positive amount of milliseconds.");
+                    throw new InvalidOperationException("Timeout per iteration should be a positive amount of milliseconds.");
                 }
             }
         }
@@ -39,7 +39,7 @@ namespace Microsoft.Xunit.Performance.Api
                 }
                 else 
                 {
-                    Console.Error.WriteLine("The amount of iterations should be a positive integer greater than 1.");
+                    throw new InvalidOperationException("The amount of iterations should be a positive integer greater than 1.");
                 }
             }
         }

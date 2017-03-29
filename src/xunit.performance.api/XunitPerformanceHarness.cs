@@ -97,14 +97,14 @@ namespace Microsoft.Xunit.Performance.Api
                         Console.WriteLine("Timeouted!");
                         return;
                     }
-                    postIterationDel(_performanceTestConfig);
                 }
+                postIterationDel(_performanceTestConfig);
             }
 
             ScenarioBenchmark scenarioBenchmark = teardownDel(_performanceTestConfig);
             if (scenarioBenchmark == null) 
             {
-                Console.Error.WriteLine ("The Teardown Delegate should return a valid instance of ScenarioBenchmark.");
+                throw new NullReferenceException("The Teardown Delegate should return a valid instance of ScenarioBenchmark.")
             }
 
             string scenarioNamespace = scenarioBenchmark.Namespace;
@@ -118,7 +118,7 @@ namespace Microsoft.Xunit.Performance.Api
             var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
             MarkdownHelper.Write(mdFileName, mdTable);
             WriteInfoLine($"Markdown file saved to \"{mdFileName}\"");
-            Console.WriteLine(mdTable);
+            WriteInfoLine(mdTable);
 
             dt.WriteToCSV(csvFileName);
             WriteInfoLine($"Statistics written to \"{csvFileName}\"");
