@@ -15,7 +15,8 @@ namespace Microsoft.Xunit.Performance.Api
         public XunitPerformanceHarnessOptions()
         {
             _outputDirectory = Directory.GetCurrentDirectory();
-            _temporaryDirectory = Path.GetTempPath();
+            _temporaryDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(_temporaryDirectory)
             _runid = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
             _typeNames = new List<string>();
         }
@@ -38,17 +39,7 @@ namespace Microsoft.Xunit.Performance.Api
                 }
 
                 _outputDirectory = Path.IsPathRooted(value) ? value : Path.GetFullPath(value);
-                if (!Directory.Exists(_outputDirectory))
-                {
-                    try 
-                    {
-                        Directory.CreateDirectory(_temporaryDirectory);
-                    } catch (System.Exception) 
-                    {
-                        Console.Error.WriteLine("Couldn't create Directory " + _temporaryDirectory);
-                        throw;
-                    }
-                }
+                Directory.CreateDirectory(_outputDirectory);
             }
         }
 
@@ -70,16 +61,7 @@ namespace Microsoft.Xunit.Performance.Api
                 }
 
                 _temporaryDirectory = Path.IsPathRooted(value) ? value : Path.GetFullPath(value);
-                if (!Directory.Exists(_temporaryDirectory))
-                {
-                    try 
-                    {
-                        Directory.CreateDirectory(_temporaryDirectory);
-                    } catch (System.Exception) 
-                    {
-                        Console.Error.WriteLine("Couldn't create Directory " + _temporaryDirectory);
-                        throw;
-                    }
+                Directory.CreateDirectory(_temporaryDirectory);
                 }
             }
         }

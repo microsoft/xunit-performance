@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xunit.Performance.Api.Table;
+using Microsoft.Xunit.Performance.Api.TableHeader;
 using Microsoft.Xunit.Performance.Sdk;
 using System;
 using System.Collections.Generic;
@@ -41,15 +42,14 @@ namespace Microsoft.Xunit.Performance.Api
 
         internal DataTable GetStatistics()
         {
-            //fixme. Column names should be defined as constant methods
             var dt = new DataTable();
-            var col0_testName = dt.AddColumn("Test Name");
-            var col1_metric = dt.AddColumn("Metric");
-            var col2_iterations = dt.AddColumn("Iterations");
-            var col3_average = dt.AddColumn("AVERAGE");
-            var col4_stdevs = dt.AddColumn("STDEV.S");
-            var col5_min = dt.AddColumn("MIN");
-            var col6_max = dt.AddColumn("MAX");
+            var col0_testName = dt.AddColumn(TableHeader.TestName);
+            var col1_metric = dt.AddColumn(TableHeader.Metric);
+            var col2_iterations = dt.AddColumn(TableHeader.Iterations);
+            var col3_average = dt.AddColumn(TableHeader.AVG);
+            var col4_stdevs = dt.AddColumn(TableHeader.SD);
+            var col5_min = dt.AddColumn(TableHeader.MIN);
+            var col6_max = dt.AddColumn(TableHeader.MAX);
 
             foreach (var testModel in Collection)
             {
@@ -217,15 +217,14 @@ namespace Microsoft.Xunit.Performance.Api
 
         internal DataTable GetStatistics()
         {
-            //fixme. Column names should be defined as constant methods
             var dt = new DataTable();
-            var col0_testName = dt.AddColumn("Test Name");
-            var col1_metric = dt.AddColumn("Metric");
-            var col2_iterations = dt.AddColumn("Iterations");
-            var col3_average = dt.AddColumn("AVERAGE");
-            var col4_stdevs = dt.AddColumn("STDEV.S");
-            var col5_min = dt.AddColumn("MIN");
-            var col6_max = dt.AddColumn("MAX");
+            var col0_testName = dt.AddColumn(TableHeader.TestName);
+            var col1_metric = dt.AddColumn(TableHeader.Metric);
+            var col2_iterations = dt.AddColumn(TableHeader.Iterations);
+            var col3_average = dt.AddColumn(TableHeader.AVG);
+            var col4_stdevs = dt.AddColumn(TableHeader.SD);
+            var col5_min = dt.AddColumn(TableHeader.MIN);
+            var col6_max = dt.AddColumn(TableHeader.MAX);
 
             foreach (var test in Tests)
             {

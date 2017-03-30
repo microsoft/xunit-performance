@@ -3,9 +3,9 @@ using System;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    public class PerformanceTestConfig
+    public class ScenarioTestConfiguration
     {
-        public PerformanceTestConfig() 
+        public ScenarioTestConfiguration() 
         {
             Iterations = 30;
             TimeoutPerIteration = TimeSpan.FromMilliseconds(20000);

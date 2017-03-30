@@ -30,10 +30,10 @@ namespace Microsoft.Xunit.Performance.Api
             _args = args;
             _disposed = false;
             _outputFiles = new List<string>();
-            _performanceTestConfig = new PerformanceTestConfig();
+            _scenarioTestConfiguration = new ScenarioTestConfiguration();
 
             var options = XunitPerformanceHarnessOptions.Parse(args);
-            _performanceTestConfig.TemporaryDirectory = options.TemporaryDirectory;
+            _scenarioTestConfiguration.TemporaryDirectory = options.TemporaryDirectory;
 
             // Set the run id.
             _outputDirectory = options.OutputDirectory;
@@ -75,36 +75,33 @@ namespace Microsoft.Xunit.Performance.Api
             s_profiler(assemblyPath, Configuration.RunId, _outputDirectory, runner, collectOutputFilesCallback);
         }
 
-        public void RunScenario(ProcessStartInfo processStartInfo, Action<PerformanceTestConfig> preIterationDel,
-            Action<PerformanceTestConfig> postIterationDel, Func<PerformanceTestConfig, ScenarioBenchmark> teardownDel)
+        public void RunScenario(ProcessStartInfo processStartInfo, Action<ScenarioTestConfiguration> preIterationDel,
+            Action<ScenarioTestConfiguration> postIterationDel, Func<ScenarioTestConfiguration, ScenarioBenchmark> teardownDel)
         {
-            int iterations = _performanceTestConfig.Iterations;
-            int timeout = (int)(_performanceTestConfig.TimeoutPerIteration.TotalMilliseconds);
+            int iterations = _scenarioTestConfiguration.Iterations;
+            int timeout = (int)(_scenarioTestConfiguration.TimeoutPerIteration.TotalMilliseconds);
 
             for (int i = 0; i < iterations; i++)
             {
-                preIterationDel(_performanceTestConfig);
+                preIterationDel(_scenarioTestConfiguration);
                 using(var p = new Process())
                 {
                     p.StartInfo = processStartInfo;
                     p.Start();
                     if (p.WaitForExit(timeout) == false) 
                     {
-                        if (p != null)
-                        {
-                            p.Kill();
-                        }
+                        p.Kill();
                         Console.WriteLine("Timeouted!");
                         return;
                     }
                 }
-                postIterationDel(_performanceTestConfig);
+                postIterationDel(_scenarioTestConfiguration);
             }
 
-            ScenarioBenchmark scenarioBenchmark = teardownDel(_performanceTestConfig);
+            ScenarioBenchmark scenarioBenchmark = teardownDel(_scenarioTestConfiguration);
             if (scenarioBenchmark == null) 
             {
-                throw new NullReferenceException("The Teardown Delegate should return a valid instance of ScenarioBenchmark.")
+                throw new InvalidOperationException("The Teardown Delegate should return a valid instance of ScenarioBenchmark.")
             }
 
             string scenarioNamespace = scenarioBenchmark.Namespace;
@@ -214,10 +211,6 @@ namespace Microsoft.Xunit.Performance.Api
         private readonly List<string> _outputFiles;
         private readonly List<string> _typeNames;
         private bool _disposed;
-        public delegate void SetupDelegate(PerformanceTestConfig config, ProcessStartInfo processStartInfo);
-        public delegate void PostIterationDelegate(PerformanceTestConfig config);
-        public delegate ScenarioBenchmark TeardownDelegate(PerformanceTestConfig config);
-
-        public PerformanceTestConfig _performanceTestConfig;
+        public ScenarioTestConfiguration _scenarioTestConfiguration;
     }
 }
