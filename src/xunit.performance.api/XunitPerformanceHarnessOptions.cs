@@ -16,6 +16,8 @@ namespace Microsoft.Xunit.Performance.Api
         public XunitPerformanceHarnessOptions()
         {
             _outputDirectory = Directory.GetCurrentDirectory();
+            _temporaryDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(_temporaryDirectory);
             _runid = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
             _typeNames = new List<string>();
         }
@@ -38,10 +40,29 @@ namespace Microsoft.Xunit.Performance.Api
                 }
 
                 _outputDirectory = Path.IsPathRooted(value) ? value : Path.GetFullPath(value);
-                if (!Directory.Exists(_outputDirectory))
+                Directory.CreateDirectory(_outputDirectory);
+            }
+        }
+
+        [Option("perf:tmpdir", Required = false, HelpText = "Specifies a writable directory to store temporary files.")]
+        public string TemporaryDirectory
+        {
+            get { return _temporaryDirectory; }
+
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
                 {
-                    Directory.CreateDirectory(_outputDirectory);
+                    throw new Exception("The temporary directory name cannot be null, empty or white space.");
                 }
+
+                if (value.Any(c => Path.GetInvalidPathChars().Contains(c)))
+                {
+                    throw new Exception("Specified temporary directory name contains invalid path characters.");
+                }
+
+                _temporaryDirectory = Path.IsPathRooted(value) ? value : Path.GetFullPath(value);
+                Directory.CreateDirectory(_temporaryDirectory);
             }
         }
 
@@ -153,6 +174,7 @@ namespace Microsoft.Xunit.Performance.Api
 
 
         private string _outputDirectory;
+        private string _temporaryDirectory;
         private string _runid;
         private List<string> _typeNames;
     }

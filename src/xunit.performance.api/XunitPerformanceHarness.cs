@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Diagnostics;
+using static Microsoft.Xunit.Performance.Api.AssemblyModel;
 using static Microsoft.Xunit.Performance.Api.Common;
 using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 
@@ -26,8 +28,10 @@ namespace Microsoft.Xunit.Performance.Api
             _args = args;
             _disposed = false;
             _outputFiles = new List<string>();
+            _scenarioTestConfiguration = new ScenarioTestConfiguration();
 
             var options = XunitPerformanceHarnessOptions.Parse(args);
+            _scenarioTestConfiguration.TemporaryDirectory = options.TemporaryDirectory;
 
             // Set the run id.
             _outputDirectory = options.OutputDirectory;
@@ -68,6 +72,53 @@ namespace Microsoft.Xunit.Performance.Api
 
             s_profiler(assemblyPath, Configuration.RunId, _outputDirectory, runner, collectOutputFilesCallback);
         }
+
+        public void RunScenario(ProcessStartInfo processStartInfo, Action<ScenarioTestConfiguration> preIterationDel,
+            Action<ScenarioTestConfiguration> postIterationDel, Func<ScenarioTestConfiguration, ScenarioBenchmark> teardownDel)
+        {
+            int iterations = _scenarioTestConfiguration.Iterations;
+            int timeout = (int)(_scenarioTestConfiguration.TimeoutPerIteration.TotalMilliseconds);
+
+            for (int i = 0; i < iterations; i++)
+            {
+                preIterationDel(_scenarioTestConfiguration);
+                using(var p = new Process())
+                {
+                    p.StartInfo = processStartInfo;
+                    p.Start();
+                    if (p.WaitForExit(timeout) == false) 
+                    {
+                        p.Kill();
+                        Console.WriteLine("Timeouted!");
+                        return;
+                    }
+                }
+                postIterationDel(_scenarioTestConfiguration);
+            }
+
+            ScenarioBenchmark scenarioBenchmark = teardownDel(_scenarioTestConfiguration);
+            if (scenarioBenchmark == null) 
+            {
+                throw new InvalidOperationException("The Teardown Delegate should return a valid instance of ScenarioBenchmark.");
+            }
+
+            string scenarioNamespace = scenarioBenchmark.Namespace;
+
+            scenarioBenchmark.Serialize(Configuration.RunId + "-" + scenarioNamespace + ".xml");
+
+            var mdFileName = Configuration.RunId + "-" + scenarioNamespace + "-Statistics.md";
+            var csvFileName = Configuration.RunId + "-" + scenarioNamespace + "-Statistics.csv";
+
+            var dt = scenarioBenchmark.GetStatistics();
+            var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
+            MarkdownHelper.Write(mdFileName, mdTable);
+            WriteInfoLine($"Markdown file saved to \"{mdFileName}\"");
+            Console.WriteLine(mdTable);
+
+            dt.WriteToCSV(csvFileName);
+            WriteInfoLine($"Statistics written to \"{csvFileName}\"");
+        }
+
 
         public static string Usage()
         {
@@ -157,5 +208,6 @@ namespace Microsoft.Xunit.Performance.Api
         private readonly List<string> _outputFiles;
         private readonly List<string> _typeNames;
         private bool _disposed;
+        public ScenarioTestConfiguration _scenarioTestConfiguration;
     }
 }
