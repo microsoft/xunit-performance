@@ -1,27 +1,19 @@
-﻿<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Configuration">
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+  </PropertyGroup>
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp1.0</TargetFramework>
-    <WarningsAsErrors>true</WarningsAsErrors>
+    <TargetFrameworks>netcoreapp1.0;netcoreapp1.1</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="**\*.cs" />
-    <EmbeddedResource Include="**\*.resx" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="1.0.0-alpha-experimental">
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="1.0.3-alpha-experimental">
       <IncludeAssets>All</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.NETCore.App" Version="1.0.1" />
-    <PackageReference Include="Microsoft.NET.Sdk" Version="1.0.0-alpha-20161104-2">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="xunit.performance.api" Version="1.0.0-*" />
+    <PackageReference Include="xunit.performance.api" Version="1.0.0-alpha-build0049" />
   </ItemGroup>
 
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

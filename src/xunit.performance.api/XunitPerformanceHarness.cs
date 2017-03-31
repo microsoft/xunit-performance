@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Diagnostics;
-using static Microsoft.Xunit.Performance.Api.XunitPerformanceLogger;
 using static Microsoft.Xunit.Performance.Api.AssemblyModel;
+using static Microsoft.Xunit.Performance.Api.Common;
+using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -12,8 +12,6 @@ namespace Microsoft.Xunit.Performance.Api
     {
         static XunitPerformanceHarness()
         {
-            s_isWindowsPlatform = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-
             Action<string, string, string, Action, Action<string>> etwProfiler = (assemblyPath, runId, outputDirectory, runner, collectOutputFilesCallback) =>
             {
                 ETWProfiler.Record(assemblyPath, runId, outputDirectory, runner, collectOutputFilesCallback);
@@ -22,7 +20,7 @@ namespace Microsoft.Xunit.Performance.Api
             {
                 GenericProfiler.Record(assemblyPath, runId, outputDirectory, runner, collectOutputFilesCallback);
             };
-            s_profiler = s_isWindowsPlatform ? etwProfiler : genericProfiler;
+            s_profiler = IsWindowsPlatform ? etwProfiler : genericProfiler;
         }
 
         public XunitPerformanceHarness(string[] args)
@@ -70,7 +68,7 @@ namespace Microsoft.Xunit.Performance.Api
                 _runner(assemblyPath);
                 ProcessResults(assemblyPath, Configuration.RunId, _outputDirectory, collectOutputFilesCallback);
             };
-            Action runner = s_isWindowsPlatform ? winRunner : nixRunner;
+            Action runner = IsWindowsPlatform ? winRunner : nixRunner;
 
             s_profiler(assemblyPath, Configuration.RunId, _outputDirectory, runner, collectOutputFilesCallback);
         }
@@ -202,7 +200,6 @@ namespace Microsoft.Xunit.Performance.Api
 
         #endregion IDisposable implementation
 
-        private static readonly bool s_isWindowsPlatform;
         private static readonly Action<string, string, string, Action, Action<string>> s_profiler;
 
         private readonly Action<string> _runner;

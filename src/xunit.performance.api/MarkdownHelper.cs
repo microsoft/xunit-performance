@@ -4,9 +4,11 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace Microsoft.Xunit.Performance.Api
 {
+    // TODO: This could be implemented as an extension to the MarkdownLog.Table class
     internal static class MarkdownHelper
     {
         public static void Write(string mdFileName, MarkdownLog.Table mdTable)
@@ -15,8 +17,26 @@ namespace Microsoft.Xunit.Performance.Api
             {
                 using (var sw = new StreamWriter(stream))
                 {
-                    sw.Write(mdTable.ToString());
+                    sw.Write(ToTrimmedTable(mdTable));
                 }
+            }
+        }
+
+        public static string ToTrimmedTable(MarkdownLog.Table mdTable)
+        {
+            using (var sr = new StringReader(mdTable.ToMarkdown()))
+            {
+                string line;
+                var sb = new StringBuilder();
+
+                while ((line = sr.ReadLine()) != null)
+                {
+                    line = line.TrimStart(' ');
+                    line = !line.StartsWith(":") ? $" {line}" : line;
+                    sb.AppendLine(line);
+                }
+
+                return sb.ToString();
             }
         }
 
@@ -74,7 +94,7 @@ namespace Microsoft.Xunit.Performance.Api
             const string fixedFotmat = "F3";
             const string scientificNotationFormat = "E3";
             var d = Convert.ToDouble(data);
-            var format = d > 99999 ? scientificNotationFormat : fixedFotmat;
+            var format = (d != 0 && (d > 99999 || Math.Abs(d) < 0.001)) ? scientificNotationFormat : fixedFotmat;
             return d.ToString(format, CultureInfo.InvariantCulture);
         }
     }

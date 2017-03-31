@@ -1,15 +1,17 @@
 using Microsoft.Xunit.Performance;
 using Microsoft.Xunit.Performance.Api;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Xunit;
 
-[assembly: MeasureGCAllocations]
-[assembly: MeasureGCCounts]
 [assembly: MeasureInstructionsRetired]
 
 namespace simpleharness
 {
+    [MeasureGCAllocations]
     public class Program
     {
         public static void Main(string[] args)
@@ -22,16 +24,15 @@ namespace simpleharness
 
         public static IEnumerable<object[]> InputData()
         {
-            var args = new string[] { "FFT", "LU", "MC", "MM", "SOR", "\u03C3", "x\u0305" };
+            var args = new string[] { "FOO", "\u03C3", "x\u0305" };
             foreach (var arg in args)
-            {
                 yield return new object[] { new string[] { arg } };
-            }
         }
 
-        [Benchmark(InnerIterationCount = 10000)]
+        [MeasureGCCounts]
+        [Benchmark(InnerIterationCount = 10)]
         [MemberData(nameof(InputData))]
-        public static void TestBenchmark(string[] args)
+        public static void TestMultipleStringInputs(string[] args)
         {
             foreach (BenchmarkIteration iter in Benchmark.Iterations)
             {
@@ -39,16 +40,39 @@ namespace simpleharness
                 {
                     for (int i = 0; i < Benchmark.InnerIterationCount; i++)
                     {
-                        string.Format("{0}{1}{2}{3}", args[0], args[0], args[0], args[0]);
+                        FormattedString(args[0], args[0], args[0], args[0]);
                     }
                 }
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static string FormattedString(string a, string b, string c, string d)
+        {
+            return string.Format("{0}{1}{2}{3}", a, b, c, d);
+        }
+
+        [MeasureGCAllocations]
         public sealed class Type_1
         {
+            [MeasureGCCounts]
             [Benchmark(InnerIterationCount = 10000)]
             public void TestBenchmark()
+            {
+                foreach (BenchmarkIteration iter in Benchmark.Iterations)
+                {
+                    using (iter.StartMeasurement())
+                    {
+                        for (int i = 0; i < Benchmark.InnerIterationCount; i++)
+                        {
+                            string.Format("{0}{1}{2}{3}", "a", "b", "c", "d");
+                        }
+                    }
+                }
+            }
+
+            [Fact]
+            public void TestFact()
             {
                 foreach (BenchmarkIteration iter in Benchmark.Iterations)
                 {
@@ -65,34 +89,71 @@ namespace simpleharness
 
         public sealed class Type_2
         {
-            [Benchmark(InnerIterationCount = 10000)]
-            public void TestBenchmark1()
+            [Benchmark(InnerIterationCount = 1)]
+            public static void RandomAccess()
             {
                 foreach (BenchmarkIteration iter in Benchmark.Iterations)
                 {
                     using (iter.StartMeasurement())
                     {
-                        for (int i = 0; i < Benchmark.InnerIterationCount; i++)
+                        for (int i = 0; i < Benchmark.InnerIterationCount; ++i)
                         {
-                            string.Format("{0}{1}{2}{3}", "a", "b", "c", "d");
+                            MemoryAccessPerformance();
                         }
                     }
                 }
             }
 
             [Benchmark(InnerIterationCount = 10000)]
-            public void TestBenchmark2()
+            public static void ShufflingDeckOfCard()
             {
                 foreach (BenchmarkIteration iter in Benchmark.Iterations)
                 {
                     using (iter.StartMeasurement())
                     {
-                        for (int i = 0; i < Benchmark.InnerIterationCount; i++)
+                        for (int i = 0; i < Benchmark.InnerIterationCount; ++i)
                         {
-                            string.Format("{0}{1}{2}{3}", "a", "b", "c", "d");
+                            BranchPredictionPerformance(i);
                         }
                     }
                 }
+            }
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            private static double MemoryAccessPerformance()
+            {
+                var doubles = new double[8 * 1024 * 1024];
+                for (int i = 0; i < doubles.Length; i += 100)
+                    doubles[i] = 2.0;
+                for (int i = 0; i < doubles.Length; i += 200)
+                    doubles[i] *= 3.0;
+                for (int i = 0; i < doubles.Length; i += 400)
+                    doubles[i] *= 5.0;
+                for (int i = 0; i < doubles.Length; i += 800)
+                    doubles[i] *= 7.0;
+                for (int i = 0; i < doubles.Length; i += 1600)
+                    doubles[i] *= 11.0;
+                return doubles.Average();
+            }
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            private static IEnumerable<int> BranchPredictionPerformance(int seed)
+            {
+                const int nCards = 52;
+                var deck = new List<int>(Enumerable.Range(0, nCards));
+                var rnd = new Random((int)DateTime.Now.Ticks + seed);
+
+                for (int i = 0; i < deck.Count(); ++i)
+                {
+                    var pos = rnd.Next(nCards);
+                    if (pos % 3 != 0)
+                        pos = rnd.Next(nCards);
+                    var temp = deck[i];
+                    deck[i] = deck[pos];
+                    deck[pos] = temp;
+                }
+
+                return deck;
             }
         }
     }

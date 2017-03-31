@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -123,6 +124,10 @@ namespace Microsoft.Xunit.Performance.Api
                                         $"Missing value option for {(error as MissingValueOptionError).NameInfo.NameText}");
                                 case ErrorType.HelpRequestedError:
                                     Console.WriteLine(Usage());
+                                    Environment.Exit(0);
+                                    break;
+                                case ErrorType.VersionRequestedError:
+                                    Console.WriteLine(new AssemblyName(typeof(XunitPerformanceHarnessOptions).GetTypeInfo().Assembly.FullName).Version);
                                     Environment.Exit(0);
                                     break;
                                 case ErrorType.BadFormatTokenError:

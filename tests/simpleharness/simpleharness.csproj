@@ -1,22 +1,23 @@
-﻿<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Configuration">
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+  </PropertyGroup>
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp1.0</TargetFramework>
+    <TargetFrameworks>netcoreapp1.0;netcoreapp1.1</TargetFrameworks>
   </PropertyGroup>
+
   <ItemGroup>
-    <Compile Include="**\*.cs" />
-    <EmbeddedResource Include="**\*.resx" />
+    <None Remove="*.csv;*.etl;*.md;*.xml" />
   </ItemGroup>
+
   <ItemGroup>
-    <PackageReference Include="Microsoft.NETCore.App" Version="1.0.1" />
-    <PackageReference Include="Microsoft.NET.Sdk" Version="1.0.0-alpha-20161104-2">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
     <ProjectReference Include="..\..\src\xunit.performance.api\xunit.performance.api.csproj" />
     <ProjectReference Include="..\..\src\xunit.performance.core\xunit.performance.core.csproj" />
     <ProjectReference Include="..\..\src\xunit.performance.execution\xunit.performance.execution.csproj" />
     <ProjectReference Include="..\..\src\xunit.performance.metrics\xunit.performance.metrics.csproj" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
 </Project>

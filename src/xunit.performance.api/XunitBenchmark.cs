@@ -1,9 +1,12 @@
 ﻿using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
+using Microsoft.Xunit.Performance.Execution;
 using Microsoft.Xunit.Performance.Sdk;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
+using static Microsoft.Xunit.Performance.Api.Common;
+using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -14,22 +17,25 @@ namespace Microsoft.Xunit.Performance.Api
             // TODO: Read this from file.
             //   1. This reads as: flags read from config file based on running platform!
             //   2. Format could be something like this: `{ "Name" : "BranchMispredictions", "interval" : "100000" }`
-            RequiredProviders = new ProviderInfo[]
+            PerformanceMonitorCounters = new List<IPerformanceMonitorCounter>
+            {
+                new BranchMispredictionsPerformanceMonitorCounter(),
+                new CacheMissesPerformanceMonitorCounter(),
+            };
+
+            PerformanceMetricInfos = IsWindowsPlatform ? new List<BasePerformanceMonitorCounter>
+            {
+                new GenericPerformanceMonitorCounterMetric<BranchMispredictionsPerformanceMonitorCounter>(new BranchMispredictionsPerformanceMonitorCounter()),
+                new GenericPerformanceMonitorCounterMetric<CacheMissesPerformanceMonitorCounter>(new CacheMissesPerformanceMonitorCounter()),
+            } :
+            new List<BasePerformanceMonitorCounter>();
+
+            RequiredProviders = new List<ProviderInfo>
             {
                 new KernelProviderInfo()
                 {
                     Keywords = (ulong)KernelTraceEventParser.Keywords.Process | (ulong)KernelTraceEventParser.Keywords.Profile,
                     StackKeywords = (ulong)KernelTraceEventParser.Keywords.Profile
-                },
-                new CpuCounterInfo()
-                {
-                    CounterName = "BranchMispredictions",
-                    Interval = 100000
-                },
-                new CpuCounterInfo()
-                {
-                    CounterName = "CacheMisses",
-                    Interval = 100000
                 },
                 new UserProviderInfo()
                 {
@@ -43,7 +49,6 @@ namespace Microsoft.Xunit.Performance.Api
                     Level = TraceEventLevel.Verbose,
                     Keywords =
                     (
-                        //(ulong)ClrTraceEventParser.Keywords.Default // TODO: Should we be using this instead?
                         (ulong)ClrTraceEventParser.Keywords.Jit |
                         (ulong)ClrTraceEventParser.Keywords.JittedMethodILToNativeMap |
                         (ulong)ClrTraceEventParser.Keywords.Loader |
@@ -52,6 +57,15 @@ namespace Microsoft.Xunit.Performance.Api
                     ),
                 }
             };
+
+            foreach (var pmc in PerformanceMonitorCounters)
+            {
+                RequiredProviders.Add(new CpuCounterInfo()
+                {
+                    CounterName = pmc.Name,
+                    Interval = pmc.Interval,
+                });
+            }
         }
 
         public static (IEnumerable<ProviderInfo> providers, IEnumerable<PerformanceTestMessage> performanceTestMessages) GetMetadata(string assemblyFileName)
@@ -78,11 +92,34 @@ namespace Microsoft.Xunit.Performance.Api
                         select provider;
 
                     providers = ProviderInfo.Merge(providers);
+
+                    // Create the list of default metrics
+                    IEnumerable<PerformanceMetricInfo> defaultMetricInfos =
+                        from pmcMetricInfo in PerformanceMetricInfos
+                        where pmcMetricInfo.IsValidPmc
+                        select pmcMetricInfo;
+
+                    if (AllocatedBytesForCurrentThread.IsAvailable)
+                        defaultMetricInfos = defaultMetricInfos.Concat(new[] { new GCAllocatedBytesForCurrentThreadMetric() });
+                    else
+                    {
+                        WriteWarningLine(AllocatedBytesForCurrentThread.NoAvailabilityReason);
+                        WriteWarningLine($"The '{GCAllocatedBytesForCurrentThreadMetric.GetAllocatedBytesForCurrentThreadDisplayName}' metric will not be collected.");
+                    }
+
+                    // Inject implicit pmc counters
+                    foreach (var test in testMessageVisitor.Tests)
+                        test.Metrics = test.Metrics.Concat(defaultMetricInfos);
+
                     return (ProviderInfo.Merge(RequiredProviders.Concat(providers)), testMessageVisitor.Tests);
                 }
             }
         }
 
-        public static IEnumerable<ProviderInfo> RequiredProviders { get; }
+        public static List<ProviderInfo> RequiredProviders { get; }
+
+        private static List<IPerformanceMonitorCounter> PerformanceMonitorCounters { get; }
+
+        private static List<BasePerformanceMonitorCounter> PerformanceMetricInfos { get; }
     }
 }
