@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xunit.Performance.Api.Table;
-using Microsoft.Xunit.Performance.Api.TableHeader;
 using Microsoft.Xunit.Performance.Sdk;
 using System;
 using System.Collections.Generic;
@@ -8,6 +7,7 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using static Microsoft.Xunit.Performance.Api.TableHeader;
 
 namespace Microsoft.Xunit.Performance.Api
 {

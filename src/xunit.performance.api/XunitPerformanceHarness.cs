@@ -101,7 +101,7 @@ namespace Microsoft.Xunit.Performance.Api
             ScenarioBenchmark scenarioBenchmark = teardownDel(_scenarioTestConfiguration);
             if (scenarioBenchmark == null) 
             {
-                throw new InvalidOperationException("The Teardown Delegate should return a valid instance of ScenarioBenchmark.")
+                throw new InvalidOperationException("The Teardown Delegate should return a valid instance of ScenarioBenchmark.");
             }
 
             string scenarioNamespace = scenarioBenchmark.Namespace;
@@ -115,7 +115,7 @@ namespace Microsoft.Xunit.Performance.Api
             var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
             MarkdownHelper.Write(mdFileName, mdTable);
             WriteInfoLine($"Markdown file saved to \"{mdFileName}\"");
-            WriteInfoLine(mdTable);
+            Console.WriteLine(mdTable);
 
             dt.WriteToCSV(csvFileName);
             WriteInfoLine($"Statistics written to \"{csvFileName}\"");

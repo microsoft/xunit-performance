@@ -16,7 +16,7 @@ namespace Microsoft.Xunit.Performance.Api
         {
             _outputDirectory = Directory.GetCurrentDirectory();
             _temporaryDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            Directory.CreateDirectory(_temporaryDirectory)
+            Directory.CreateDirectory(_temporaryDirectory);
             _runid = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss");
             _typeNames = new List<string>();
         }
@@ -62,7 +62,6 @@ namespace Microsoft.Xunit.Performance.Api
 
                 _temporaryDirectory = Path.IsPathRooted(value) ? value : Path.GetFullPath(value);
                 Directory.CreateDirectory(_temporaryDirectory);
-                }
             }
         }
 
