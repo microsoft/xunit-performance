@@ -11,12 +11,10 @@ namespace Microsoft.Xunit.Performance.Api
     {
         static XunitPerformanceHarness()
         {
-            Action<string, string, string, Action, Action<string>> etwProfiler = (assemblyPath, runId, outputDirectory, runner, collectOutputFilesCallback) =>
-            {
+            Action<string, string, string, Action, Action<string>> etwProfiler = (assemblyPath, runId, outputDirectory, runner, collectOutputFilesCallback) => {
                 ETWProfiler.Record(assemblyPath, runId, outputDirectory, runner, collectOutputFilesCallback);
             };
-            Action<string, string, string, Action, Action<string>> genericProfiler = (assemblyPath, runId, outputDirectory, runner, collectOutputFilesCallback) =>
-            {
+            Action<string, string, string, Action, Action<string>> genericProfiler = (assemblyPath, runId, outputDirectory, runner, collectOutputFilesCallback) => {
                 GenericProfiler.Record(assemblyPath, runId, outputDirectory, runner, collectOutputFilesCallback);
             };
             s_profiler = IsWindowsPlatform ? etwProfiler : genericProfiler;
@@ -27,26 +25,22 @@ namespace Microsoft.Xunit.Performance.Api
             _args = args;
             _disposed = false;
             _outputFiles = new List<string>();
-            ScenarioTestConfiguration = new ScenarioTestConfiguration();
 
             var options = XunitPerformanceHarnessOptions.Parse(args);
-            ScenarioTestConfiguration.TemporaryDirectory = options.TemporaryDirectory;
 
-            // Set the run id.
-            _outputDirectory = options.OutputDirectory;
+            OutputDirectory = options.OutputDirectory;
             _typeNames = new List<string>(options.TypeNames);
-            _runner = (assemblyPath) =>
-            {
+            _runner = (assemblyPath) => {
                 XunitRunner.Run(assemblyPath, _typeNames);
             };
 
             Configuration.RunId = options.RunId;
-            // Set the file log path.
-            // TODO: Conditionally set this based on whether we want a csv file written.
-            Configuration.FileLogPath = Configuration.RunId + ".csv";
+            Configuration.FileLogPath = Configuration.RunId + ".csv"; // TODO: Conditionally set this based on whether we want a csv file written.
         }
 
-        public ScenarioTestConfiguration ScenarioTestConfiguration { get; private set; }
+        public string OutputDirectory { get; }
+
+        public IEnumerable<string> TypeNames => _typeNames.AsReadOnly();
 
         public BenchmarkConfiguration Configuration => BenchmarkConfiguration.Instance;
 
@@ -54,37 +48,53 @@ namespace Microsoft.Xunit.Performance.Api
         {
             Validate(assemblyPath);
 
-            Action<string> collectOutputFilesCallback = fileName =>
-            {
+            Action<string> collectOutputFilesCallback = fileName => {
                 // FIXME: This will need safe guards when the client calls RunBenchmarks in different threads.
                 _outputFiles.Add(fileName);
             };
 
-            Action winRunner = () =>
-            {
+            Action winRunner = () => {
                 _runner(assemblyPath);
             };
-            Action nixRunner = () =>
-            {
+            Action nixRunner = () => {
                 _runner(assemblyPath);
-                ProcessResults(assemblyPath, Configuration.RunId, _outputDirectory, collectOutputFilesCallback);
+                ProcessResults(assemblyPath, Configuration.RunId, OutputDirectory, collectOutputFilesCallback);
             };
             Action runner = IsWindowsPlatform ? winRunner : nixRunner;
 
-            s_profiler(assemblyPath, Configuration.RunId, _outputDirectory, runner, collectOutputFilesCallback);
+            s_profiler(assemblyPath, Configuration.RunId, OutputDirectory, runner, collectOutputFilesCallback);
         }
 
+        /// <summary>
+        /// Executes the benchmark scenario specified by the parameter
+        /// containing the process start information.<br/>
+        /// The process component will wait, for the benchmark scenario to exit,
+        /// the time specified on the configuration argument.<br/>
+        /// If the benchmark scenario has not exited, then it will immediately
+        /// stop the associated process, and a TimeoutException will be thrown.
+        /// </summary>
+        /// <param name="processStartInfo">The ProcessStartInfo that contains the information that is used to start the benchmark scenario process.</param>
+        /// <param name="preIterationDelegate">The action that will be executed before every benchmark scenario execution.</param>
+        /// <param name="postIterationDelegate">The action that will be executed after every benchmark scenario execution.</param>
+        /// <param name="teardownDelegate">The action that will be executed after running all benchmark scenario iterations.</param>
+        /// <param name="configuration">ScenarioConfiguration object that defined the scenario execution.</param>
         public void RunScenario(
             ProcessStartInfo processStartInfo,
-            Action<ScenarioTestConfiguration> preIterationDelegate,
-            Action<ScenarioTestConfiguration> postIterationDelegate,
-            Func<ScenarioTestConfiguration, ScenarioBenchmark> teardownDelegate)
+            Action preIterationDelegate,
+            Action postIterationDelegate,
+            Func<ScenarioBenchmark> teardownDelegate,
+            ScenarioConfiguration configuration)
         {
-            int timeout = (int)(ScenarioTestConfiguration.TimeoutPerIteration.TotalMilliseconds);
+            if (processStartInfo == null)
+                throw new ArgumentNullException($"{nameof(processStartInfo)} cannot be null.");
+            if (teardownDelegate == null)
+                throw new ArgumentNullException($"{nameof(teardownDelegate)} cannot be null.");
+            if (configuration == null)
+                throw new ArgumentNullException($"{nameof(configuration)} cannot be null.");
 
-            for (int i = 0; i < ScenarioTestConfiguration.Iterations; ++i)
+            for (int i = 0; i < configuration.Iterations; ++i)
             {
-                preIterationDelegate?.Invoke(ScenarioTestConfiguration);
+                preIterationDelegate?.Invoke();
 
                 // TODO: Start profiling.
 
@@ -92,7 +102,7 @@ namespace Microsoft.Xunit.Performance.Api
                 {
                     p.StartInfo = processStartInfo;
                     p.Start();
-                    if (p.WaitForExit(timeout) == false)
+                    if (p.WaitForExit((int)(configuration.TimeoutPerIteration.TotalMilliseconds)) == false)
                     {
                         p.Kill();
                         throw new TimeoutException("Running benchmark scenario has timed out.");
@@ -101,10 +111,10 @@ namespace Microsoft.Xunit.Performance.Api
 
                 // TODO: Stop profiling.
 
-                postIterationDelegate?.Invoke(ScenarioTestConfiguration);
+                postIterationDelegate?.Invoke();
             }
 
-            ScenarioBenchmark scenarioBenchmark = teardownDelegate(ScenarioTestConfiguration);
+            ScenarioBenchmark scenarioBenchmark = teardownDelegate();
             if (scenarioBenchmark == null)
                 throw new InvalidOperationException("The Teardown Delegate should return a valid instance of ScenarioBenchmark.");
             scenarioBenchmark.Serialize(Configuration.RunId + "-" + scenarioBenchmark.Namespace + ".xml");
@@ -206,7 +216,6 @@ namespace Microsoft.Xunit.Performance.Api
         private static readonly Action<string, string, string, Action, Action<string>> s_profiler;
         private readonly Action<string> _runner;
         private readonly string[] _args;
-        private readonly string _outputDirectory;
         private readonly List<string> _outputFiles;
         private readonly List<string> _typeNames;
         private bool _disposed;

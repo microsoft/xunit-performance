@@ -249,9 +249,12 @@ In this example, HelloWorld is a simple program that does some stuff, measures h
 The authoring might look something like this:
 
 ```csharp
-private static int s_iteration;
-private static double[] s_startupTimes;
-private static double[] s_requestTimes;
+private const double TimeoutInMilliseconds = 20000;
+private const int NumberOfIterations = 10;
+private static int s_iteration = 0;
+private static double[] s_startupTimes = new double[NumberOfIterations];
+private static double[] s_requestTimes = new double[NumberOfIterations];
+private static ScenarioConfiguration s_scenarioConfiguration = new ScenarioConfiguration(TimeoutInMilliseconds, NumberOfIterations);
 
 public static void Main(string[] args)
 {
@@ -261,23 +264,25 @@ public static void Main(string[] args)
 
   using (var h = new XunitPerformanceHarness(args))
   {
-    var processStartInfo = new ProcessStartInfo() {
-      FileName = Path.Combine(h.ScenarioTestConfiguration.TemporaryDirectory, "helloWorld.exe")
+    var startInfo = new ProcessStartInfo() {
+      FileName = "helloWorld.exe"
     };
 
-    s_iteration = 0;
-    s_startupTimes = new double[h.ScenarioTestConfiguration.Iterations];
-    s_requestTimes = new double[h.ScenarioTestConfiguration.Iterations];
-    h.RunScenario(processStartInfo, PreIteration, PostIteration, PostRun);
+    h.RunScenario(
+      startInfo,
+      PreIteration,
+      PostIteration,
+      PostRun,
+      s_scenarioConfiguration);
   }
 }
 
-private static void PreIteration(ScenarioTestConfiguration scenarioTestConfiguration)
+private static void PreIteration()
 {
   // Optional pre benchmark iteration steps.
 }
 
-private static void PostIteration(ScenarioTestConfiguration scenarioTestConfiguration)
+private static void PostIteration()
 {
   // Optional post benchmark iteration steps. For example:
   //  - Read measurements from txt file
@@ -288,7 +293,7 @@ private static void PostIteration(ScenarioTestConfiguration scenarioTestConfigur
 // After all iterations, we create the ScenarioBenchmark object, and we add
 // only one test with one metric. Then we add one Iteration for each iteration
 // that run.
-private static ScenarioBenchmark PostRun(ScenarioTestConfiguration scenarioTestConfiguration)
+private static ScenarioBenchmark PostRun()
 {
   var scenarioBenchmark = new ScenarioBenchmark("MusicStore") {
     Namespace = "JitBench"
@@ -314,7 +319,7 @@ private static ScenarioBenchmark PostRun(ScenarioTestConfiguration scenarioTestC
     Unit = "ms"
   });
 
-  for (int i = 0; i < scenarioTestConfiguration.Iterations; ++i)
+  for (int i = 0; i < s_scenarioConfiguration.Iterations; ++i)
   {
       var startupIteration = new IterationModel {
         Iteration = new Dictionary<string, double>()
@@ -333,14 +338,12 @@ private static ScenarioBenchmark PostRun(ScenarioTestConfiguration scenarioTestC
 }
 ```
 
-
-Once you create an instance of the XunitPerformanceHarness, it comes with a configuration object of type ScenarioTestConfiguration, which has default values that you can edit to properly apply to your test requirements.
+Once you create an instance of the XunitPerformanceHarness, it comes with a configuration object of type ScenarioConfiguration, which has default values that you can edit to properly apply to your test requirements.
 
 ```csharp
-public class ScenarioTestConfiguration
+public class ScenarioConfiguration
 {
-  public TimeSpan TimeoutPerIteration { get; set; }
-  public int Iterations { get; set; }
-  public string TemporaryDirectory { get; set; }
+  public int Iterations { get; }
+  public TimeSpan TimeoutPerIteration { get; }
 }
 ```
