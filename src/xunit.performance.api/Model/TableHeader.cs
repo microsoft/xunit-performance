@@ -1,6 +1,6 @@
 namespace Microsoft.Xunit.Performance.Api
 {
-    public static class TableHeader
+    internal static class TableHeader
     {
         public static string TestName => "Test Name";
 

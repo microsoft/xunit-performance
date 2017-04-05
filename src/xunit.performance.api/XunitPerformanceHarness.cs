@@ -95,7 +95,7 @@ namespace Microsoft.Xunit.Performance.Api
                     if (p.WaitForExit(timeout) == false)
                     {
                         p.Kill();
-                        throw new TimeoutException("Running benchmark scenario has timed out!");
+                        throw new TimeoutException("Running benchmark scenario has timed out.");
                     }
                 }
 

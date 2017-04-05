@@ -7,7 +7,6 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
-using static Microsoft.Xunit.Performance.Api.TableHeader;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -88,8 +87,7 @@ namespace Microsoft.Xunit.Performance.Api
 
         internal static AssemblyModel Create(string assemblyFileName, CSVMetricReader reader)
         {
-            var assemblyModel = new AssemblyModel
-            {
+            var assemblyModel = new AssemblyModel {
                 Name = Path.GetFileName(assemblyFileName),
                 Collection = new List<TestModel>()
             };
@@ -99,13 +97,11 @@ namespace Microsoft.Xunit.Performance.Api
                 var testModel = assemblyModel.Collection.FirstOrDefault(test => test.Name == perfTestMsg.TestCase.DisplayName);
                 if (testModel == null)
                 {
-                    testModel = new TestModel
-                    {
+                    testModel = new TestModel {
                         Name = perfTestMsg.TestCase.DisplayName,
                         Method = perfTestMsg.TestCase.TestMethod.Method.Name,
                         ClassName = perfTestMsg.TestCase.TestMethod.TestClass.Class.Name,
-                        Performance = new PerformanceModel
-                        {
+                        Performance = new PerformanceModel {
                             Metrics = new List<MetricModel>(),
                             IterationModels = new List<IterationModel>()
                         },
@@ -115,8 +111,7 @@ namespace Microsoft.Xunit.Performance.Api
                 var testMetric = testModel.Performance.Metrics.FirstOrDefault(m => m.DisplayName == metric);
                 if (testMetric == null)
                 {
-                    testModel.Performance.Metrics.Add(new MetricModel
-                    {
+                    testModel.Performance.Metrics.Add(new MetricModel {
                         DisplayName = metric,
                         Name = metric,
                         Unit = metric == "Duration" ? PerformanceMetricUnits.Milliseconds : "unknown", // We are guessing here.
@@ -187,21 +182,19 @@ namespace Microsoft.Xunit.Performance.Api
 
         [XmlAttribute("Namespace")]
         public string Namespace { get; set; }
-        
+
         [XmlArray("Tests")]
         public List<ScenarioTestModel> Tests { get; set; }
 
         public ScenarioBenchmark()
         {
-            Tests = new List<ScenarioTestModel>();
             Namespace = "";
+            Tests = new List<ScenarioTestModel>();
         }
 
-        public ScenarioBenchmark(string name)
+        public ScenarioBenchmark(string name) : this()
         {
             Name = name;
-            Namespace = "";
-            Tests = new List<ScenarioTestModel>();
         }
 
         public void Serialize(string xmlFileName)
@@ -277,15 +270,16 @@ namespace Microsoft.Xunit.Performance.Api
 
         public ScenarioTestModel()
         {
-            Performance = new PerformanceModel();
             Namespace = "";
+            Performance = new PerformanceModel {
+                Metrics = new List<MetricModel>(),
+                IterationModels = new List<IterationModel>()
+            };
         }
 
-        public ScenarioTestModel(string name)
+        public ScenarioTestModel(string name) : this()
         {
             Name = name;
-            Namespace = "";
-            Performance = new PerformanceModel();
         }
     }
 
@@ -311,12 +305,6 @@ namespace Microsoft.Xunit.Performance.Api
         public List<MetricModel> Metrics { get; set; }
 
         public List<IterationModel> IterationModels { get; set; }
-
-        public PerformanceModel()
-        {
-            Metrics = new List<MetricModel>();
-            IterationModels = new List<IterationModel>();
-        }
 
         public XmlSchema GetSchema()
         {

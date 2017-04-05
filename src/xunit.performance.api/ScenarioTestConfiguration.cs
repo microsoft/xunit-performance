@@ -6,7 +6,7 @@ namespace Microsoft.Xunit.Performance.Api
     {
         public ScenarioTestConfiguration()
         {
-            Iterations = 30;
+            Iterations = 10;
             TimeoutPerIteration = TimeSpan.FromMilliseconds(20000);
         }
 
