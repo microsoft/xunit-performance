@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Diagnostics;
-using static Microsoft.Xunit.Performance.Api.AssemblyModel;
+using System.IO;
 using static Microsoft.Xunit.Performance.Api.Common;
 using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 
@@ -28,10 +27,10 @@ namespace Microsoft.Xunit.Performance.Api
             _args = args;
             _disposed = false;
             _outputFiles = new List<string>();
-            _scenarioTestConfiguration = new ScenarioTestConfiguration();
+            ScenarioTestConfiguration = new ScenarioTestConfiguration();
 
             var options = XunitPerformanceHarnessOptions.Parse(args);
-            _scenarioTestConfiguration.TemporaryDirectory = options.TemporaryDirectory;
+            ScenarioTestConfiguration.TemporaryDirectory = options.TemporaryDirectory;
 
             // Set the run id.
             _outputDirectory = options.OutputDirectory;
@@ -46,6 +45,8 @@ namespace Microsoft.Xunit.Performance.Api
             // TODO: Conditionally set this based on whether we want a csv file written.
             Configuration.FileLogPath = Configuration.RunId + ".csv";
         }
+
+        public ScenarioTestConfiguration ScenarioTestConfiguration { get; private set; }
 
         public BenchmarkConfiguration Configuration => BenchmarkConfiguration.Instance;
 
@@ -73,52 +74,54 @@ namespace Microsoft.Xunit.Performance.Api
             s_profiler(assemblyPath, Configuration.RunId, _outputDirectory, runner, collectOutputFilesCallback);
         }
 
-        public void RunScenario(ProcessStartInfo processStartInfo, Action<ScenarioTestConfiguration> preIterationDel,
-            Action<ScenarioTestConfiguration> postIterationDel, Func<ScenarioTestConfiguration, ScenarioBenchmark> teardownDel)
+        public void RunScenario(
+            ProcessStartInfo processStartInfo,
+            Action<ScenarioTestConfiguration> preIterationDelegate,
+            Action<ScenarioTestConfiguration> postIterationDelegate,
+            Func<ScenarioTestConfiguration, ScenarioBenchmark> teardownDelegate)
         {
-            int iterations = _scenarioTestConfiguration.Iterations;
-            int timeout = (int)(_scenarioTestConfiguration.TimeoutPerIteration.TotalMilliseconds);
+            int timeout = (int)(ScenarioTestConfiguration.TimeoutPerIteration.TotalMilliseconds);
 
-            for (int i = 0; i < iterations; i++)
+            for (int i = 0; i < ScenarioTestConfiguration.Iterations; ++i)
             {
-                preIterationDel(_scenarioTestConfiguration);
-                using(var p = new Process())
+                preIterationDelegate?.Invoke(ScenarioTestConfiguration);
+
+                // TODO: Start profiling.
+
+                using (var p = new Process())
                 {
                     p.StartInfo = processStartInfo;
                     p.Start();
-                    if (p.WaitForExit(timeout) == false) 
+                    if (p.WaitForExit(timeout) == false)
                     {
                         p.Kill();
-                        Console.WriteLine("Timeouted!");
-                        return;
+                        throw new TimeoutException("Running benchmark scenario has timed out!");
                     }
                 }
-                postIterationDel(_scenarioTestConfiguration);
+
+                // TODO: Stop profiling.
+
+                postIterationDelegate?.Invoke(ScenarioTestConfiguration);
             }
 
-            ScenarioBenchmark scenarioBenchmark = teardownDel(_scenarioTestConfiguration);
-            if (scenarioBenchmark == null) 
-            {
+            ScenarioBenchmark scenarioBenchmark = teardownDelegate(ScenarioTestConfiguration);
+            if (scenarioBenchmark == null)
                 throw new InvalidOperationException("The Teardown Delegate should return a valid instance of ScenarioBenchmark.");
-            }
+            scenarioBenchmark.Serialize(Configuration.RunId + "-" + scenarioBenchmark.Namespace + ".xml");
 
-            string scenarioNamespace = scenarioBenchmark.Namespace;
-
-            scenarioBenchmark.Serialize(Configuration.RunId + "-" + scenarioNamespace + ".xml");
-
-            var mdFileName = Configuration.RunId + "-" + scenarioNamespace + "-Statistics.md";
-            var csvFileName = Configuration.RunId + "-" + scenarioNamespace + "-Statistics.csv";
 
             var dt = scenarioBenchmark.GetStatistics();
             var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
+
+            var mdFileName = $"{Configuration.RunId}-{scenarioBenchmark.Namespace}-Statistics.md";
             MarkdownHelper.Write(mdFileName, mdTable);
             WriteInfoLine($"Markdown file saved to \"{mdFileName}\"");
             Console.WriteLine(mdTable);
 
+            var csvFileName = $"{Configuration.RunId}-{scenarioBenchmark.Namespace}-Statistics.csv";
             dt.WriteToCSV(csvFileName);
             WriteInfoLine($"Statistics written to \"{csvFileName}\"");
         }
-
 
         public static string Usage()
         {
@@ -201,13 +204,11 @@ namespace Microsoft.Xunit.Performance.Api
         #endregion IDisposable implementation
 
         private static readonly Action<string, string, string, Action, Action<string>> s_profiler;
-
         private readonly Action<string> _runner;
         private readonly string[] _args;
         private readonly string _outputDirectory;
         private readonly List<string> _outputFiles;
         private readonly List<string> _typeNames;
         private bool _disposed;
-        public ScenarioTestConfiguration _scenarioTestConfiguration;
     }
 }
