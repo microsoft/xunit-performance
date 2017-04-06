@@ -14,7 +14,7 @@ namespace Microsoft.Xunit.Performance.Api
         /// <param name="iterations">Number of times a benchmark scenario process will be executed.</param>
         public ScenarioConfiguration(TimeSpan timeSpam, int iterations = 10)
         {
-            if (timeSpam.Milliseconds <= 0)
+            if (timeSpam.TotalMilliseconds <= 0)
                 throw new InvalidOperationException("The time out per iteration must be a positive number.");
             if (iterations <= 1)
                 throw new InvalidOperationException("The number of iterations must be greater than 1.");
