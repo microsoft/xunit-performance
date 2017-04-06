@@ -12,8 +12,10 @@ Provides extensions over xUnit to author performance tests.
 1. Create a new class library project
 2. Add a reference to the "xUnit" NuGet package
 3. Add a reference to the latest [xunit.performance.api.dll](https://dotnet.myget.org/feed/dotnet-core/package/nuget/xunit.performance.api)
-4. Tag your test methods with [Benchmark] instead of [Fact]
-5. Make sure that each [Benchmark]-annotated test contains a loop of this form:
+4. Add a reference to the latest [Microsoft.Diagnostics.Tracing.TraceEvent](https://dotnet.myget.org/feed/dotnet-core/package/nuget/Microsoft.Diagnostics.Tracing.TraceEvent)
+    (It deploys native libraries needed to merge the \*.etl files)
+5. Tag your test methods with [Benchmark] instead of [Fact]
+6. Make sure that each [Benchmark]-annotated test contains a loop of this form:
 
 ```csharp
 [Benchmark]
@@ -199,7 +201,7 @@ namespace SampleApiTest
 
 ## Supported metrics
 
-Currently, the API collect the following data **:
+Currently, the API collect the following data \*\*:
 
 Metric                                | Type                                     | Description
 ------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------
@@ -211,7 +213,7 @@ Metric                                | Type                                    
 **GC Count**                          | GC trace event                           | Use the `[MeasureGCCounts]` attribute in the source code
 **Instructions Retired**              | Performance Monitor Counter              | Use the `[MeasureInstructionsRetired]` attribute in the source code
 
-**The default metrics are subject to change, and we are currently working on enabling more metrics and adding support to have more control around the metrics being captured.
+\*\*The default metrics are subject to change, and we are currently working on enabling more metrics and adding support to have more control around the metrics being captured.
 
 ## Collected data
 
@@ -223,3 +225,125 @@ Format | Data
   etl  | Trace file (Windows only)
   md   | Markdown file with statistics rendered as a table (github friendly)
   xml  | Serialized raw data of all of the tests with their respective metrics
+
+## Authoring Scenario-based Benchmarks
+
+A Scenario-based benchmark is one that runs in a separate process. Therefore, in order to author this kind of test you need to provide an executable, as well as some information for xunit-performance to run. You are responsible for all the measurements, not only to decide what to measure but also how to get the actual numbers.
+
+1. Create a new Console Application project
+2. Add a reference to the "xUnit" NuGet package
+3. Add a reference to the latest [xunit.performance.api.dll](https://dotnet.myget.org/feed/dotnet-core/package/nuget/xunit.performance.api)
+4. Define PreIteration and PostIteration delegates
+5. Define PostRun Delegate
+6. In the main function of your project, specify a ProcessStartInfo for your executable and provide it to xunit-performance.
+
+You have the option of doing all the setup for your executable (downloading a repository, building, doing a restore, etc.) or you can indicate the location of your pre-compiled executable.
+
+PreIteration and PostIteration are delegates that will be called once per run of your app, before and after, respectively.
+PostRun is a delegate that will be called after all the iterations are complete, and should return an object of type ScenarioBenchmark filled with your tests and metrics names, as well as the numbers you obtained.
+
+### Example
+
+In this example, HelloWorld is a simple program that does some stuff, measures how much time it spent, and outputs this number to a txt file. The test author has decided that it only has one Test, called "Doing Stuff", and this test has only one metric to measure, "Execution Time".
+
+The authoring might look something like this:
+
+```csharp
+private const double TimeoutInMilliseconds = 20000;
+private const int NumberOfIterations = 10;
+private static int s_iteration = 0;
+private static double[] s_startupTimes = new double[NumberOfIterations];
+private static double[] s_requestTimes = new double[NumberOfIterations];
+private static ScenarioConfiguration s_scenarioConfiguration = new ScenarioConfiguration(TimeoutInMilliseconds, NumberOfIterations);
+
+public static void Main(string[] args)
+{
+  // Optional setup steps. e.g.)
+  //  Clone repository
+  //  Build benchmark
+
+  using (var h = new XunitPerformanceHarness(args))
+  {
+    var startInfo = new ProcessStartInfo() {
+      FileName = "helloWorld.exe"
+    };
+
+    h.RunScenario(
+      startInfo,
+      PreIteration,
+      PostIteration,
+      PostRun,
+      s_scenarioConfiguration);
+  }
+}
+
+private static void PreIteration()
+{
+  // Optional pre benchmark iteration steps.
+}
+
+private static void PostIteration()
+{
+  // Optional post benchmark iteration steps. For example:
+  //  - Read measurements from txt file
+  //  - Save measurements to buffer (e.g. s_startupTimes and s_requestTimes)
+  ++s_iteration;
+}
+
+// After all iterations, we create the ScenarioBenchmark object, and we add
+// only one test with one metric. Then we add one Iteration for each iteration
+// that run.
+private static ScenarioBenchmark PostRun()
+{
+  var scenarioBenchmark = new ScenarioBenchmark("MusicStore") {
+    Namespace = "JitBench"
+  };
+
+  var startup = new ScenarioTestModel("Startup");
+  scenarioBenchmark.Tests.Add(startup);
+
+  var request = new ScenarioTestModel("Request Time");
+  scenarioBenchmark.Tests.Add(request);
+
+  // Add the measured metrics to the startup test
+  startup.Performance.Metrics.Add(new MetricModel {
+    Name = "ExecutionTime",
+    DisplayName = "Execution Time",
+    Unit = "ms"
+  });
+
+  // Add the measured metrics to the request test
+  request.Performance.Metrics.Add(new MetricModel {
+    Name = "ExecutionTime",
+    DisplayName = "Execution Time",
+    Unit = "ms"
+  });
+
+  for (int i = 0; i < s_scenarioConfiguration.Iterations; ++i)
+  {
+      var startupIteration = new IterationModel {
+        Iteration = new Dictionary<string, double>()
+      };
+      startupIteration.Iteration.Add("ExecutionTime", s_startupTimes[i]);
+      startup.Performance.IterationModels.Add(startupIteration);
+
+      var requestIteration = new IterationModel {
+        Iteration = new Dictionary<string, double>()
+      };
+      requestIteration.Iteration.Add("ExecutionTime", s_requestTimes[i]);
+      request.Performance.IterationModels.Add(requestIteration);
+  }
+
+  return scenarioBenchmark;
+}
+```
+
+Once you create an instance of the XunitPerformanceHarness, it comes with a configuration object of type ScenarioConfiguration, which has default values that you can edit to properly apply to your test requirements.
+
+```csharp
+public class ScenarioConfiguration
+{
+  public int Iterations { get; }
+  public TimeSpan TimeoutPerIteration { get; }
+}
+```
