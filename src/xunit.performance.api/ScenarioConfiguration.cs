@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -12,7 +14,11 @@ namespace Microsoft.Xunit.Performance.Api
         /// </summary>
         /// <param name="timeSpan">The amount of time to wait for one iteration process to exit.</param>
         /// <param name="iterations">Number of times a benchmark scenario process will be executed.</param>
-        public ScenarioConfiguration(TimeSpan timeSpan, int iterations = 10)
+        /// <param name="validExitCodes">
+        /// A collection of exit codes that indicates success when the benchmark scenario process terminates.
+        /// If this parameter is not specified, then the only valid exit code will 0.
+        /// </param>
+        public ScenarioConfiguration(TimeSpan timeSpan, int iterations = 10, IEnumerable<int> validExitCodes = null)
         {
             if (timeSpan.TotalMilliseconds <= 0)
                 throw new InvalidOperationException("The time out per iteration must be a positive number.");
@@ -21,6 +27,7 @@ namespace Microsoft.Xunit.Performance.Api
 
             Iterations = iterations;
             TimeoutPerIteration = timeSpan;
+            ValidExitCodes = validExitCodes != null ? new List<int>(validExitCodes) : new List<int> { 0 };
         }
 
         /// <summary>
@@ -32,5 +39,10 @@ namespace Microsoft.Xunit.Performance.Api
         /// The amount of time to wait for one iteration process to exit.
         /// </summary>
         public TimeSpan TimeoutPerIteration { get; }
+
+        /// <summary>
+        /// Exit codes that indicates success when the benchmark scenario process terminates.
+        /// </summary>
+        public IEnumerable<int> ValidExitCodes { get; }
     }
 }
