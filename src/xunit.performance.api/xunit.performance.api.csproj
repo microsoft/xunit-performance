@@ -31,7 +31,6 @@
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="1.0.3-alpha-experimental">
       <IncludeAssets>All</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.2" />
     <PackageReference Include="System.Security.Principal.Windows" Version="4.3.0" />
     <PackageReference Include="System.ValueTuple" Version="4.3.0" />
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />

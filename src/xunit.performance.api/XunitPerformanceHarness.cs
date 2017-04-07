@@ -1,4 +1,3 @@
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -81,23 +80,23 @@ namespace Microsoft.Xunit.Performance.Api
         /// <param name="preIterationDelegate">The action that will be executed before every benchmark scenario execution.</param>
         /// <param name="postIterationDelegate">The action that will be executed after every benchmark scenario execution.</param>
         /// <param name="teardownDelegate">The action that will be executed after running all benchmark scenario iterations.</param>
-        /// <param name="configuration">ScenarioConfiguration object that defined the scenario execution.</param>
+        /// <param name="scenarioConfiguration">ScenarioConfiguration object that defined the scenario execution.</param>
         public void RunScenario(
             ProcessStartInfo processStartInfo,
             Action preIterationDelegate,
             Action postIterationDelegate,
             Func<ScenarioBenchmark> teardownDelegate,
-            ScenarioConfiguration configuration)
+            ScenarioConfiguration scenarioConfiguration)
         {
             if (processStartInfo == null)
                 throw new ArgumentNullException($"{nameof(processStartInfo)} cannot be null.");
             if (teardownDelegate == null)
                 throw new ArgumentNullException($"{nameof(teardownDelegate)} cannot be null.");
-            if (configuration == null)
-                throw new ArgumentNullException($"{nameof(configuration)} cannot be null.");
+            if (scenarioConfiguration == null)
+                throw new ArgumentNullException($"{nameof(scenarioConfiguration)} cannot be null.");
 
-            // Make a copy of the ProcessStartInfo to avoid potential bugs due to changes behind the scenes
-            var startInfo = Clone(processStartInfo);
+            // Make a copy of the user input to avoid potential bugs due to changes behind the scenes.
+            var configuration = new ScenarioConfiguration(scenarioConfiguration);
 
             for (int i = 0; i < configuration.Iterations; ++i)
             {
@@ -107,7 +106,7 @@ namespace Microsoft.Xunit.Performance.Api
 
                 using (var process = new Process())
                 {
-                    process.StartInfo = startInfo;
+                    process.StartInfo = processStartInfo;
                     process.Start();
                     if (process.WaitForExit((int)(configuration.TimeoutPerIteration.TotalMilliseconds)) == false)
                     {
@@ -117,7 +116,7 @@ namespace Microsoft.Xunit.Performance.Api
 
                     // Check for the exit code.
                     if (!configuration.ValidExitCodes.Contains(process.ExitCode))
-                        throw new Exception($"'{startInfo.FileName}' exited with an invalid exit code: {process.ExitCode}");
+                        throw new Exception($"'{processStartInfo.FileName}' exited with an invalid exit code: {process.ExitCode}");
                 }
 
                 // TODO: Stop profiling.
@@ -182,12 +181,6 @@ namespace Microsoft.Xunit.Performance.Api
             collectOutputFilesCallback(csvFileName);
 
             BenchmarkEventSource.Log.Clear();
-        }
-
-        private static T Clone<T>(T source)
-        {
-            return JsonConvert.DeserializeObject<T>(
-                JsonConvert.SerializeObject(source));
         }
 
         #region IDisposable implementation

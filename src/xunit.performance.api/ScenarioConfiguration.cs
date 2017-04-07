@@ -13,27 +13,41 @@ namespace Microsoft.Xunit.Performance.Api
         /// Initializes a new instance of the ScenarioConfiguration class.
         /// </summary>
         /// <param name="timeSpan">The amount of time to wait for one iteration process to exit.</param>
-        /// <param name="iterations">Number of times a benchmark scenario process will be executed.</param>
-        /// <param name="validExitCodes">
-        /// A collection of exit codes that indicates success when the benchmark scenario process terminates.
-        /// If this parameter is not specified, then the only valid exit code will 0.
-        /// </param>
-        public ScenarioConfiguration(TimeSpan timeSpan, int iterations = 10, IEnumerable<int> validExitCodes = null)
+        public ScenarioConfiguration(TimeSpan timeSpan)
         {
-            if (timeSpan.TotalMilliseconds <= 0)
+            if (timeSpan.TotalMilliseconds < 1)
                 throw new InvalidOperationException("The time out per iteration must be a positive number.");
-            if (iterations <= 1)
-                throw new InvalidOperationException("The number of iterations must be greater than 1.");
 
-            Iterations = iterations;
+            Iterations = 10;
             TimeoutPerIteration = timeSpan;
-            ValidExitCodes = validExitCodes != null ? new List<int>(validExitCodes) : new List<int> { 0 };
+            ValidExitCodes = new[] { 0 };
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the ScenarioConfiguration class (deep copy).
+        /// </summary>
+        /// <param name="scenarioConfiguration">An instance of the ScenarioConfiguration class</param>
+        public ScenarioConfiguration(ScenarioConfiguration scenarioConfiguration)
+        {
+            Iterations = scenarioConfiguration.Iterations;
+            TimeoutPerIteration = scenarioConfiguration.TimeoutPerIteration;
+            ValidExitCodes = scenarioConfiguration.ValidExitCodes;
         }
 
         /// <summary>
         /// Number of times a benchmark scenario process will be executed.
         /// </summary>
-        public int Iterations { get; }
+        public int Iterations
+        {
+            get => _iterations;
+
+            set
+            {
+                if (value < 1)
+                    throw new InvalidOperationException("The number of iterations must be greater than 0.");
+                _iterations = value;
+            }
+        }
 
         /// <summary>
         /// The amount of time to wait for one iteration process to exit.
@@ -42,7 +56,24 @@ namespace Microsoft.Xunit.Performance.Api
 
         /// <summary>
         /// Exit codes that indicates success when the benchmark scenario process terminates.
+        /// If this parameter is not specified, then the only valid exit code will 0.
         /// </summary>
-        public IEnumerable<int> ValidExitCodes { get; }
+        public IEnumerable<int> ValidExitCodes
+        {
+            get => _validExitCodes;
+
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException($"Assigned a null collection to {nameof(ValidExitCodes)}.");
+                if (value.Count() == 0)
+                    throw new InvalidOperationException($"Assigned an empty collection to {nameof(ValidExitCodes)}");
+
+                _validExitCodes = value.ToArray();
+            }
+        }
+
+        private int _iterations;
+        private IEnumerable<int> _validExitCodes;
     }
 }
