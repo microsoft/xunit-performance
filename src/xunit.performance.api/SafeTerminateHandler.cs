@@ -19,7 +19,7 @@ namespace Microsoft.Xunit.Performance.Api
         where T : class, IDisposable
     {
         /// <summary>
-        /// Initializes a new instance of the SafeTerminateHandler<T> class that
+        /// Initializes a new instance of the SafeTerminateHandler&lt;T&gt; class that
         /// wraps a disposable object that will be created by calling the
         /// specified callback Func.
         /// </summary>

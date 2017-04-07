@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using static Microsoft.Xunit.Performance.Api.Common;
 using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 
@@ -22,11 +23,13 @@ namespace Microsoft.Xunit.Performance.Api
 
         public XunitPerformanceHarness(string[] args)
         {
-            _args = args;
+            _args = new string[args.Length];
+            args.CopyTo(_args, 0);
+
             _disposed = false;
             _outputFiles = new List<string>();
 
-            var options = XunitPerformanceHarnessOptions.Parse(args);
+            var options = XunitPerformanceHarnessOptions.Parse(_args);
 
             OutputDirectory = options.OutputDirectory;
             _typeNames = new List<string>(options.TypeNames);
@@ -77,20 +80,23 @@ namespace Microsoft.Xunit.Performance.Api
         /// <param name="preIterationDelegate">The action that will be executed before every benchmark scenario execution.</param>
         /// <param name="postIterationDelegate">The action that will be executed after every benchmark scenario execution.</param>
         /// <param name="teardownDelegate">The action that will be executed after running all benchmark scenario iterations.</param>
-        /// <param name="configuration">ScenarioConfiguration object that defined the scenario execution.</param>
+        /// <param name="scenarioConfiguration">ScenarioConfiguration object that defined the scenario execution.</param>
         public void RunScenario(
             ProcessStartInfo processStartInfo,
             Action preIterationDelegate,
             Action postIterationDelegate,
             Func<ScenarioBenchmark> teardownDelegate,
-            ScenarioConfiguration configuration)
+            ScenarioConfiguration scenarioConfiguration)
         {
             if (processStartInfo == null)
                 throw new ArgumentNullException($"{nameof(processStartInfo)} cannot be null.");
             if (teardownDelegate == null)
                 throw new ArgumentNullException($"{nameof(teardownDelegate)} cannot be null.");
-            if (configuration == null)
-                throw new ArgumentNullException($"{nameof(configuration)} cannot be null.");
+            if (scenarioConfiguration == null)
+                throw new ArgumentNullException($"{nameof(scenarioConfiguration)} cannot be null.");
+
+            // Make a copy of the user input to avoid potential bugs due to changes behind the scenes.
+            var configuration = new ScenarioConfiguration(scenarioConfiguration);
 
             for (int i = 0; i < configuration.Iterations; ++i)
             {
@@ -98,15 +104,19 @@ namespace Microsoft.Xunit.Performance.Api
 
                 // TODO: Start profiling.
 
-                using (var p = new Process())
+                using (var process = new Process())
                 {
-                    p.StartInfo = processStartInfo;
-                    p.Start();
-                    if (p.WaitForExit((int)(configuration.TimeoutPerIteration.TotalMilliseconds)) == false)
+                    process.StartInfo = processStartInfo;
+                    process.Start();
+                    if (process.WaitForExit((int)(configuration.TimeoutPerIteration.TotalMilliseconds)) == false)
                     {
-                        p.Kill();
+                        process.Kill();
                         throw new TimeoutException("Running benchmark scenario has timed out.");
                     }
+
+                    // Check for the exit code.
+                    if (!configuration.SuccessExitCodes.Contains(process.ExitCode))
+                        throw new Exception($"'{processStartInfo.FileName}' exited with an invalid exit code: {process.ExitCode}");
                 }
 
                 // TODO: Stop profiling.
@@ -119,14 +129,13 @@ namespace Microsoft.Xunit.Performance.Api
                 throw new InvalidOperationException("The Teardown Delegate should return a valid instance of ScenarioBenchmark.");
             scenarioBenchmark.Serialize(Configuration.RunId + "-" + scenarioBenchmark.Namespace + ".xml");
 
-
             var dt = scenarioBenchmark.GetStatistics();
             var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
 
             var mdFileName = $"{Configuration.RunId}-{scenarioBenchmark.Namespace}-Statistics.md";
             MarkdownHelper.Write(mdFileName, mdTable);
             WriteInfoLine($"Markdown file saved to \"{mdFileName}\"");
-            Console.WriteLine(mdTable);
+            Console.WriteLine(MarkdownHelper.ToTrimmedTable(mdTable));
 
             var csvFileName = $"{Configuration.RunId}-{scenarioBenchmark.Namespace}-Statistics.csv";
             dt.WriteToCSV(csvFileName);
@@ -164,7 +173,7 @@ namespace Microsoft.Xunit.Performance.Api
             MarkdownHelper.Write(mdFileName, mdTable);
             WriteInfoLine($"Markdown file saved to \"{mdFileName}\"");
             collectOutputFilesCallback(mdFileName);
-            Console.WriteLine(mdTable);
+            Console.WriteLine(MarkdownHelper.ToTrimmedTable(mdTable));
 
             var csvFileName = Path.Combine(outputDirectory, $"{statisticsFileName}.csv");
             dt.WriteToCSV(csvFileName);
