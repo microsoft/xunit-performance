@@ -20,7 +20,7 @@ namespace Microsoft.Xunit.Performance.Api
 
             Iterations = 10;
             TimeoutPerIteration = timeSpan;
-            ValidExitCodes = new[] { 0 };
+            SuccessExitCodes = new[] { 0 };
         }
 
         /// <summary>
@@ -31,12 +31,17 @@ namespace Microsoft.Xunit.Performance.Api
         {
             Iterations = scenarioConfiguration.Iterations;
             TimeoutPerIteration = scenarioConfiguration.TimeoutPerIteration;
-            ValidExitCodes = scenarioConfiguration.ValidExitCodes;
+            SuccessExitCodes = scenarioConfiguration.SuccessExitCodes;
         }
 
         /// <summary>
         /// Number of times a benchmark scenario process will be executed.
         /// </summary>
+        /// <remarks>
+        /// If the specified number of iterations is greater than 1, then we
+        /// will consider the first iteration as a warm-up and discard its
+        /// result when computing the statistics.
+        /// </remarks>
         public int Iterations
         {
             get => _iterations;
@@ -58,22 +63,22 @@ namespace Microsoft.Xunit.Performance.Api
         /// Exit codes that indicates success when the benchmark scenario process terminates.
         /// If this parameter is not specified, then the only valid exit code will 0.
         /// </summary>
-        public IEnumerable<int> ValidExitCodes
+        public IEnumerable<int> SuccessExitCodes
         {
-            get => _validExitCodes;
+            get => _successExitCodes;
 
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException($"Assigned a null collection to {nameof(ValidExitCodes)}.");
+                    throw new ArgumentNullException($"Assigned a null collection to {nameof(SuccessExitCodes)}.");
                 if (value.Count() == 0)
-                    throw new InvalidOperationException($"Assigned an empty collection to {nameof(ValidExitCodes)}");
+                    throw new InvalidOperationException($"Assigned an empty collection to {nameof(SuccessExitCodes)}");
 
-                _validExitCodes = value.ToArray();
+                _successExitCodes = value.ToArray();
             }
         }
 
         private int _iterations;
-        private IEnumerable<int> _validExitCodes;
+        private IEnumerable<int> _successExitCodes;
     }
 }

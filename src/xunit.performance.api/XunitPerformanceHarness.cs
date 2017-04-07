@@ -115,7 +115,7 @@ namespace Microsoft.Xunit.Performance.Api
                     }
 
                     // Check for the exit code.
-                    if (!configuration.ValidExitCodes.Contains(process.ExitCode))
+                    if (!configuration.SuccessExitCodes.Contains(process.ExitCode))
                         throw new Exception($"'{processStartInfo.FileName}' exited with an invalid exit code: {process.ExitCode}");
                 }
 
