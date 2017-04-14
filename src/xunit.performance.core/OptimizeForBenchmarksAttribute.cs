@@ -9,7 +9,7 @@ namespace Microsoft.Xunit.Performance
     /// <summary>
     /// Apply this attribute to an assembly if it contains benchmarks.  This attribute configures xUnit for benchmark execution.
     /// </summary>
-    [TestFrameworkDiscoverer("Microsoft.Xunit.Performance.BenchmarkTestFrameworkTypeDiscoverer", "xunit.performance.execution.{Platform}")]
+    [TestFrameworkDiscoverer("Microsoft.Xunit.Performance.BenchmarkTestFrameworkTypeDiscoverer", "xunit.performance.execution")]
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false)]
     public class OptimizeForBenchmarksAttribute : Attribute, ITestFrameworkAttribute
     {
