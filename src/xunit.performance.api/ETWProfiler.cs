@@ -72,7 +72,7 @@ namespace Microsoft.Xunit.Performance.Api
                     userEventSession.BufferSizeMB = bufferSizeMB;
 
                     var flags = KernelTraceEventParser.Keywords.Process | KernelTraceEventParser.Keywords.ImageLoad | KernelTraceEventParser.Keywords.Thread;
-                    var stackCapture = KernelTraceEventParser.Keywords.Profile | KernelTraceEventParser.Keywords.ContextSwitch;
+                    var stackCapture = KernelTraceEventParser.Keywords.Profile;
                     userEventSession.EnableKernelProvider(flags, stackCapture);
 
                     foreach (var userProviderInfo in providers.OfType<UserProviderInfo>())
