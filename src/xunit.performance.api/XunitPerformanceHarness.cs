@@ -159,8 +159,7 @@ namespace Microsoft.Xunit.Performance.Api
         {
             var reader = new CSVMetricReader(Configuration.FileLogPath);
             var fileNameWithoutExtension = $"{xUnitSessionData.RunId}-{Path.GetFileNameWithoutExtension(xUnitSessionData.AssemblyFileName)}";
-            var statisticsFileName = $"{fileNameWithoutExtension}-Statistics";
-            var mdFileName = Path.Combine(xUnitSessionData.OutputDirectory, $"{statisticsFileName}.md");
+            var mdFileName = Path.Combine(xUnitSessionData.OutputDirectory, $"{fileNameWithoutExtension}.md");
 
             var assemblyModel = AssemblyModel.Create(xUnitSessionData.AssemblyFileName, reader);
             var xmlFileName = Path.Combine(xUnitSessionData.OutputDirectory, $"{fileNameWithoutExtension}.xml");
@@ -173,7 +172,7 @@ namespace Microsoft.Xunit.Performance.Api
             xUnitSessionData.CollectOutputFilesCallback(mdFileName);
             Console.WriteLine(MarkdownHelper.ToTrimmedTable(mdTable));
 
-            var csvFileName = Path.Combine(xUnitSessionData.OutputDirectory, $"{statisticsFileName}.csv");
+            var csvFileName = Path.Combine(xUnitSessionData.OutputDirectory, $"{fileNameWithoutExtension}.csv");
             dt.WriteToCSV(csvFileName);
             xUnitSessionData.CollectOutputFilesCallback(csvFileName);
 
