@@ -58,17 +58,16 @@ namespace Microsoft.Xunit.Performance.Api
                 }
             };
 
-            foreach (var pmc in PerformanceMonitorCounters)
-            {
-                RequiredProviders.Add(new CpuCounterInfo()
-                {
-                    CounterName = pmc.Name,
-                    Interval = pmc.Interval,
-                });
-            }
+            //foreach (var pmc in PerformanceMonitorCounters)
+            //{
+            //    RequiredProviders.Add(new CpuCounterInfo() {
+            //        CounterName = pmc.Name,
+            //        Interval = pmc.Interval,
+            //    });
+            //}
         }
 
-        public static (IEnumerable<ProviderInfo> providers, IEnumerable<PerformanceTestMessage> performanceTestMessages) GetMetadata(string assemblyFileName)
+        public static XUnitPerformanceMetricData GetMetadata(string assemblyFileName, IEnumerable<PerformanceMetric> performanceMetricInfos)
         {
             using (var controller = new XunitFrontController(
                 assemblyFileName: assemblyFileName,
@@ -85,37 +84,88 @@ namespace Microsoft.Xunit.Performance.Api
 
                     testMessageVisitor.Finished.WaitOne();
 
-                    var providers =
+                    var testProviders =
                         from test in testMessageVisitor.Tests
                         from metric in test.Metrics.Cast<PerformanceMetric>()
                         from provider in metric.ProviderInfo
                         select provider;
+                    testProviders = ProviderInfo.Merge(testProviders);
 
-                    providers = ProviderInfo.Merge(providers);
+                    var userProviders = Enumerable.Empty<ProviderInfo>();
+                    foreach (var performanceMetricInfo in performanceMetricInfos)
+                        userProviders = ProviderInfo.Merge(userProviders.Concat(performanceMetricInfo.ProviderInfo));
 
-                    // Create the list of default metrics
-                    IEnumerable<PerformanceMetricInfo> defaultMetricInfos =
-                        from pmcMetricInfo in PerformanceMetricInfos
-                        where pmcMetricInfo.IsValidPmc
-                        select pmcMetricInfo;
-
-                    if (AllocatedBytesForCurrentThread.IsAvailable)
-                        defaultMetricInfos = defaultMetricInfos.Concat(new[] { new GCAllocatedBytesForCurrentThreadMetric() });
-                    else
+                    // Inject performance metrics into the tests
+                    foreach (var test in testMessageVisitor.Tests)
                     {
-                        WriteWarningLine(AllocatedBytesForCurrentThread.NoAvailabilityReason);
-                        WriteWarningLine($"The '{GCAllocatedBytesForCurrentThreadMetric.GetAllocatedBytesForCurrentThreadDisplayName}' metric will not be collected.");
+                        // FIXME: What if the metric is already there?
+                        test.Metrics = test.Metrics
+                            .Concat(performanceMetricInfos)
+                            .GroupBy(item => item.GetType())
+                            .Select(group => group.First());
                     }
 
-                    // Inject implicit pmc counters
-                    foreach (var test in testMessageVisitor.Tests)
-                        test.Metrics = test.Metrics.Concat(defaultMetricInfos);
-
-                    return (ProviderInfo.Merge(RequiredProviders.Concat(providers)), testMessageVisitor.Tests);
+                    return new XUnitPerformanceMetricData {
+                        Providers = ProviderInfo.Merge(RequiredProviders.Concat(testProviders).Concat(userProviders)),
+                        PerformanceTestMessages = testMessageVisitor.Tests
+                    };
                 }
             }
         }
 
+        public static XUnitPerformanceMetricData GetMetadata(string assemblyFileName)
+        {
+            using (var controller = new XunitFrontController(
+                assemblyFileName: assemblyFileName,
+                shadowCopy: false,
+                appDomainSupport: AppDomainSupport.Denied,
+                diagnosticMessageSink: new ConsoleDiagnosticMessageSink()))
+            {
+                using (var testMessageVisitor = new PerformanceTestMessageVisitor())
+                {
+                    controller.Find(
+                        includeSourceInformation: false,
+                        messageSink: testMessageVisitor,
+                        discoveryOptions: TestFrameworkOptions.ForDiscovery());
+
+                    testMessageVisitor.Finished.WaitOne();
+
+                    var testProviders =
+                        from test in testMessageVisitor.Tests
+                        from metric in test.Metrics.Cast<PerformanceMetric>()
+                        from provider in metric.ProviderInfo
+                        select provider;
+                    testProviders = ProviderInfo.Merge(testProviders);
+
+                    //// Filter out the default metrics by getting the valid ones
+                    //IEnumerable<PerformanceMetricInfo> defaultMetricInfos =
+                    //    from pmcMetricInfo in PerformanceMetricInfos
+                    //    where pmcMetricInfo.IsValidPmc
+                    //    select pmcMetricInfo;
+
+                    //if (AllocatedBytesForCurrentThread.IsAvailable)
+                    //    defaultMetricInfos = defaultMetricInfos.Concat(new[] { new GCAllocatedBytesForCurrentThreadMetric() });
+                    //else
+                    //{
+                    //    WriteWarningLine(AllocatedBytesForCurrentThread.NoAvailabilityReason);
+                    //    WriteWarningLine($"The '{GCAllocatedBytesForCurrentThreadMetric.GetAllocatedBytesForCurrentThreadDisplayName}' metric will not be collected.");
+                    //}
+
+                    //// Inject performance metrics into the tests
+                    //foreach (var test in testMessageVisitor.Tests)
+                    //    test.Metrics = test.Metrics.Concat(defaultMetricInfos);
+
+                    return new XUnitPerformanceMetricData {
+                        Providers = ProviderInfo.Merge(RequiredProviders.Concat(testProviders)),
+                        PerformanceTestMessages = testMessageVisitor.Tests
+                    };
+                }
+            }
+        }
+
+        /// <summary>
+        /// Defines the default list of providers needed to record ETW.
+        /// </summary>
         public static List<ProviderInfo> RequiredProviders { get; }
 
         private static List<IPerformanceMonitorCounter> PerformanceMonitorCounters { get; }

@@ -134,7 +134,7 @@ namespace Microsoft.Xunit.Performance.Api
 
         private static IEnumerable<(PerformanceTestMessage performanceTestMessage, string metric, IEnumerable<double> values)> GetCollectedData(string assemblyFileName, CSVMetricReader reader)
         {
-            var testsFoundInAssembly = (XunitBenchmark.GetMetadata(assemblyFileName)).performanceTestMessages;
+            var testsFoundInAssembly = (XunitBenchmark.GetMetadata(assemblyFileName)).PerformanceTestMessages;
             foreach (var testFoundInAssembly in testsFoundInAssembly)
             {
                 foreach (var (testCaseName, metric, values) in GetMeasurements(reader))
