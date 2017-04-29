@@ -52,7 +52,8 @@ namespace Microsoft.Xunit.Performance.Api
             if (needKernelSession && !CanEnableEnableKernelProvider)
             {
                 const string message = "In order to capture kernel data the application is required to run as Administrator.";
-                WriteWarningLine(message);
+                WriteErrorLine(message);
+                throw new InvalidOperationException(message);
             }
 
             using (var safeKernelSession = needKernelSession && CanEnableEnableKernelProvider ? MakeSafeTerminateTraceEventSession(KernelTraceEventParser.KernelSessionName, etwOutputData.KernelFileName) : null)

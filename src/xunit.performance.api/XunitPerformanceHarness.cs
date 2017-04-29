@@ -21,6 +21,7 @@ namespace Microsoft.Xunit.Performance.Api
             var options = XunitPerformanceHarnessOptions.Parse(_args);
 
             OutputDirectory = options.OutputDirectory;
+            _collectDefaultXUnitMetrics = options.MetricNames.Contains("default", StringComparer.OrdinalIgnoreCase);
             _metricCollectionFactory = GetPerformanceMetricFactory(options.MetricNames);
             _requireEtw = RequireEtw(options.MetricNames);
             _typeNames = new List<string>(options.TypeNames);
@@ -58,7 +59,8 @@ namespace Microsoft.Xunit.Performance.Api
                     xUnitPerformanceSessionData,
                     XunitBenchmark.GetMetadata(
                         assemblyFileName,
-                        _metricCollectionFactory.GetMetrics(assemblyFileName)),
+                        _metricCollectionFactory.GetMetrics(assemblyFileName),
+                        _collectDefaultXUnitMetrics),
                     winRunner);
             }
             else
@@ -269,6 +271,7 @@ namespace Microsoft.Xunit.Performance.Api
         private readonly List<string> _outputFiles;
         private readonly List<string> _typeNames;
         private readonly IPerformanceMetricFactory _metricCollectionFactory;
+        private readonly bool _collectDefaultXUnitMetrics;
         private readonly bool _requireEtw;
         private bool _disposed;
     }

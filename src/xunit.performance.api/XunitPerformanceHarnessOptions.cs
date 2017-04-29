@@ -210,7 +210,7 @@ namespace Microsoft.Xunit.Performance.Api
             return helpTextString;
         }
 
-        private List<string> _metricNames;
+        private IEnumerable<string> _metricNames;
         private string _outputDirectory;
         private string _runid;
         private List<string> _typeNames;

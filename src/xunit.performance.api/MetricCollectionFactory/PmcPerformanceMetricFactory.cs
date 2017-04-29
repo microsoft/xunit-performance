@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Xunit.Performance.Sdk;
 using static Microsoft.Xunit.Performance.Api.Common;
 using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
+using static Microsoft.Xunit.Performance.InstructionsRetiredMetricDiscoverer;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -26,7 +27,7 @@ namespace Microsoft.Xunit.Performance.Api
                 }
                 else if (pmcName.Equals("InstructionRetired", StringComparison.OrdinalIgnoreCase))
                 {
-                    _metrics.Add(new InstructionsRetiredMetricDiscoverer.InstructionsRetiredMetric());
+                    _metrics.Add(new InstructionsRetiredMetric());
                 }
                 else
                 {

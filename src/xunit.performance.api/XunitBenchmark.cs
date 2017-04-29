@@ -1,12 +1,9 @@
 ﻿using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
-using Microsoft.Xunit.Performance.Execution;
 using Microsoft.Xunit.Performance.Sdk;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
-using static Microsoft.Xunit.Performance.Api.Common;
-using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -14,22 +11,6 @@ namespace Microsoft.Xunit.Performance.Api
     {
         static XunitBenchmark()
         {
-            // TODO: Read this from file.
-            //   1. This reads as: flags read from config file based on running platform!
-            //   2. Format could be something like this: `{ "Name" : "BranchMispredictions", "interval" : "100000" }`
-            PerformanceMonitorCounters = new List<IPerformanceMonitorCounter>
-            {
-                new BranchMispredictionsPerformanceMonitorCounter(),
-                new CacheMissesPerformanceMonitorCounter(),
-            };
-
-            PerformanceMetricInfos = IsWindowsPlatform ? new List<BasePerformanceMonitorCounter>
-            {
-                new GenericPerformanceMonitorCounterMetric<BranchMispredictionsPerformanceMonitorCounter>(new BranchMispredictionsPerformanceMonitorCounter()),
-                new GenericPerformanceMonitorCounterMetric<CacheMissesPerformanceMonitorCounter>(new CacheMissesPerformanceMonitorCounter()),
-            } :
-            new List<BasePerformanceMonitorCounter>();
-
             RequiredProviders = new List<ProviderInfo>
             {
                 new KernelProviderInfo()
@@ -57,17 +38,25 @@ namespace Microsoft.Xunit.Performance.Api
                     ),
                 }
             };
-
-            //foreach (var pmc in PerformanceMonitorCounters)
-            //{
-            //    RequiredProviders.Add(new CpuCounterInfo() {
-            //        CounterName = pmc.Name,
-            //        Interval = pmc.Interval,
-            //    });
-            //}
         }
 
-        public static XUnitPerformanceMetricData GetMetadata(string assemblyFileName, IEnumerable<PerformanceMetric> performanceMetricInfos)
+        private class PerformanceMetricComparer : IEqualityComparer<PerformanceMetricInfo>
+        {
+            public bool Equals(PerformanceMetricInfo x, PerformanceMetricInfo y)
+            {
+                return x.GetType().Equals(y.GetType());
+            }
+
+            public int GetHashCode(PerformanceMetricInfo obj)
+            {
+                return obj.GetType().GetHashCode();
+            }
+        }
+
+        public static XUnitPerformanceMetricData GetMetadata(
+            string assemblyFileName,
+            IEnumerable<PerformanceMetric> performanceMetricInfos,
+            bool collectDefaultMetrics)
         {
             using (var controller = new XunitFrontController(
                 assemblyFileName: assemblyFileName,
@@ -81,7 +70,6 @@ namespace Microsoft.Xunit.Performance.Api
                         includeSourceInformation: false,
                         messageSink: testMessageVisitor,
                         discoveryOptions: TestFrameworkOptions.ForDiscovery());
-
                     testMessageVisitor.Finished.WaitOne();
 
                     var testProviders =
@@ -95,14 +83,14 @@ namespace Microsoft.Xunit.Performance.Api
                     foreach (var performanceMetricInfo in performanceMetricInfos)
                         userProviders = ProviderInfo.Merge(userProviders.Concat(performanceMetricInfo.ProviderInfo));
 
+                    var comparer = new PerformanceMetricComparer();
+
                     // Inject performance metrics into the tests
                     foreach (var test in testMessageVisitor.Tests)
                     {
-                        // FIXME: What if the metric is already there?
-                        test.Metrics = test.Metrics
-                            .Concat(performanceMetricInfos)
-                            .GroupBy(item => item.GetType())
-                            .Select(group => group.First());
+                        test.Metrics = collectDefaultMetrics ?
+                            test.Metrics.Union(performanceMetricInfos, comparer) :
+                            performanceMetricInfos;
                     }
 
                     return new XUnitPerformanceMetricData {
@@ -137,24 +125,6 @@ namespace Microsoft.Xunit.Performance.Api
                         select provider;
                     testProviders = ProviderInfo.Merge(testProviders);
 
-                    //// Filter out the default metrics by getting the valid ones
-                    //IEnumerable<PerformanceMetricInfo> defaultMetricInfos =
-                    //    from pmcMetricInfo in PerformanceMetricInfos
-                    //    where pmcMetricInfo.IsValidPmc
-                    //    select pmcMetricInfo;
-
-                    //if (AllocatedBytesForCurrentThread.IsAvailable)
-                    //    defaultMetricInfos = defaultMetricInfos.Concat(new[] { new GCAllocatedBytesForCurrentThreadMetric() });
-                    //else
-                    //{
-                    //    WriteWarningLine(AllocatedBytesForCurrentThread.NoAvailabilityReason);
-                    //    WriteWarningLine($"The '{GCAllocatedBytesForCurrentThreadMetric.GetAllocatedBytesForCurrentThreadDisplayName}' metric will not be collected.");
-                    //}
-
-                    //// Inject performance metrics into the tests
-                    //foreach (var test in testMessageVisitor.Tests)
-                    //    test.Metrics = test.Metrics.Concat(defaultMetricInfos);
-
                     return new XUnitPerformanceMetricData {
                         Providers = ProviderInfo.Merge(RequiredProviders.Concat(testProviders)),
                         PerformanceTestMessages = testMessageVisitor.Tests
@@ -167,9 +137,5 @@ namespace Microsoft.Xunit.Performance.Api
         /// Defines the default list of providers needed to record ETW.
         /// </summary>
         public static List<ProviderInfo> RequiredProviders { get; }
-
-        private static List<IPerformanceMonitorCounter> PerformanceMonitorCounters { get; }
-
-        private static List<BasePerformanceMonitorCounter> PerformanceMetricInfos { get; }
     }
 }
