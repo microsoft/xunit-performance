@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Microsoft.Diagnostics.Tracing.Session;
 using System.Collections.Generic;
 using System.Linq;
+using static Microsoft.Xunit.Performance.Api.Common;
 
 namespace Microsoft.Xunit.Performance.Sdk
 {
@@ -19,5 +21,13 @@ namespace Microsoft.Xunit.Performance.Sdk
         public virtual IEnumerable<ProviderInfo> ProviderInfo => Enumerable.Empty<ProviderInfo>();
 
         public virtual PerformanceMetricEvaluator CreateEvaluator(PerformanceMetricEvaluationContext context) => null;
+
+        public static int GetProfileSourceInfoId(string key)
+        {
+            if (IsWindowsPlatform && TraceEventProfileSources.GetInfo().TryGetValue(key, out ProfileSourceInfo profileSourceInfo))
+                return profileSourceInfo.ID;
+            else
+                return -1;
+        }
     }
 }

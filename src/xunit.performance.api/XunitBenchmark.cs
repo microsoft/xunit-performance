@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal static class XunitBenchmark
+    internal static partial class XunitBenchmark
     {
         static XunitBenchmark()
         {
@@ -40,19 +40,6 @@ namespace Microsoft.Xunit.Performance.Api
             };
         }
 
-        private class PerformanceMetricComparer : IEqualityComparer<PerformanceMetricInfo>
-        {
-            public bool Equals(PerformanceMetricInfo x, PerformanceMetricInfo y)
-            {
-                return x.GetType().Equals(y.GetType());
-            }
-
-            public int GetHashCode(PerformanceMetricInfo obj)
-            {
-                return obj.GetType().GetHashCode();
-            }
-        }
-
         public static XUnitPerformanceMetricData GetMetadata(
             string assemblyFileName,
             IEnumerable<PerformanceMetric> performanceMetricInfos,
@@ -83,7 +70,7 @@ namespace Microsoft.Xunit.Performance.Api
                     foreach (var performanceMetricInfo in performanceMetricInfos)
                         userProviders = ProviderInfo.Merge(userProviders.Concat(performanceMetricInfo.ProviderInfo));
 
-                    var comparer = new PerformanceMetricComparer();
+                    var comparer = new PerformanceMetricInfoComparer();
 
                     // Inject performance metrics into the tests
                     foreach (var test in testMessageVisitor.Tests)
@@ -95,38 +82,6 @@ namespace Microsoft.Xunit.Performance.Api
 
                     return new XUnitPerformanceMetricData {
                         Providers = ProviderInfo.Merge(RequiredProviders.Concat(testProviders).Concat(userProviders)),
-                        PerformanceTestMessages = testMessageVisitor.Tests
-                    };
-                }
-            }
-        }
-
-        public static XUnitPerformanceMetricData GetMetadata(string assemblyFileName)
-        {
-            using (var controller = new XunitFrontController(
-                assemblyFileName: assemblyFileName,
-                shadowCopy: false,
-                appDomainSupport: AppDomainSupport.Denied,
-                diagnosticMessageSink: new ConsoleDiagnosticMessageSink()))
-            {
-                using (var testMessageVisitor = new PerformanceTestMessageVisitor())
-                {
-                    controller.Find(
-                        includeSourceInformation: false,
-                        messageSink: testMessageVisitor,
-                        discoveryOptions: TestFrameworkOptions.ForDiscovery());
-
-                    testMessageVisitor.Finished.WaitOne();
-
-                    var testProviders =
-                        from test in testMessageVisitor.Tests
-                        from metric in test.Metrics.Cast<PerformanceMetric>()
-                        from provider in metric.ProviderInfo
-                        select provider;
-                    testProviders = ProviderInfo.Merge(testProviders);
-
-                    return new XUnitPerformanceMetricData {
-                        Providers = ProviderInfo.Merge(RequiredProviders.Concat(testProviders)),
                         PerformanceTestMessages = testMessageVisitor.Tests
                     };
                 }

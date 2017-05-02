@@ -12,10 +12,7 @@ namespace Microsoft.Xunit.Performance.Api
         public GenericPerformanceMonitorCounterDiscoverer()
         {
             _performanceMonitorCounter = new T();
-            if (TraceEventProfileSources.GetInfo().TryGetValue(_performanceMonitorCounter.Name, out ProfileSourceInfo profileSourceInfo))
-                _pmcId = profileSourceInfo.ID;
-            else
-                _pmcId = -1;
+            _pmcId = PerformanceMetric.GetProfileSourceInfoId(_performanceMonitorCounter.Name);
         }
 
         public IEnumerable<PerformanceMetricInfo> GetMetrics(IAttributeInfo metricAttribute)

@@ -18,10 +18,7 @@ namespace Microsoft.Xunit.Performance
 
         public InstructionsRetiredMetricDiscoverer()
         {
-            if (TraceEventProfileSources.GetInfo().TryGetValue(CounterName, out ProfileSourceInfo info))
-                ProfileSource = info.ID;
-            else
-                ProfileSource = -1;
+            ProfileSource = PerformanceMetric.GetProfileSourceInfoId(CounterName);
         }
 
         public IEnumerable<PerformanceMetricInfo> GetMetrics()
