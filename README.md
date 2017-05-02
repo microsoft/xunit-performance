@@ -198,21 +198,53 @@ namespace SampleApiTest
 }
 ```
 
+## Command line options to control the collection of metrics
+
+```
+--perf:collect [metric1[+metric2[+...]]]
+
+    default
+        Set by the test author (This is the default behavior if no option is specified. It will also enable ETW to capture some of the Microsoft-Windows-DotNETRuntime tasks).
+
+    stopwatch
+        Capture elapsed time using a Stopwatch (It does not require ETW).
+
+    BranchMispredictions|CacheMisses|InstructionRetired
+        These are performance metric counters and require ETW.
+
+    gcapi
+        It currently enable "Allocation Size on Benchmark Execution Thread" and it is currently available through ETW.
+
+Examples
+  --perf:collect default
+    Collect metrics specified in the test source code by using xUnit Performance API attributes
+
+  --perf:collect BranchMispredictions+CacheMisses+InstructionRetired
+    Collects BranchMispredictions, CacheMisses, and InstructionRetired PMC metrics
+
+  --perf:collect stopwatch
+    Collects the benchmark elapsed time (If this is the only specified metric on the command line, then no ETW will be captured)
+
+  --perf:collect default+BranchMispredictions+CacheMisses+InstructionRetired+gcapi
+    '+' implies union of all specified options
+```
+
 ## Supported metrics
 
-Currently, the API collect the following data \*\*:
+Currently, the API collect the following data \*:
 
 Metric                                | Type                                     | Description
 ------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------
 **Allocated Bytes in Current Thread** | GC API call                              | Calls `GC.GetAllocatedBytesForCurrentThread` around the benchmark (Enabled if available on the target .NET runtime)
-**Branch Mispredictions**             | Performance Monitor Counter              | Enabled if the counter is available on the machine
-**Cache Misses**                      | Performance Monitor Counter              | Enabled if the counter is available on the machine
+**Branch Mispredictions**             | Performance Monitor Counter              | Enabled if the collection option `BranchMispredictions` is specified and the counter is available on the machine <br/>(It requires to run as Administrator)
+**Cache Misses**                      | Performance Monitor Counter              | Enabled if the collection option `CacheMisses` is specified and the counter is available on the machine <br/>(It requires to run as Administrator)
 **Duration**                          | Benchmark execution time in milliseconds | Always enabled
-**GC Allocations**                    | GC trace event                           | Use the `[MeasureGCAllocations]` attribute in the source code
-**GC Count**                          | GC trace event                           | Use the `[MeasureGCCounts]` attribute in the source code
-**Instructions Retired**              | Performance Monitor Counter              | Use the `[MeasureInstructionsRetired]` attribute in the source code
+**GC Allocations** \*\*               | GC trace event                           | Use the `[MeasureGCAllocations]` attribute in the source code
+**GC Count** \*\*                     | GC trace event                           | Use the `[MeasureGCCounts]` attribute in the source code
+**Instructions Retired** \*\*         | Performance Monitor Counter              | Enabled if the collection option `InstructionRetired` is specified or the `[MeasureInstructionsRetired]` attribute is used in the source code, and the counter is available on the machine<br/>(It requires to run as Administrator)
 
-\*\*The default metrics are subject to change, and we are currently working on enabling more metrics and adding support to have more control around the metrics being captured.
+\* The default metrics are subject to change, and we are currently working on enabling more metrics and adding support to have more control around the metrics being captured.
+\*\* These attributes can be overriden using the `--perf:collect` option
 
 ## Collected data
 
