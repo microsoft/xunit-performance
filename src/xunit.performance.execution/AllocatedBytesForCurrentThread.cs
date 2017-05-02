@@ -40,7 +40,7 @@ namespace Microsoft.Xunit.Performance.Execution
                 else
                 {
                     IsAvailable = false;
-                    NoAvailabilityReason = "Not capturing because the targeted runtime does not contain the fix for 'https://github.com/dotnet/coreclr/issues/10207'";
+                    NoAvailabilityReason = "Not capturing 'GC.GetAllocatedBytesForCurrentThread' because the targeted runtime does not contain the fix for 'https://github.com/dotnet/coreclr/issues/10207'";
                 }
             }
 

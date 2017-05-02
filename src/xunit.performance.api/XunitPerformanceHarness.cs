@@ -10,17 +10,6 @@ namespace Microsoft.Xunit.Performance.Api
 {
     public sealed class XunitPerformanceHarness : IDisposable
     {
-        static XunitPerformanceHarness()
-        {
-            Action<string, string, string, Action, Action<string>> etwProfiler = (assemblyPath, runId, outputDirectory, runner, collectOutputFilesCallback) => {
-                ETWProfiler.Record(assemblyPath, runId, outputDirectory, runner, collectOutputFilesCallback);
-            };
-            Action<string, string, string, Action, Action<string>> genericProfiler = (assemblyPath, runId, outputDirectory, runner, collectOutputFilesCallback) => {
-                GenericProfiler.Record(assemblyPath, runId, outputDirectory, runner, collectOutputFilesCallback);
-            };
-            s_profiler = IsWindowsPlatform ? etwProfiler : genericProfiler;
-        }
-
         public XunitPerformanceHarness(string[] args)
         {
             _args = new string[args.Length];
@@ -32,10 +21,10 @@ namespace Microsoft.Xunit.Performance.Api
             var options = XunitPerformanceHarnessOptions.Parse(_args);
 
             OutputDirectory = options.OutputDirectory;
+            _collectDefaultXUnitMetrics = options.MetricNames.Contains("default", StringComparer.OrdinalIgnoreCase);
+            _metricCollectionFactory = GetPerformanceMetricFactory(options.MetricNames);
+            _requireEtw = RequireEtw(options.MetricNames);
             _typeNames = new List<string>(options.TypeNames);
-            _runner = (assemblyPath) => {
-                XunitRunner.Run(assemblyPath, _typeNames);
-            };
 
             Configuration.RunId = options.RunId;
             Configuration.FileLogPath = Configuration.RunId + ".csv"; // TODO: Conditionally set this based on whether we want a csv file written.
@@ -47,25 +36,38 @@ namespace Microsoft.Xunit.Performance.Api
 
         public BenchmarkConfiguration Configuration => BenchmarkConfiguration.Instance;
 
-        public void RunBenchmarks(string assemblyPath)
+        public void RunBenchmarks(string assemblyFileName)
         {
-            Validate(assemblyPath);
+            Validate(assemblyFileName);
 
-            Action<string> collectOutputFilesCallback = fileName => {
-                // FIXME: This will need safe guards when the client calls RunBenchmarks in different threads.
-                _outputFiles.Add(fileName);
+            Action<string> xUnitAction = (assemblyPath) => { XunitRunner.Run(assemblyPath, _typeNames); };
+            var xUnitPerformanceSessionData = new XUnitPerformanceSessionData {
+                AssemblyFileName = assemblyFileName,
+                CollectOutputFilesCallback = (fileName) => {
+                    // FIXME: This will need safe guards when the client calls RunBenchmarks in different threads.
+                    _outputFiles.Add(fileName);
+                    WriteInfoLine($"File saved to: \"{fileName}\"");
+                },
+                OutputDirectory = OutputDirectory,
+                RunId = Configuration.RunId
             };
 
-            Action winRunner = () => {
-                _runner(assemblyPath);
-            };
-            Action nixRunner = () => {
-                _runner(assemblyPath);
-                ProcessResults(assemblyPath, Configuration.RunId, OutputDirectory, collectOutputFilesCallback);
-            };
-            Action runner = IsWindowsPlatform ? winRunner : nixRunner;
-
-            s_profiler(assemblyPath, Configuration.RunId, OutputDirectory, runner, collectOutputFilesCallback);
+            if (IsWindowsPlatform && _requireEtw)
+            {
+                Action winRunner = () => { xUnitAction(assemblyFileName); };
+                ETWProfiler.Record(
+                    xUnitPerformanceSessionData,
+                    XunitBenchmark.GetMetadata(
+                        assemblyFileName,
+                        _metricCollectionFactory.GetMetrics(assemblyFileName),
+                        _collectDefaultXUnitMetrics),
+                    winRunner);
+            }
+            else
+            {
+                xUnitAction.Invoke(assemblyFileName);
+                ProcessResults(xUnitPerformanceSessionData);
+            }
         }
 
         /// <summary>
@@ -102,7 +104,7 @@ namespace Microsoft.Xunit.Performance.Api
             {
                 preIterationDelegate?.Invoke();
 
-                // TODO: Start profiling.
+                // TODO: Start scenario profiling.
 
                 using (var process = new Process())
                 {
@@ -119,7 +121,7 @@ namespace Microsoft.Xunit.Performance.Api
                         throw new Exception($"'{processStartInfo.FileName}' exited with an invalid exit code: {process.ExitCode}");
                 }
 
-                // TODO: Stop profiling.
+                // TODO: Stop scenario profiling.
 
                 postIterationDelegate?.Invoke();
             }
@@ -155,32 +157,75 @@ namespace Microsoft.Xunit.Performance.Api
                 throw new FileNotFoundException(assemblyPath);
         }
 
-        private void ProcessResults(string assemblyFileName, string sessionName, string outputDirectory, Action<string> collectOutputFilesCallback)
+        private void ProcessResults(XUnitPerformanceSessionData xUnitSessionData)
         {
             var reader = new CSVMetricReader(Configuration.FileLogPath);
-            var fileNameWithoutExtension = $"{sessionName}-{Path.GetFileNameWithoutExtension(assemblyFileName)}";
-            var statisticsFileName = $"{fileNameWithoutExtension}-Statistics";
-            var mdFileName = Path.Combine(outputDirectory, $"{statisticsFileName}.md");
+            var fileNameWithoutExtension = $"{xUnitSessionData.RunId}-{Path.GetFileNameWithoutExtension(xUnitSessionData.AssemblyFileName)}";
+            var mdFileName = Path.Combine(xUnitSessionData.OutputDirectory, $"{fileNameWithoutExtension}.md");
 
-            var assemblyModel = AssemblyModel.Create(assemblyFileName, reader);
-            var xmlFileName = Path.Combine(outputDirectory, $"{fileNameWithoutExtension}.xml");
+            var assemblyModel = AssemblyModel.Create(xUnitSessionData.AssemblyFileName, reader);
+            var xmlFileName = Path.Combine(xUnitSessionData.OutputDirectory, $"{fileNameWithoutExtension}.xml");
             new AssemblyModelCollection { assemblyModel }.Serialize(xmlFileName);
-            WriteInfoLine($"Performance results saved to \"{xmlFileName}\"");
-            collectOutputFilesCallback(xmlFileName);
+            xUnitSessionData.CollectOutputFilesCallback(xmlFileName);
 
             var dt = assemblyModel.GetStatistics();
             var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
             MarkdownHelper.Write(mdFileName, mdTable);
-            WriteInfoLine($"Markdown file saved to \"{mdFileName}\"");
-            collectOutputFilesCallback(mdFileName);
+            xUnitSessionData.CollectOutputFilesCallback(mdFileName);
             Console.WriteLine(MarkdownHelper.ToTrimmedTable(mdTable));
 
-            var csvFileName = Path.Combine(outputDirectory, $"{statisticsFileName}.csv");
+            var csvFileName = Path.Combine(xUnitSessionData.OutputDirectory, $"{fileNameWithoutExtension}.csv");
             dt.WriteToCSV(csvFileName);
-            WriteInfoLine($"Statistics written to \"{csvFileName}\"");
-            collectOutputFilesCallback(csvFileName);
+            xUnitSessionData.CollectOutputFilesCallback(csvFileName);
 
             BenchmarkEventSource.Log.Clear();
+        }
+
+        private static IPerformanceMetricFactory GetPerformanceMetricFactory(IEnumerable<string> metricNames)
+        {
+            var metricCollectionFactory = new CompositePerformanceMetricFactory();
+
+            foreach (var metricName in metricNames)
+            {
+                if (metricName.Equals("default", StringComparison.OrdinalIgnoreCase))
+                {
+                    metricCollectionFactory.Add(new DefaultPerformanceMetricFactory());
+                }
+                else if (metricName.Equals("gcapi", StringComparison.OrdinalIgnoreCase))
+                {
+                    metricCollectionFactory.Add(new GCAPIPerformanceMetricFactory());
+                }
+                else if (metricName.Equals("stopwatch", StringComparison.OrdinalIgnoreCase))
+                {
+                    metricCollectionFactory.Add(new StopwatchPerformanceMetricFactory());
+                }
+                else if (metricName.Equals("BranchMispredictions", StringComparison.OrdinalIgnoreCase)
+                    || metricName.Equals("CacheMisses", StringComparison.OrdinalIgnoreCase)
+                    || metricName.Equals("InstructionRetired", StringComparison.OrdinalIgnoreCase))
+                {
+                    metricCollectionFactory.Add(new PmcPerformanceMetricFactory(metricName));
+                }
+            }
+
+            return metricCollectionFactory;
+        }
+
+        private static bool RequireEtw(IEnumerable<string> metricNames)
+        {
+            var metricsThatNeedEtw = new[] {
+                "default",
+                "BranchMispredictions",
+                "CacheMisses",
+                "InstructionRetired",
+                // FIXME: We need to decouple the way events are written
+                //  (ETW vs. CSV), and move this metric as close as possible to
+                //  the start/stop iteration marker. Currently, this is closer
+                //  to the ETW marker.
+                "gcapi"
+            };
+            var requiredEtw = metricNames.Intersect(
+                metricsThatNeedEtw, StringComparer.OrdinalIgnoreCase).Count() != 0;
+            return IsWindowsPlatform && requiredEtw;
         }
 
         #region IDisposable implementation
@@ -222,11 +267,12 @@ namespace Microsoft.Xunit.Performance.Api
 
         #endregion IDisposable implementation
 
-        private static readonly Action<string, string, string, Action, Action<string>> s_profiler;
-        private readonly Action<string> _runner;
         private readonly string[] _args;
         private readonly List<string> _outputFiles;
         private readonly List<string> _typeNames;
+        private readonly IPerformanceMetricFactory _metricCollectionFactory;
+        private readonly bool _collectDefaultXUnitMetrics;
+        private readonly bool _requireEtw;
         private bool _disposed;
     }
 }

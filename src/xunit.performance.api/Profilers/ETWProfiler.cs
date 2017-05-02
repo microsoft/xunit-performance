@@ -18,6 +18,8 @@ namespace Microsoft.Xunit.Performance.Api
             return new SafeTerminateHandler<TraceEventSession>(() => new TraceEventSession(sessionName, fileName));
         }
 
+        public static bool CanEnableEnableKernelProvider => TraceEventSession.IsElevated() == true;
+
         /// <summary>
         ///     1. In the specified assembly, get the ETW providers set as assembly attributes (PerformanceTestInfo)
         ///     2. Check if the benchmark assembly request Precise Machine Counters(PMC) to be collected
@@ -27,83 +29,86 @@ namespace Microsoft.Xunit.Performance.Api
         ///     6. Stop collecting ETW
         ///     7. Merge ETL files.
         /// </summary>
-        /// <param name="assemblyFileName"></param>
-        /// <param name="runId"></param>
-        /// <param name="outputDirectory"></param>
+        /// <param name="xUnitPerformanceSessionData"></param>
+        /// <param name="xUnitPerformanceMetricData"></param>
         /// <param name="action"></param>
-        /// <param name="collectOutputFilesCallback">Callback used to collect a list of files generated.</param>
         /// <returns></returns>
-        public static void Record(string assemblyFileName, string runId, string outputDirectory, Action action, Action<string> collectOutputFilesCallback)
+        public static void Record(XUnitPerformanceSessionData xUnitPerformanceSessionData, XUnitPerformanceMetricData xUnitPerformanceMetricData, Action action)
         {
-            if (TraceEventSession.IsElevated() != true)
+            const int bufferSizeMB = 256;
+            var name = $"{xUnitPerformanceSessionData.RunId}-{Path.GetFileNameWithoutExtension(xUnitPerformanceSessionData.AssemblyFileName)}";
+            var etwOutputData = new ETWOutputData {
+                KernelFileName = Path.Combine(xUnitPerformanceSessionData.OutputDirectory, $"{name}.kernel.etl"), // without this parameter, EnableKernelProvider will fail
+                Name = name,
+                SessionName = $"Performance-Api-Session-{xUnitPerformanceSessionData.RunId}",
+                UserFileName = Path.Combine(xUnitPerformanceSessionData.OutputDirectory, $"{name}.etl"),
+            };
+
+            PrintProfilingInformation(xUnitPerformanceSessionData.AssemblyFileName, etwOutputData);
+
+            var kernelProviderInfo = xUnitPerformanceMetricData.Providers.OfType<KernelProviderInfo>().FirstOrDefault();
+            var needKernelSession = NeedSeparateKernelSession(kernelProviderInfo);
+
+            if (needKernelSession && !CanEnableEnableKernelProvider)
             {
-                const string errMessage = "In order to profile, application is required to run as Administrator.";
-                WriteErrorLine(errMessage);
-                throw new InvalidOperationException(errMessage);
+                const string message = "In order to capture kernel data the application is required to run as Administrator.";
+                WriteErrorLine(message);
+                throw new InvalidOperationException(message);
             }
 
-            const int bufferSizeMB = 256;
-            var sessionName = $"Performance-Api-Session-{runId}";
-            var name = $"{runId}-{Path.GetFileNameWithoutExtension(assemblyFileName)}";
-            var userFullFileName = Path.Combine(outputDirectory, $"{name}.etl");
-            var kernelFullFileName = Path.Combine(outputDirectory, $"{name}.kernel.etl"); // without this parameter, EnableKernelProvider will fail
-
-            PrintProfilingInformation(assemblyFileName, sessionName, userFullFileName);
-
-            (var providers, var performanceTestMessages) = XunitBenchmark.GetMetadata(assemblyFileName);
-            var kernelProviderInfo = providers.OfType<KernelProviderInfo>().FirstOrDefault();
-
-            var needKernelSession = NeedSeparateKernelSession(kernelProviderInfo);
-            using (var safeKernelSession = needKernelSession ? MakeSafeTerminateTraceEventSession(KernelTraceEventParser.KernelSessionName, kernelFullFileName) : null)
+            using (var safeKernelSession = needKernelSession && CanEnableEnableKernelProvider ? MakeSafeTerminateTraceEventSession(KernelTraceEventParser.KernelSessionName, etwOutputData.KernelFileName) : null)
             {
                 var kernelSession = safeKernelSession?.BaseDisposableObject;
                 if (kernelSession != null)
                 {
-                    SetPreciseMachineCounters(providers);
+                    SetPreciseMachineCounters(xUnitPerformanceMetricData.Providers);
                     kernelSession.BufferSizeMB = bufferSizeMB;
                     var flags = (KernelTraceEventParser.Keywords)kernelProviderInfo.Keywords;
                     var stackCapture = (KernelTraceEventParser.Keywords)kernelProviderInfo.StackKeywords;
                     kernelSession.EnableKernelProvider(flags, stackCapture);
                 }
 
-                using (var safeUserEventSession = MakeSafeTerminateTraceEventSession(sessionName, userFullFileName))
+                using (var safeUserEventSession = MakeSafeTerminateTraceEventSession(etwOutputData.SessionName, etwOutputData.UserFileName))
                 {
                     var userEventSession = safeUserEventSession.BaseDisposableObject;
                     userEventSession.BufferSizeMB = bufferSizeMB;
 
-                    var flags = KernelTraceEventParser.Keywords.Process | KernelTraceEventParser.Keywords.ImageLoad | KernelTraceEventParser.Keywords.Thread;
-                    var stackCapture = KernelTraceEventParser.Keywords.Profile | KernelTraceEventParser.Keywords.ContextSwitch;
-                    userEventSession.EnableKernelProvider(flags, stackCapture);
+                    if (needKernelSession && CanEnableEnableKernelProvider)
+                    {
+                        var flags = KernelTraceEventParser.Keywords.Process | KernelTraceEventParser.Keywords.ImageLoad | KernelTraceEventParser.Keywords.Thread;
+                        var stackCapture = KernelTraceEventParser.Keywords.Profile | KernelTraceEventParser.Keywords.ContextSwitch;
+                        userEventSession.EnableKernelProvider(flags, stackCapture);
+                    }
 
-                    foreach (var userProviderInfo in providers.OfType<UserProviderInfo>())
+                    foreach (var userProviderInfo in xUnitPerformanceMetricData.Providers.OfType<UserProviderInfo>())
                         userEventSession.EnableProvider(userProviderInfo.ProviderGuid, userProviderInfo.Level, userProviderInfo.Keywords);
 
                     action.Invoke();
                 }
             }
 
-            TraceEventSession.MergeInPlace(userFullFileName, Console.Out);
-            WriteInfoLine($"ETW Tracing Session saved to \"{userFullFileName}\"");
-            collectOutputFilesCallback(userFullFileName);
+            // TODO: Decouple the code below.
+            // Collect ETW profile data.
+            //  TODO: Skip collecting kernel data if it was not captured! (data will be zero, there is no point to report it or upload it)
+            TraceEventSession.MergeInPlace(etwOutputData.UserFileName, Console.Out);
+            xUnitPerformanceSessionData.CollectOutputFilesCallback(etwOutputData.UserFileName);
 
-            var assemblyModel = GetAssemblyModel(assemblyFileName, userFullFileName, runId, performanceTestMessages);
-            var xmlFileName = Path.Combine(outputDirectory, $"{name}.xml");
+            var assemblyModel = GetAssemblyModel(xUnitPerformanceSessionData.AssemblyFileName, etwOutputData.UserFileName, xUnitPerformanceSessionData.RunId, xUnitPerformanceMetricData.PerformanceTestMessages);
+            var xmlFileName = Path.Combine(xUnitPerformanceSessionData.OutputDirectory, $"{etwOutputData.Name}.xml");
             new AssemblyModelCollection { assemblyModel }.Serialize(xmlFileName);
-            WriteInfoLine($"Performance results saved to \"{xmlFileName}\"");
-            collectOutputFilesCallback(xmlFileName);
+            xUnitPerformanceSessionData.CollectOutputFilesCallback(xmlFileName);
 
-            var mdFileName = Path.Combine(outputDirectory, $"{name}.md");
+            var mdFileName = Path.Combine(xUnitPerformanceSessionData.OutputDirectory, $"{etwOutputData.Name}.md");
             var dt = assemblyModel.GetStatistics();
             var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
             MarkdownHelper.Write(mdFileName, mdTable);
-            WriteInfoLine($"Markdown file saved to \"{mdFileName}\"");
-            collectOutputFilesCallback(mdFileName);
+            xUnitPerformanceSessionData.CollectOutputFilesCallback(mdFileName);
+
             Console.WriteLine(MarkdownHelper.ToTrimmedTable(mdTable));
 
-            var csvFileName = Path.Combine(outputDirectory, $"{name}.csv");
+            var csvFileName = Path.Combine(xUnitPerformanceSessionData.OutputDirectory, $"{etwOutputData.Name}.csv");
             dt.WriteToCSV(csvFileName);
-            WriteInfoLine($"Statistics written to \"{csvFileName}\"");
-            collectOutputFilesCallback(csvFileName);
+            xUnitPerformanceSessionData.CollectOutputFilesCallback(csvFileName);
         }
 
         private static AssemblyModel GetAssemblyModel(
@@ -114,8 +119,7 @@ namespace Microsoft.Xunit.Performance.Api
         {
             using (var reader = GetEtwReader(etlFileName, sessionName, performanceTestMessages))
             {
-                var assemblyModel = new AssemblyModel
-                {
+                var assemblyModel = new AssemblyModel {
                     Name = Path.GetFileName(assemblyFileName),
                     Collection = new List<TestModel>()
                 };
@@ -125,16 +129,14 @@ namespace Microsoft.Xunit.Performance.Api
                     var metrics = new List<MetricModel>();
                     foreach (var metric in test.Metrics)
                     {
-                        metrics.Add(new MetricModel
-                        {
+                        metrics.Add(new MetricModel {
                             DisplayName = metric.DisplayName,
                             Name = metric.Id,
                             Unit = metric.Unit,
                         });
                     }
 
-                    var testModel = new TestModel
-                    {
+                    var testModel = new TestModel {
                         Name = test.TestCase.DisplayName,
                         Method = test.TestCase.TestMethod.Method.Name,
                         ClassName = test.TestCase.TestMethod.TestClass.Class.Name,
@@ -224,13 +226,13 @@ namespace Microsoft.Xunit.Performance.Api
         private static bool IsWindows8OrGreater => IsWindows8OrGreater();
 
         [Conditional("DEBUG")]
-        private static void PrintProfilingInformation(string assemblyFileName, string sessionName, string userFullFileName)
+        private static void PrintProfilingInformation(string assemblyFileName, ETWOutputData etwOutputData)
         {
             WriteDebugLine("  ===== ETW Profiling information =====");
             WriteDebugLine($"       Assembly: {assemblyFileName}");
             WriteDebugLine($"     Process Id: {Process.GetCurrentProcess().Id}");
-            WriteDebugLine($"   Session name: {sessionName}");
-            WriteDebugLine($"  ETW file name: {userFullFileName}");
+            WriteDebugLine($"   Session name: {etwOutputData.SessionName}");
+            WriteDebugLine($"  ETW file name: {etwOutputData.UserFileName}");
             WriteDebugLine($"  Provider guid: {MicrosoftXunitBenchmarkTraceEventParser.ProviderGuid}");
             WriteDebugLine($"  Provider name: {MicrosoftXunitBenchmarkTraceEventParser.ProviderName}");
             WriteDebugLine("  =====================================");

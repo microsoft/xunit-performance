@@ -9,12 +9,22 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 
 namespace Microsoft.Xunit.Performance
 {
     [EventSource(Name = "Microsoft-Xunit-Benchmark")]
     public sealed class BenchmarkEventSource : EventSource
     {
+        static BenchmarkEventSource()
+        {
+            s_log = new BenchmarkEventSource();
+            s_csvWriter = OpenCSV();
+            s_allocatedBytes = 0;
+        }
+
+        public static BenchmarkEventSource Log => s_log;
+
         public static class Tasks
         {
             public const EventTask Benchmark = (EventTask)1;
@@ -35,14 +45,14 @@ namespace Microsoft.Xunit.Performance
         [NonEvent]
         internal void Flush()
         {
-            _csvWriter?.Flush();
+            s_csvWriter?.Flush();
         }
 
         [NonEvent]
         public void Clear()
         {
-            _csvWriter?.BaseStream.SetLength(0);
-            _csvWriter?.BaseStream.Flush();
+            s_csvWriter?.BaseStream.SetLength(0);
+            s_csvWriter?.BaseStream.Flush();
         }
 
         // This can only be called when the process is done using the EventSource
@@ -51,7 +61,7 @@ namespace Microsoft.Xunit.Performance
         [NonEvent]
         public void Close()
         {
-            _csvWriter?.Dispose();
+            s_csvWriter?.Dispose();
         }
 
         [NonEvent]
@@ -75,13 +85,13 @@ namespace Microsoft.Xunit.Performance
             bool? success = null)
         {
             // TODO: this is going to add a lot of overhead; it's just here to get us running while we wait for an ETW-equivalent on Linux.
-            _csvWriter.WriteLine($"{GetTimestamp()},{Escape(benchmarkName)},{eventName},{iteration?.ToString(CultureInfo.InvariantCulture) ?? ""},{success?.ToString() ?? ""},{stopReason}");
+            s_csvWriter.WriteLine($"{GetTimestamp()},{Escape(benchmarkName)},{eventName},{iteration?.ToString(CultureInfo.InvariantCulture) ?? ""},{success?.ToString() ?? ""},{stopReason}");
         }
 
-        [Event(1, Opcode = EventOpcode.Start, Task = Tasks.Benchmark)]
+        [Event(1, Level = EventLevel.LogAlways, Opcode = EventOpcode.Start, Task = Tasks.Benchmark)]
         public unsafe void BenchmarkStart(string RunId, string BenchmarkName)
         {
-            if (_csvWriter != null)
+            if (s_csvWriter != null)
                 WriteCSV(BenchmarkName);
 
             if (IsEnabled())
@@ -103,7 +113,7 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
-        [Event(2, Opcode = EventOpcode.Stop, Task = Tasks.Benchmark)]
+        [Event(2, Level = EventLevel.LogAlways, Opcode = EventOpcode.Stop, Task = Tasks.Benchmark)]
         public unsafe void BenchmarkStop(string RunId, string BenchmarkName, string StopReason)
         {
             if (IsEnabled())
@@ -127,14 +137,14 @@ namespace Microsoft.Xunit.Performance
                 }
             }
 
-            if (_csvWriter != null)
+            if (s_csvWriter != null)
                 WriteCSV(BenchmarkName, stopReason: StopReason);
         }
 
         [Event(3, Level = EventLevel.LogAlways, Opcode = EventOpcode.Start, Task = Tasks.BenchmarkIteration)]
         public unsafe void BenchmarkIterationStart(string RunId, string BenchmarkName, int Iteration)
         {
-            if (_csvWriter != null)
+            if (s_csvWriter != null)
                 WriteCSV(BenchmarkName, iteration: Iteration);
 
             if (IsEnabled())
@@ -143,7 +153,7 @@ namespace Microsoft.Xunit.Performance
                     RunId = DefaultRunId;
 
                 // Capture the allocated bytes just before writing an event.
-                _allocatedBytes = AllocatedBytesForCurrentThread.LastAllocatedBytes;
+                s_allocatedBytes = AllocatedBytesForCurrentThread.LastAllocatedBytes;
 
                 fixed (char* pRunId = RunId)
                 fixed (char* pBenchmarkName = BenchmarkName)
@@ -172,7 +182,7 @@ namespace Microsoft.Xunit.Performance
 
                 var allocatedBytes = AllocatedBytesForCurrentThread.LastAllocatedBytes;
                 allocatedBytes = AllocatedBytesForCurrentThread.GetTotalAllocatedBytes(
-                    _allocatedBytes, allocatedBytes);
+                    s_allocatedBytes, allocatedBytes);
                 fixed (char* pRunId = RunId)
                 fixed (char* pBenchmarkName = BenchmarkName)
                 {
@@ -191,14 +201,24 @@ namespace Microsoft.Xunit.Performance
                 }
             }
 
-            if (_csvWriter != null)
+            if (s_csvWriter != null)
                 WriteCSV(BenchmarkName, iteration: Iteration);
         }
 
-        public static readonly BenchmarkEventSource Log = new BenchmarkEventSource();
+        private BenchmarkEventSource() : base(true)
+        {
+        }
+
+        [Conditional("DEBUG")]
+        private void PrintDebugInformation()
+        {
+            if (!IsEnabled())
+                WriteWarningLine("EventSource is disabled.");
+        }
 
         private const string DefaultRunId = "";
-        private static readonly StreamWriter _csvWriter = OpenCSV();
-        private static long _allocatedBytes = 0;
+        private static readonly BenchmarkEventSource s_log;
+        private static readonly StreamWriter s_csvWriter;
+        private static long s_allocatedBytes;
     }
 }
