@@ -4,6 +4,7 @@
 using Microsoft.Xunit.Performance.Sdk;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -25,7 +26,7 @@ namespace Microsoft.Xunit.Performance.Api
                     {
                         var line = sr.ReadLine();
                         var parts = line.Split(',');
-                        var timestamp = double.Parse(parts[0]);
+                        var timestamp = double.Parse(parts[0], CultureInfo.InvariantCulture);
                         var benchmarkName = parts[1].Replace(@"\_", ",").Replace(@"\n", "\n").Replace(@"\r", "\r").Replace(@"\\", @"\");
                         var eventName = parts[2];
                         switch (eventName)

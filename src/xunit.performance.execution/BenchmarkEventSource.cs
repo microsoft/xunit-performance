@@ -85,7 +85,7 @@ namespace Microsoft.Xunit.Performance
             bool? success = null)
         {
             // TODO: this is going to add a lot of overhead; it's just here to get us running while we wait for an ETW-equivalent on Linux.
-            s_csvWriter.WriteLine($"{GetTimestamp()},{Escape(benchmarkName)},{eventName},{iteration?.ToString(CultureInfo.InvariantCulture) ?? ""},{success?.ToString() ?? ""},{stopReason}");
+            s_csvWriter.WriteLine($"{GetTimestamp().ToString(CultureInfo.InvariantCulture)},{Escape(benchmarkName)},{eventName},{iteration?.ToString(CultureInfo.InvariantCulture) ?? ""},{success?.ToString() ?? ""},{stopReason}");
         }
 
         [Event(1, Level = EventLevel.LogAlways, Opcode = EventOpcode.Start, Task = Tasks.Benchmark)]
