@@ -2,6 +2,7 @@
 using Microsoft.Xunit.Performance.Sdk;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -340,7 +341,7 @@ namespace Microsoft.Xunit.Performance.Api
                 ++index;
                 foreach (var kvp in iterationModel.Iteration)
                 {
-                    writer.WriteAttributeString(kvp.Key, kvp.Value.ToString());
+                    writer.WriteAttributeString(kvp.Key, kvp.Value.ToString(CultureInfo.InvariantCulture));
                 }
                 writer.WriteEndElement();
             }
