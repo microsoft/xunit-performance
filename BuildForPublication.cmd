@@ -21,6 +21,9 @@ setlocal EnableDelayedExpansion
     if !errorlevel! neq 1 exit /b 1
   )
 
+  set LV_GIT_HEAD_SHA=
+  for /f %%c in ('git rev-parse HEAD') do set "LV_GIT_HEAD_SHA=%%c"
+
   set LocalDotNet_ToolsDir=%~dp0tools
   if exist "%LocalDotNet_ToolsDir%" rmdir /s /q "%LocalDotNet_ToolsDir%"
   if exist "%LocalDotNet_ToolsDir%" (

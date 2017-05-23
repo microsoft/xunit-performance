@@ -90,9 +90,6 @@ setlocal
   echo/  ==========
   call :dotnet_build || exit /b 1
 
-  set LV_GIT_HEAD_SHA=
-  call :get_head_sha
-
   set MsBuildArgs=
   set "MsBuildArgs=%MsBuildArgs% --no-build"
   set "MsBuildArgs=%MsBuildArgs% -c %BuildConfiguration%"
@@ -102,22 +99,8 @@ setlocal
   if defined LV_GIT_HEAD_SHA (
     set "MsBuildArgs=%MsBuildArgs% /p:GitHeadSha=%LV_GIT_HEAD_SHA%"
   )
-  echo $ dotnet.exe pack %MsBuildArgs%
   dotnet.exe pack %MsBuildArgs% || exit /b 1
   exit /b 0
-
-:get_head_sha
-setlocal
-  set /a count = 0
-  for /f %%l in ('git clean -xdn') do set /a count += 1
-  for /f %%l in ('git status --porcelain') do set /a count += 1
-  if %count% neq 0 goto :get_head_sha_exit
-  for /f %%c in ('git rev-parse HEAD') do set "LV_GIT_HEAD_SHA=%%c"
-:get_head_sha_exit
-endlocal& (
-set "LV_GIT_HEAD_SHA=%LV_GIT_HEAD_SHA%"
-exit /b 0
-)
 
 :print_error_message
   echo/
