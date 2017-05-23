@@ -1,5 +1,4 @@
 ﻿using Microsoft.Diagnostics.Tracing.Parsers;
-using Microsoft.Diagnostics.Tracing.Session;
 using Microsoft.Xunit.Performance.Sdk;
 using System.Collections.Generic;
 
@@ -10,22 +9,17 @@ namespace Microsoft.Xunit.Performance.Api
         public BasePerformanceMonitorCounter(IPerformanceMonitorCounter pmc) : base(pmc.Name, pmc.DisplayName, pmc.Unit)
         {
             _interval = pmc.Interval;
-            if (TraceEventProfileSources.GetInfo().TryGetValue(Id, out ProfileSourceInfo profileSourceInfo))
-                _profileSourceInfoID = profileSourceInfo.ID;
-            else
-                _profileSourceInfoID = -1;
+            _profileSourceInfoID = GetProfileSourceInfoId(Id);
         }
 
         public override IEnumerable<ProviderInfo> ProviderInfo
         {
             get
             {
-                yield return new KernelProviderInfo()
-                {
+                yield return new KernelProviderInfo() {
                     Keywords = unchecked((ulong)(KernelTraceEventParser.Keywords.PMCProfile | KernelTraceEventParser.Keywords.Profile)),
                 };
-                yield return new CpuCounterInfo()
-                {
+                yield return new CpuCounterInfo() {
                     CounterName = Id,
                     Interval = _interval,
                 };

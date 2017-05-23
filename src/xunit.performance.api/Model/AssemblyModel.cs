@@ -86,14 +86,17 @@ namespace Microsoft.Xunit.Performance.Api
             return dt;
         }
 
-        internal static AssemblyModel Create(string assemblyFileName, CSVMetricReader reader)
+        internal static AssemblyModel Create(
+            string assemblyFileName,
+            CSVMetricReader reader,
+            XUnitPerformanceMetricData xUnitPerformanceMetricData)
         {
             var assemblyModel = new AssemblyModel {
                 Name = Path.GetFileName(assemblyFileName),
                 Collection = new List<TestModel>()
             };
 
-            foreach (var (perfTestMsg, metric, values) in GetCollectedData(assemblyFileName, reader))
+            foreach (var (perfTestMsg, metric, values) in GetCollectedData(assemblyFileName, reader, xUnitPerformanceMetricData))
             {
                 var testModel = assemblyModel.Collection.FirstOrDefault(test => test.Name == perfTestMsg.TestCase.DisplayName);
                 if (testModel == null)
@@ -133,9 +136,12 @@ namespace Microsoft.Xunit.Performance.Api
             return assemblyModel;
         }
 
-        private static IEnumerable<(PerformanceTestMessage performanceTestMessage, string metric, IEnumerable<double> values)> GetCollectedData(string assemblyFileName, CSVMetricReader reader)
+        private static IEnumerable<(PerformanceTestMessage performanceTestMessage, string metric, IEnumerable<double> values)> GetCollectedData(
+            string assemblyFileName,
+            CSVMetricReader reader,
+            XUnitPerformanceMetricData xUnitPerformanceMetricData)
         {
-            var testsFoundInAssembly = (XunitBenchmark.GetMetadata(assemblyFileName)).PerformanceTestMessages;
+            var testsFoundInAssembly = xUnitPerformanceMetricData.PerformanceTestMessages;
             foreach (var testFoundInAssembly in testsFoundInAssembly)
             {
                 foreach (var (testCaseName, metric, values) in GetMeasurements(reader))

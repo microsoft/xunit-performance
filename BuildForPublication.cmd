@@ -5,7 +5,7 @@
 setlocal EnableDelayedExpansion
   set errorlevel=
   set BuildConfiguration=Release
-  set VersionSuffix=beta-build0005
+  set VersionSuffix=beta-build0006
 
   REM Check that git is on path.
   where.exe /Q git.exe || (
@@ -20,6 +20,9 @@ setlocal EnableDelayedExpansion
     choice.exe /T 10 /D N /C YN /M "WARNING: The repo contains uncommitted changes and you are building for publication. Press Y to continue or N to stop. "
     if !errorlevel! neq 1 exit /b 1
   )
+
+  set LV_GIT_HEAD_SHA=
+  for /f %%c in ('git rev-parse HEAD') do set "LV_GIT_HEAD_SHA=%%c"
 
   set LocalDotNet_ToolsDir=%~dp0tools
   if exist "%LocalDotNet_ToolsDir%" rmdir /s /q "%LocalDotNet_ToolsDir%"

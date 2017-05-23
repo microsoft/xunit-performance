@@ -20,10 +20,7 @@ namespace Microsoft.Xunit.Performance
                 : base(CounterName, "Instructions Retired", PerformanceMetricUnits.Count)
             {
                 _interval = DefaultInterval;
-                if (TraceEventProfileSources.GetInfo().TryGetValue(CounterName, out ProfileSourceInfo info))
-                    _profileSource = info.ID;
-                else
-                    _profileSource = -1;
+                _profileSource = GetProfileSourceInfoId(CounterName);
             }
 
             public InstructionsRetiredMetric(int interval, int profileSource)

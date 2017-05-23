@@ -1,12 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup Label="Configuration">
+    <DefineConstants Condition="'$(OS)' == 'Windows_NT'">WINDOWS_NT</DefineConstants>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(GitHeadSha)' != ''">
+    <CommitHash>$(GitHeadSha)</CommitHash>
   </PropertyGroup>
 
   <PropertyGroup>
     <AssemblyTitle>xunit.performance.core</AssemblyTitle>
-    <Description>xUnit Performance Core</Description>
+    <Description>xUnit Performance Core
+    Commit SHA: $(CommitHash)
+    </Description>
     <TargetFramework>netstandard1.3</TargetFramework>
     <Title>xUnit Performance Core</Title>
 
@@ -16,7 +23,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\xunit.performance.core.xml</DocumentationFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>1701;1702;1705;1591</NoWarn>
   </PropertyGroup>
 

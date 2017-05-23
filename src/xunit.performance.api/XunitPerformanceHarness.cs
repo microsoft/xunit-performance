@@ -27,7 +27,7 @@ namespace Microsoft.Xunit.Performance.Api
             _typeNames = new List<string>(options.TypeNames);
 
             Configuration.RunId = options.RunId;
-            Configuration.FileLogPath = Configuration.RunId + ".csv"; // TODO: Conditionally set this based on whether we want a csv file written.
+            Configuration.FileLogPath = $"{Configuration.RunId}.csv"; // TODO: Conditionally set this based on whether we want a csv file written.
         }
 
         public string OutputDirectory { get; }
@@ -52,21 +52,24 @@ namespace Microsoft.Xunit.Performance.Api
                 RunId = Configuration.RunId
             };
 
+            var metrics = _metricCollectionFactory.GetMetrics(assemblyFileName);
+            var xUnitPerformanceMetricData = XunitBenchmark.GetMetadata(
+                assemblyFileName,
+                metrics,
+                _collectDefaultXUnitMetrics);
+
             if (IsWindowsPlatform && _requireEtw)
             {
                 Action winRunner = () => { xUnitAction(assemblyFileName); };
                 ETWProfiler.Record(
                     xUnitPerformanceSessionData,
-                    XunitBenchmark.GetMetadata(
-                        assemblyFileName,
-                        _metricCollectionFactory.GetMetrics(assemblyFileName),
-                        _collectDefaultXUnitMetrics),
+                    xUnitPerformanceMetricData,
                     winRunner);
             }
             else
             {
                 xUnitAction.Invoke(assemblyFileName);
-                ProcessResults(xUnitPerformanceSessionData);
+                ProcessResults(xUnitPerformanceSessionData, xUnitPerformanceMetricData);
             }
         }
 
@@ -157,19 +160,19 @@ namespace Microsoft.Xunit.Performance.Api
                 throw new FileNotFoundException(assemblyPath);
         }
 
-        private void ProcessResults(XUnitPerformanceSessionData xUnitSessionData)
+        private void ProcessResults(XUnitPerformanceSessionData xUnitSessionData, XUnitPerformanceMetricData xUnitPerformanceMetricData)
         {
             var reader = new CSVMetricReader(Configuration.FileLogPath);
             var fileNameWithoutExtension = $"{xUnitSessionData.RunId}-{Path.GetFileNameWithoutExtension(xUnitSessionData.AssemblyFileName)}";
-            var mdFileName = Path.Combine(xUnitSessionData.OutputDirectory, $"{fileNameWithoutExtension}.md");
 
-            var assemblyModel = AssemblyModel.Create(xUnitSessionData.AssemblyFileName, reader);
+            var assemblyModel = AssemblyModel.Create(xUnitSessionData.AssemblyFileName, reader, xUnitPerformanceMetricData);
             var xmlFileName = Path.Combine(xUnitSessionData.OutputDirectory, $"{fileNameWithoutExtension}.xml");
             new AssemblyModelCollection { assemblyModel }.Serialize(xmlFileName);
             xUnitSessionData.CollectOutputFilesCallback(xmlFileName);
 
             var dt = assemblyModel.GetStatistics();
             var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
+            var mdFileName = Path.Combine(xUnitSessionData.OutputDirectory, $"{fileNameWithoutExtension}.md");
             MarkdownHelper.Write(mdFileName, mdTable);
             xUnitSessionData.CollectOutputFilesCallback(mdFileName);
             Console.WriteLine(MarkdownHelper.ToTrimmedTable(mdTable));

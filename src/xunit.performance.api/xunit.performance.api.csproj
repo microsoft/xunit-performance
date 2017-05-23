@@ -1,13 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup Label="Configuration">
+    <DefineConstants Condition="'$(OS)' == 'Windows_NT'">WINDOWS_NT</DefineConstants>
     <RootNamespace>Microsoft.Xunit.Performance.Api</RootNamespace>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(GitHeadSha)' != ''">
+    <CommitHash>$(GitHeadSha)</CommitHash>
+  </PropertyGroup>
+
   <PropertyGroup>
     <AssemblyTitle>xunit.performance.api</AssemblyTitle>
-    <Description>xUnit Performance Api</Description>
+    <Description>xUnit Performance Api
+    Commit SHA: $(CommitHash)
+    </Description>
     <TargetFramework>netstandard1.5</TargetFramework>
     <Title>xUnit Performance Api</Title>
 
@@ -17,7 +24,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\xunit.performance.api.xml</DocumentationFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>1701;1702;1705;1591</NoWarn>
   </PropertyGroup>
 
