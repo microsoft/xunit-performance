@@ -13,7 +13,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class BenchmarkTestInvoker : XunitTestInvoker
+    internal sealed class BenchmarkTestInvoker : XunitTestInvoker
     {
         public BenchmarkTestInvoker(ITest test,
                                 IMessageBus messageBus,
@@ -38,8 +38,7 @@ namespace Microsoft.Xunit.Performance
             //
             var benchmarkAttr = (BenchmarkAttribute)TestMethod.GetCustomAttribute(typeof(BenchmarkAttribute));
             var iterator = new BenchmarkIteratorImpl(DisplayName, benchmarkAttr.InnerIterationCount);
-            return iterator.RunAsync(async () =>
-            {
+            return iterator.RunAsync(async () => {
                 var success = false;
                 BenchmarkEventSource.Log.BenchmarkStart(BenchmarkConfiguration.Instance.RunId, DisplayName);
                 try
@@ -76,15 +75,14 @@ namespace Microsoft.Xunit.Performance
             });
         }
 
-        internal class BenchmarkIteratorImpl : BenchmarkIterator
+        internal sealed class BenchmarkIteratorImpl : BenchmarkIterator
         {
             private readonly string _testName;
             private readonly Stopwatch _overallTimer;
             private bool _startedIteration;
             private int _currentIteration;
             private bool _currentIterationMeasurementStarted;
-            private bool _currentIterationMesaurementStopped;
-            private long _innerIterations;
+            private bool _currentIterationMeasurementStopped;
             private int _maxIterations;
 
             internal string IterationStopReason { get; private set; }
@@ -95,19 +93,15 @@ namespace Microsoft.Xunit.Performance
             }
 
             public BenchmarkIteratorImpl(string testName, long innerIterationsCount)
+                : base(innerIterationsCount)
             {
                 _testName = testName;
                 _overallTimer = new Stopwatch();
                 _currentIteration = -1;
-                _innerIterations = innerIterationsCount;
-                if (_innerIterations > 1)
-                {
-                    _maxIterations = BenchmarkConfiguration.Instance.MaxIterationWhenInnerSpecified;
-                }
-                else
-                {
-                    _maxIterations = BenchmarkConfiguration.Instance.MaxIteration;
-                }
+
+                _maxIterations = (InnerIterationCount > 1) ?
+                    BenchmarkConfiguration.Instance.MaxIterationWhenInnerSpecified :
+                    BenchmarkConfiguration.Instance.MaxIteration;
 
                 IterationStopReason = "NoIterations";
             }
@@ -155,7 +149,7 @@ namespace Microsoft.Xunit.Performance
                 for (_currentIteration = 0; !DoneIterating; _currentIteration++)
                 {
                     _currentIterationMeasurementStarted = false;
-                    _currentIterationMesaurementStopped = false;
+                    _currentIterationMeasurementStopped = false;
 
                     yield return CreateIteration(_currentIteration);
 
@@ -168,14 +162,6 @@ namespace Microsoft.Xunit.Performance
                     {
                         _overallTimer.Start();
                     }
-                }
-            }
-
-            protected internal override long InnerIterationCount
-            {
-                get
-                {
-                    return _innerIterations;
                 }
             }
 
@@ -247,10 +233,10 @@ namespace Microsoft.Xunit.Performance
 
             protected internal override void StopMeasurement(int iterationNumber)
             {
-                if (iterationNumber == _currentIteration && !_currentIterationMesaurementStopped)
+                if (iterationNumber == _currentIteration && !_currentIterationMeasurementStopped)
                 {
                     Debug.Assert(_currentIterationMeasurementStarted);
-                    _currentIterationMesaurementStopped = true;
+                    _currentIterationMeasurementStopped = true;
 
                     BenchmarkEventSource.Log.BenchmarkIterationStop(BenchmarkConfiguration.Instance.RunId, _testName, iterationNumber);
                 }
