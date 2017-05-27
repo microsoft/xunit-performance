@@ -12,6 +12,11 @@ namespace Microsoft.Xunit.Performance.Internal
     {
         internal static BenchmarkIterator Current { get; private set; }
 
+        protected BenchmarkIterator(long innerIterations)
+        {
+            InnerIterationCount = innerIterations;
+        }
+
         private static SemaphoreSlim s_semaphore = new SemaphoreSlim(1);
 
         /// <summary>
@@ -54,7 +59,7 @@ namespace Microsoft.Xunit.Performance.Internal
         /// <summary>
         /// Gets the inner iteration count for the current benchmark
         /// </summary>
-        protected internal abstract long InnerIterationCount { get; }
+        internal long InnerIterationCount { get; }
 
         /// <summary>
         /// Starts measurement for the given iteration, if it is the current iteration.
