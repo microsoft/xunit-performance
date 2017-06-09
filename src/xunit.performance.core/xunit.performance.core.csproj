@@ -1,38 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup Label="Configuration">
-    <DefineConstants Condition="'$(OS)' == 'Windows_NT'">WINDOWS_NT</DefineConstants>
-    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(GitHeadSha)' != ''">
-    <CommitHash>$(GitHeadSha)</CommitHash>
-  </PropertyGroup>
+  <Import Project="$(MSBuildThisFileDirectory)../common.props" />
 
   <PropertyGroup>
     <AssemblyTitle>xunit.performance.core</AssemblyTitle>
-    <Description>xUnit Performance Core
-    Commit SHA: $(CommitHash)
-    </Description>
     <TargetFramework>netstandard1.3</TargetFramework>
     <Title>xUnit Performance Core</Title>
-
-    <PackageIconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</PackageIconUrl>
-    <PackageProjectUrl>https://github.com/Microsoft/xunit-performance</PackageProjectUrl>
-    <PackageLicenseUrl>https://raw.githubusercontent.com/Microsoft/xunit-performance/master/LICENSE</PackageLicenseUrl>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>1701;1702;1705;1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\common\GlobalAssemblyInfo.cs" Link="GlobalAssemblyInfo.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="xunit.extensibility.core" Version="2.2.0-beta2-build3300" />
+    <PackageReference Include="xunit.extensibility.core" Version="$(XunitPackageVersion)" />
   </ItemGroup>
 
 </Project>

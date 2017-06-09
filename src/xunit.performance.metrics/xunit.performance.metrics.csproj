@@ -1,42 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup Label="Configuration">
-    <DefineConstants Condition="'$(OS)' == 'Windows_NT'">WINDOWS_NT</DefineConstants>
-    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(GitHeadSha)' != ''">
-    <CommitHash>$(GitHeadSha)</CommitHash>
-  </PropertyGroup>
+  <Import Project="$(MSBuildThisFileDirectory)../common.props" />
 
   <PropertyGroup>
     <AssemblyTitle>xunit.performance.metrics</AssemblyTitle>
-    <Description>xUnit Performance Metrics
-    Commit SHA: $(CommitHash)
-    </Description>
     <TargetFramework>netstandard1.5</TargetFramework>
     <Title>xUnit Performance Metrics</Title>
-
-    <PackageIconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</PackageIconUrl>
-    <PackageProjectUrl>https://github.com/Microsoft/xunit-performance</PackageProjectUrl>
-    <PackageLicenseUrl>https://raw.githubusercontent.com/Microsoft/xunit-performance/master/LICENSE</PackageLicenseUrl>
   </PropertyGroup>
-
-  <PropertyGroup>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>1701;1702;1705;1591</NoWarn>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="..\common\GlobalAssemblyInfo.cs" Link="GlobalAssemblyInfo.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\xunit.performance.core\xunit.performance.core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="1.0.3-alpha-experimental" />
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="$(MicrosoftDiagnosticsTracingLibraryVersion)" />
     <PackageReference Include="System.Runtime.Serialization.Formatters" Version="4.3.0" />
     <PackageReference Include="xunit.abstractions" Version="2.0.1" />
   </ItemGroup>
