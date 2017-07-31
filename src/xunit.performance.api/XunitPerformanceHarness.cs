@@ -162,6 +162,12 @@ namespace Microsoft.Xunit.Performance.Api
 
         private void ProcessResults(XUnitPerformanceSessionData xUnitSessionData, XUnitPerformanceMetricData xUnitPerformanceMetricData)
         {
+            if (!File.Exists(Configuration.FileLogPath))
+            {
+                WriteWarningLine($"Results file '{Configuration.FileLogPath}' does not exist. Skipping processing of results.");
+                return;
+            }
+
             var reader = new CSVMetricReader(Configuration.FileLogPath);
             var fileNameWithoutExtension = $"{xUnitSessionData.RunId}-{Path.GetFileNameWithoutExtension(xUnitSessionData.AssemblyFileName)}";
 
