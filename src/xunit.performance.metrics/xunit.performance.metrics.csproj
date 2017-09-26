@@ -15,7 +15,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="$(MicrosoftDiagnosticsTracingLibraryVersion)" />
     <PackageReference Include="System.Runtime.Serialization.Formatters" Version="4.3.0" />
-    <PackageReference Include="xunit.abstractions" Version="2.0.1" />
   </ItemGroup>
 
 </Project>

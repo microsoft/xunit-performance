@@ -11,15 +11,30 @@ namespace Microsoft.Xunit.Performance
 
         internal BenchmarkIterationMeasurement(BenchmarkIteration iteration)
         {
+            _disposedValue = false;
             _iteration = iteration;
         }
 
-        /// <summary>
-        /// Completes measurement of this iteration.
-        /// </summary>
+        #region IDisposable Support
+        private bool _disposedValue;
+
+        void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    // Completes measurement of this iteration.
+                    _iteration.StopMeasurement();
+                }
+                _disposedValue = true;
+            }
+        }
+
         public void Dispose()
         {
-            _iteration.StopMeasurement();
+            Dispose(true);
         }
+        #endregion
     }
 }
