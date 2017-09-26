@@ -18,7 +18,9 @@ namespace simpleharness
         {
             using (var p = new XunitPerformanceHarness(args))
             {
+                Console.Out.WriteLine($"[{DateTime.Now}] Harness start");
                 p.RunBenchmarks(Assembly.GetEntryAssembly().Location);
+                Console.Out.WriteLine($"[{DateTime.Now}] Harness stop");
             }
         }
 

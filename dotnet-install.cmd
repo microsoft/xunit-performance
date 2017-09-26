@@ -12,7 +12,7 @@ setlocal
   set DotNet_Path=%~dp0tools\dotnet\%DotNet_Version%
   set DotNet=%DotNet_Path%\dotnet.exe
   set Init_Tools_Log=%DotNet_Path%\install.log
-  set DotNet_Installer_Url=https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.ps1
+  set DotNet_Installer_Url=https://raw.githubusercontent.com/dotnet/cli/release/2.0.0/scripts/obtain/dotnet-install.ps1
 
   REM dotnet.exe might exist, but it might not be the right version.
   REM Here we verify that if it is not the right version, then we install it
@@ -37,7 +37,9 @@ setlocal
   )
 
   echo Executing dotnet installer script "%DotNet_Path%\dotnet-install.ps1"
-  powershell -NoProfile -ExecutionPolicy unrestricted -Command "&'%DotNet_Path%\dotnet-install.ps1' -InstallDir '%DotNet_Path%' -Version '%DotNet_Version%'"
+  for %%v in (%DotNet_Version%) do (
+    powershell -NoProfile -ExecutionPolicy unrestricted -Command "&'%DotNet_Path%\dotnet-install.ps1' -InstallDir '%DotNet_Path%' -Version '%%~v'"
+  )
   if not exist "%DotNet%" (
     call :print_error_message Could not install dotnet cli correctly. See '%Init_Tools_Log%' for more details.
     exit /b 1

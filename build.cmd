@@ -63,12 +63,11 @@ setlocal
     exit /b 1
   )
 
-  dotnet.exe publish -c %BuildConfiguration% --framework netcoreapp1.0  || exit /b 1
-  dotnet.exe publish -c %BuildConfiguration% --framework netcoreapp1.1  || exit /b 1
+  for %%v in (1.0 1.1 2.0) do (
+    dotnet.exe publish -c %BuildConfiguration% --framework netcoreapp%%v                                || exit /b 1
+    dotnet.exe "bin\%BuildConfiguration%\netcoreapp%%v\simpleharness.dll" --perf:collect default+gcapi  || exit /b 1
+  )
 
-  rem Use this as a prefix for dotnet.exe in order to launch the process on a different window: START "TITLE GOES HERE" /WAIT
-  dotnet.exe "bin\%BuildConfiguration%\netcoreapp1.0\simpleharness.dll" || exit /b 1
-  dotnet.exe "bin\%BuildConfiguration%\netcoreapp1.1\simpleharness.dll" || exit /b 1
   exit /b %errorlevel%
 
 :dotnet_build
@@ -78,7 +77,7 @@ setlocal
   echo/  ==========
   call :remove_directory bin                                                                  || exit /b 1
   call :remove_directory obj                                                                  || exit /b 1
-  dotnet.exe restore                                                                          || exit /b 1
+  dotnet.exe restore --no-cache --packages "%~dp0packages"                                    || exit /b 1
   dotnet.exe build --no-dependencies -c %BuildConfiguration% --version-suffix %VersionSuffix% || exit /b 1
   exit /b 0
 
