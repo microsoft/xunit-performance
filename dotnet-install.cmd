@@ -12,7 +12,7 @@ setlocal
   set DotNet_Path=%~dp0tools\dotnet\%DotNet_Version%
   set DotNet=%DotNet_Path%\dotnet.exe
   set Init_Tools_Log=%DotNet_Path%\install.log
-  set DotNet_Installer_Url=https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain/dotnet-install.ps1
+  set DotNet_Installer_Url=https://raw.githubusercontent.com/dotnet/cli/release/2.0.0/scripts/obtain/dotnet-install.ps1
 
   REM dotnet.exe might exist, but it might not be the right version.
   REM Here we verify that if it is not the right version, then we install it
@@ -37,7 +37,14 @@ setlocal
   )
 
   echo Executing dotnet installer script "%DotNet_Path%\dotnet-install.ps1"
-  powershell -NoProfile -ExecutionPolicy unrestricted -Command "&'%DotNet_Path%\dotnet-install.ps1' -InstallDir '%DotNet_Path%' -Version '%DotNet_Version%'"
+  for %%v in (1.0.0 1.1.0 2.0.0) do (
+    echo Installing dotnet sdk version %%~v
+    powershell -NoProfile -ExecutionPolicy unrestricted -Command "&'%DotNet_Path%\dotnet-install.ps1' -InstallDir '%DotNet_Path%' -Version '%%~v'" || (
+      call :print_error_message Failed to install dotnet shared runtime %%~v
+      exit /b 1
+    )
+  )
+
   if not exist "%DotNet%" (
     call :print_error_message Could not install dotnet cli correctly. See '%Init_Tools_Log%' for more details.
     exit /b 1
@@ -45,11 +52,10 @@ setlocal
 
 :install_dotnet_cli_exit
   ECHO/
-  ECHO|SET /P VI_DUMMY_ENV_VAR="[%DATE%][%TIME%] dotnet --version "
-  call "%DotNet%" --version
+  call "%DotNet%" --info
   ECHO/
 endlocal& (
-  set "path=%DotNet_Path%;%path%"
+  set "PATH=%DotNet_Path%;%PATH%"
   exit /b 0
 )
 
