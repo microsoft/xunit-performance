@@ -15,6 +15,9 @@ setlocal enabledelayedexpansion
 
   call "%~dp0.\dotnet-install.cmd" || exit /b 1
 
+  echo Where is dotnet.exe?
+  where.exe dotnet.exe
+
   set procedures=
   set procedures=%procedures% build_xunit_performance_core
   set procedures=%procedures% build_xunit_performance_execution

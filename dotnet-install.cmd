@@ -47,11 +47,10 @@ setlocal
 
 :install_dotnet_cli_exit
   ECHO/
-  ECHO|SET /P VI_DUMMY_ENV_VAR="[%DATE%][%TIME%] dotnet --version "
-  call "%DotNet%" --version
+  call "%DotNet%" --info
   ECHO/
 endlocal& (
-  set "path=%DotNet_Path%;%path%"
+  set "PATH=%DotNet_Path%;%PATH%"
   exit /b 0
 )
 
