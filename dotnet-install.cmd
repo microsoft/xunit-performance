@@ -37,13 +37,9 @@ setlocal
   )
 
   echo Executing dotnet installer script "%DotNet_Path%\dotnet-install.ps1"
-  powershell -NoProfile -ExecutionPolicy unrestricted -Command "&'%DotNet_Path%\dotnet-install.ps1' -InstallDir '%DotNet_Path%' -Version '%DotNet_Version%'" || (
-    call :print_error_message Failed to install dotnet
-    exit /b 1
-  )
-
   for %%v in (1.0.0 1.1.0 2.0.0) do (
-    powershell -NoProfile -ExecutionPolicy unrestricted -Command "&'%DotNet_Path%\dotnet-install.ps1' -InstallDir '%DotNet_Path%' -SharedRuntime -Version '%%~v'" || (
+    echo Installing dotnet sdk version %%~v
+    powershell -NoProfile -ExecutionPolicy unrestricted -Command "&'%DotNet_Path%\dotnet-install.ps1' -InstallDir '%DotNet_Path%' -Version '%%~v'" || (
       call :print_error_message Failed to install dotnet shared runtime %%~v
       exit /b 1
     )
