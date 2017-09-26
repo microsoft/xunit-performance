@@ -5,7 +5,7 @@
 setlocal EnableDelayedExpansion
   set errorlevel=
   set BuildConfiguration=Release
-  set VersionSuffix=beta-build0007
+  set VersionSuffix=beta-build0008
 
   REM Check that git is on path.
   where.exe /Q git.exe || (

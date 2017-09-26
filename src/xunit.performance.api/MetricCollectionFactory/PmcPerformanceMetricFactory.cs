@@ -27,6 +27,8 @@ namespace Microsoft.Xunit.Performance.Api
                 }
                 else if (pmcName.Equals("InstructionRetired", StringComparison.OrdinalIgnoreCase))
                 {
+                    //_metrics.Add(new GenericPerformanceMonitorCounterMetric<InstructionRetiredPerformanceMonitorCounter>(
+                    //    new InstructionRetiredPerformanceMonitorCounter()));
                     _metrics.Add(new InstructionsRetiredMetric());
                 }
                 else
@@ -40,7 +42,7 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
-        public IEnumerable<PerformanceMetric> GetMetrics(string assemblyFileName)
+        public IEnumerable<PerformanceMetric> GetMetrics()
         {
             return _metrics;
         }

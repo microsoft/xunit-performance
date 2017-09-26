@@ -8,6 +8,6 @@
 
         public string Unit => "count";
 
-        public int Interval => 100000;
+        public int Interval => 1000000;
     }
 }

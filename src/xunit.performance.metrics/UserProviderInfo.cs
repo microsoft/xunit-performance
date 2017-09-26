@@ -3,7 +3,6 @@
 
 using Microsoft.Diagnostics.Tracing;
 using System;
-using Microsoft.Diagnostics.Tracing.Session;
 using System.Collections.Generic;
 
 namespace Microsoft.Xunit.Performance

@@ -6,6 +6,7 @@
     <AssemblyTitle>xunit.performance.api</AssemblyTitle>
     <TargetFramework>netstandard1.5</TargetFramework>
     <Title>xUnit Performance Api</Title>
+    <RootNamespace>Microsoft.Xunit.Performance.Api</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

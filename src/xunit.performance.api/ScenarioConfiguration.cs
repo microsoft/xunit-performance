@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Microsoft.Xunit.Performance.Api
@@ -13,25 +14,20 @@ namespace Microsoft.Xunit.Performance.Api
         /// Initializes a new instance of the ScenarioConfiguration class.
         /// </summary>
         /// <param name="timeSpan">The amount of time to wait for one iteration process to exit.</param>
-        public ScenarioConfiguration(TimeSpan timeSpan)
+        /// <param name="startInfo">The data with which to start the scenario.</param>
+        public ScenarioConfiguration(TimeSpan timeSpan, ProcessStartInfo startInfo)
         {
             if (timeSpan.TotalMilliseconds < 1)
                 throw new InvalidOperationException("The time out per iteration must be a positive number.");
 
+            Debug.Assert(
+                !(startInfo.UseShellExecute && (startInfo.RedirectStandardError || startInfo.RedirectStandardInput || startInfo.RedirectStandardOutput)),
+                "UseShellExecute must be false if RedirectStandard[Error|Input|Output] is set to true.");
+
             Iterations = 10;
+            StartInfo = startInfo ?? throw new ArgumentNullException($"{nameof(startInfo)} cannot be null.");
             TimeoutPerIteration = timeSpan;
             SuccessExitCodes = new[] { 0 };
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the ScenarioConfiguration class (deep copy).
-        /// </summary>
-        /// <param name="scenarioConfiguration">An instance of the ScenarioConfiguration class</param>
-        public ScenarioConfiguration(ScenarioConfiguration scenarioConfiguration)
-        {
-            Iterations = scenarioConfiguration.Iterations;
-            TimeoutPerIteration = scenarioConfiguration.TimeoutPerIteration;
-            SuccessExitCodes = scenarioConfiguration.SuccessExitCodes;
         }
 
         /// <summary>
@@ -77,6 +73,21 @@ namespace Microsoft.Xunit.Performance.Api
                 _successExitCodes = value.ToArray();
             }
         }
+
+        /// <summary>
+        /// The data with which to start the scenario.
+        /// </summary>
+        public ProcessStartInfo StartInfo { get; }
+
+        /// <summary>
+        /// The action that will be executed before every benchmark scenario execution.
+        /// </summary>
+        public Action<Scenario> PreIterationDelegate { get; set; }
+
+        /// <summary>
+        /// The action that will be executed after every benchmark scenario execution.
+        /// </summary>
+        public Action<ScenarioInfo> PostIterationDelegate { get; set; }
 
         private int _iterations;
         private IEnumerable<int> _successExitCodes;

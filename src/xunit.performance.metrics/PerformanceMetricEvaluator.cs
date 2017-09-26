@@ -3,7 +3,6 @@
 
 using Microsoft.Diagnostics.Tracing;
 using System;
-using System.Collections.Generic;
 
 namespace Microsoft.Xunit.Performance.Sdk
 {
@@ -15,8 +14,8 @@ namespace Microsoft.Xunit.Performance.Sdk
 
         public void Dispose()
         {
-            GC.SuppressFinalize(this);
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         ~PerformanceMetricEvaluator()

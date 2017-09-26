@@ -86,12 +86,12 @@ setlocal
 
 :dotnet_pack
 setlocal
+  call :dotnet_build || exit /b 1
+
   echo/
   echo/  ==========
   echo/   Packing %cd%
   echo/  ==========
-  call :dotnet_build || exit /b 1
-
   set MsBuildArgs=
   set "MsBuildArgs=%MsBuildArgs% --no-build"
   set "MsBuildArgs=%MsBuildArgs% -c %BuildConfiguration%"

@@ -11,7 +11,7 @@ namespace Microsoft.Xunit.Performance
 {
     internal partial class InstructionsRetiredMetricDiscoverer : IPerformanceMetricDiscoverer
     {
-        public const int DefaultInterval = 100000; // Instructions per event.
+        public const int DefaultInterval = 1000000; // Instructions per event.
         public const string CounterName = "InstructionRetired";
 
         private int ProfileSource { get; }

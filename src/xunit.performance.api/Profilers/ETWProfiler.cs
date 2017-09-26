@@ -32,7 +32,6 @@ namespace Microsoft.Xunit.Performance.Api
         /// <param name="xUnitPerformanceSessionData"></param>
         /// <param name="xUnitPerformanceMetricData"></param>
         /// <param name="action"></param>
-        /// <returns></returns>
         public static void Record(XUnitPerformanceSessionData xUnitPerformanceSessionData, XUnitPerformanceMetricData xUnitPerformanceMetricData, Action action)
         {
             const int bufferSizeMB = 256;
@@ -56,6 +55,9 @@ namespace Microsoft.Xunit.Performance.Api
                 throw new InvalidOperationException(message);
             }
 
+            WriteDebugLine("> ETW capture start.");
+
+            // Prior to Windows 8 (NT 6.2), all kernel events needed the special kernel session.
             using (var safeKernelSession = needKernelSession && CanEnableEnableKernelProvider ? MakeSafeTerminateTraceEventSession(KernelTraceEventParser.KernelSessionName, etwOutputData.KernelFileName) : null)
             {
                 var kernelSession = safeKernelSession?.BaseDisposableObject;
@@ -87,10 +89,14 @@ namespace Microsoft.Xunit.Performance.Api
                 }
             }
 
+            WriteDebugLine("> ETW capture stop.");
+
             // TODO: Decouple the code below.
             // Collect ETW profile data.
             //  TODO: Skip collecting kernel data if it was not captured! (data will be zero, there is no point to report it or upload it)
+            WriteDebugLine("> ETW merge start.");
             TraceEventSession.MergeInPlace(etwOutputData.UserFileName, Console.Out);
+            WriteDebugLine("> ETW merge stop.");
             xUnitPerformanceSessionData.CollectOutputFilesCallback(etwOutputData.UserFileName);
 
             var assemblyModel = GetAssemblyModel(xUnitPerformanceSessionData.AssemblyFileName, etwOutputData.UserFileName, xUnitPerformanceSessionData.RunId, xUnitPerformanceMetricData.PerformanceTestMessages);

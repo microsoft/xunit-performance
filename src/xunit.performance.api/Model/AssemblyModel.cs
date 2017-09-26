@@ -193,7 +193,7 @@ namespace Microsoft.Xunit.Performance.Api
         [XmlArray("Tests")]
         public List<ScenarioTestModel> Tests { get; set; }
 
-        public ScenarioBenchmark()
+        private ScenarioBenchmark()
         {
             Namespace = "";
             Tests = new List<ScenarioTestModel>();
@@ -278,7 +278,7 @@ namespace Microsoft.Xunit.Performance.Api
         [XmlElement("Performance")]
         public PerformanceModel Performance { get; set; }
 
-        public ScenarioTestModel()
+        private ScenarioTestModel()
         {
             Namespace = "";
             Performance = new PerformanceModel {
@@ -357,11 +357,18 @@ namespace Microsoft.Xunit.Performance.Api
 
     public sealed class MetricModel
     {
-        public string Name { get; set; }
+        // TODO: Should it be internal? 'MetricModel.Name' is only used to generate the 'XmlElement.Name' & 'XmlAttribute.Name'.
+        public string Name
+        {
+            get => _name;
+            set => _name = XmlConvert.EncodeName(value);
+        }
 
         public string DisplayName { get; set; }
 
         public string Unit { get; set; }
+
+        private string _name = null;
     }
 
     public sealed class IterationModel
