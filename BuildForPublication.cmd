@@ -31,6 +31,13 @@ setlocal EnableDelayedExpansion
     exit /b 1
   )
 
+  set LocalDotNet_PackagesDir=%~dp0packages
+  if exist "%LocalDotNet_PackagesDir%" rmdir /s /q "%LocalDotNet_PackagesDir%"
+  if exist "%LocalDotNet_PackagesDir%" (
+    echo ERROR: Failed to remove "%LocalDotNet_PackagesDir%" folder.
+    exit /b 1
+  )
+
   echo/==================
   echo/ Building version %VersionSuffix% NuGet packages.
   echo/==================
