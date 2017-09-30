@@ -6,14 +6,16 @@ namespace Microsoft.Xunit.Performance.Api
 
         public static string Metric => "Metric";
 
+        public static string Unit => "Unit";
+
         public static string Iterations => "Iterations";
 
-        public static string AVG => "AVERAGE";
+        public static string Average => "Average";
 
-        public static string SD => "STDEV.S";
+        public static string StandardDeviation => "STDEV.S";
 
-        public static string MIN => "MIN";
+        public static string Minimum => "Min";
 
-        public static string MAX => "MAX";
+        public static string Maximum => "Max";
     }
 }
