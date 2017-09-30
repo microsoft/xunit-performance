@@ -26,7 +26,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         public IReadOnlyCollection<EtwProcess> GetProfileData(ScenarioInfo scenarioInfo)
         {
             var processes = new List<EtwProcess>();
-            var pmcIntervals = new Dictionary<int, long>();
+            var pmcSourceIntervals = new Dictionary<int, long>();
 
             Func<int, bool> IsOurProcess = (processId) => {
                 return processId == scenarioInfo.ProcessExitInfo.Id || processes.Any(process => process.Id == processId);
@@ -48,21 +48,26 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                             Start = obj.TimeStamp,
                             PerformanceMonitorCounterData = new Dictionary<int, long>(),
                             Modules = new List<EtwModule>(),
+                            ManagedModules = new List<EtwManagedModule>(),
                         });
                     }
                 };
                 parser.ProcessStop += (ProcessTraceData obj) => {
                     if (IsOurProcess(obj.ProcessID))
-                        processes.First(process => process.Id == obj.ProcessID).Exit = obj.TimeStamp;
+                        processes.Single(process => process.Id == obj.ProcessID).Exit = obj.TimeStamp;
                 };
 
                 parser.ImageLoad += (ImageLoadTraceData obj) => {
-                    var process = processes.FirstOrDefault(p => p.Id == obj.ProcessID);
+                    var process = processes.SingleOrDefault(p => p.Id == obj.ProcessID);
                     if (process == null)
                         return;
 
                     var module = process.Modules
-                        .SingleOrDefault(m => !m.IsLoaded && m.FileName == obj.FileName);
+                        .SingleOrDefault(m => !m.IsLoaded
+                            && m.AddressRange.Start == obj.ImageBase
+                            && m.AddressRange.Size == obj.ImageSize
+                            && m.Checksum == obj.ImageChecksum
+                            && m.FileName == obj.FileName);
 
                     // If the module was not in the list or the same Module.FileName is loaded, then add it.
                     // Otherwise, the module was probably unloaded and reloaded.
@@ -70,10 +75,8 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                     {
                         process.Modules.Add(new EtwModule {
                             FileName = obj.FileName,
-                            ProcessId = obj.ProcessID,
                             IsLoaded = true,
-                            ImageSize = obj.ImageSize,
-                            StartAddress = obj.ImageBase,
+                            AddressRange = new EtwAddressRange(obj.ImageBase, obj.ImageSize),
                             Checksum = obj.ImageChecksum,
                             PerformanceMonitorCounterData = new Dictionary<int, long>(),
                         });
@@ -82,55 +85,72 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                     {
                         // Assuming nothing else has changed, and keeping the list of already measured Pmc.
                         module.IsLoaded = true;
-                        module.StartAddress = obj.ImageBase;
+                        module.AddressRange  = new EtwAddressRange(obj.ImageBase, obj.ImageSize);
                     }
                 };
                 parser.ImageUnload += (ImageLoadTraceData obj) => {
-                    var process = processes.FirstOrDefault(p => p.Id == obj.ProcessID);
+                    var process = processes.SingleOrDefault(p => p.Id == obj.ProcessID);
                     if (process == null)
                         return;
 
                     // Check if the unloaded module is on the list.
                     // The module must be loaded, in the same address space, and same file name.
                     var module = process.Modules
-                        .SingleOrDefault(p => p.IsLoaded && p.StartAddress == obj.ImageBase && p.FileName == obj.FileName);
+                        .SingleOrDefault(m => m.IsLoaded
+                            && m.AddressRange.Start == obj.ImageBase
+                            && m.AddressRange.Size == obj.ImageSize
+                            && m.Checksum == obj.ImageChecksum
+                            && m.FileName == obj.FileName);
                     if (module == null)
                         return;
                     module.IsLoaded = false;
                 };
 
+                var etwPerfInfoPMCSample = new List<EtwPerfInfoPMCSample>();
                 parser.PerfInfoCollectionStart += (SampledProfileIntervalTraceData obj) => {
                     // Update the Pmc intervals.
                     if (scenarioInfo.PerformanceMonitorCounters.Any(pmc => pmc.Id == obj.SampleSource))
                     {
-                        if (!pmcIntervals.ContainsKey(obj.SampleSource))
-                            pmcIntervals.Add(obj.SampleSource, obj.NewInterval);
+                        if (!pmcSourceIntervals.ContainsKey(obj.SampleSource))
+                            pmcSourceIntervals.Add(obj.SampleSource, obj.NewInterval);
                         else
-                            pmcIntervals[obj.SampleSource] = obj.NewInterval;
+                            pmcSourceIntervals[obj.SampleSource] = obj.NewInterval;
                     }
                 };
                 parser.PerfInfoPMCSample += (PMCCounterProfTraceData obj) => {
                     // If this is our process and it is a pmc we care to measure.
-                    var process = processes.FirstOrDefault(p => p.Id == obj.ProcessID);
+                    var process = processes.SingleOrDefault(p => p.Id == obj.ProcessID);
                     if (process == null && scenarioInfo.PerformanceMonitorCounters.Any(pmc => pmc.Id == obj.ProfileSource))
                         return;
 
                     if (!process.PerformanceMonitorCounterData.ContainsKey(obj.ProfileSource))
                         process.PerformanceMonitorCounterData.Add(obj.ProfileSource, 0);
-                    process.PerformanceMonitorCounterData[obj.ProfileSource] += pmcIntervals[obj.ProfileSource];
+                    process.PerformanceMonitorCounterData[obj.ProfileSource] += pmcSourceIntervals[obj.ProfileSource];
 
                     if (process.Modules.Count() < 1)
                         return;
 
                     var module = process.Modules.SingleOrDefault(m => {
-                        return m.IsLoaded && (obj.InstructionPointer >= m.StartAddress) && (m.EndAddress > obj.InstructionPointer);
+                        return m.IsLoaded && m.AddressRange.IsWithinRange(obj.InstructionPointer);
                     });
+
                     if (module == null)
+                    {
+                        // This might fall in managed code. We need to buffer and test it afterwards.
+                        etwPerfInfoPMCSample.Add(new EtwPerfInfoPMCSample {
+                            InstructionPointer = obj.InstructionPointer,
+                            ProcessId = obj.ProcessID,
+                            ProfileSource = obj.ProfileSource,
+                            ThreadId = obj.ThreadID,
+                            TimeStamp = obj.TimeStamp,
+                        });
                         return;
+                    }
 
                     if (!module.PerformanceMonitorCounterData.ContainsKey(obj.ProfileSource))
                         module.PerformanceMonitorCounterData.Add(obj.ProfileSource, 0);
-                    module.PerformanceMonitorCounterData[obj.ProfileSource] += pmcIntervals[obj.ProfileSource];
+                    module.PerformanceMonitorCounterData[obj.ProfileSource] += pmcSourceIntervals[obj.ProfileSource];
+                };
                 };
 
                 source.Process();
