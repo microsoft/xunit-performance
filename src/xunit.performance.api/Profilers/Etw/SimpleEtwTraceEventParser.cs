@@ -151,7 +151,6 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                         module.PerformanceMonitorCounterData.Add(obj.ProfileSource, 0);
                     module.PerformanceMonitorCounterData[obj.ProfileSource] += pmcSourceIntervals[obj.ProfileSource];
                 };
-                };
 
                 source.Process();
 
