@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.Xunit.Performance.Api
+namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 {
     /// <summary>
     /// Provides information about a profiled process.
@@ -20,11 +20,6 @@ namespace Microsoft.Xunit.Performance.Api
         /// Unique identifier associated with this process.
         /// </summary>
         public int Id { get; set; }
-
-        /// <summary>
-        /// Unique identifier associated with this process' parent.
-        /// </summary>
-        internal int? ParentId { get; set; }
 
         /// <summary>
         /// The time that the associated process was started.
@@ -43,7 +38,7 @@ namespace Microsoft.Xunit.Performance.Api
         public DateTime? Exit { get; set; }
 
         /// <summary>
-        /// FIXME: Should PerformanceMonitorCounterData be exposed via a IReadOnlyDictionary?
+        /// TODO: Should PerformanceMonitorCounterData be exposed via a IReadOnlyDictionary?
         /// </summary>
         public IDictionary<int, long> PerformanceMonitorCounterData { get; set; }
 
@@ -51,5 +46,15 @@ namespace Microsoft.Xunit.Performance.Api
         /// The modules that have been loaded by the associated process.
         /// </summary>
         public IList<EtwModule> Modules { get; set; }
+
+        /// <summary>
+        /// The managed .NET modules that have been loaded by the associated process.
+        /// </summary>
+        public IList<EtwManagedModule> ManagedModules { get; set; }
+
+        /// <summary>
+        /// Unique identifier associated with this process' parent.
+        /// </summary>
+        internal int? ParentId { get; set; }
     }
 }

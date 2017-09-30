@@ -3,12 +3,14 @@
 
 using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
+using Microsoft.Diagnostics.Tracing.Parsers.Clr;
 using Microsoft.Diagnostics.Tracing.Parsers.Kernel;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
-namespace Microsoft.Xunit.Performance.Api
+namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 {
     /// <summary>
     /// Provides a simple interface to extract ETW process/modules data from an *.etl file.

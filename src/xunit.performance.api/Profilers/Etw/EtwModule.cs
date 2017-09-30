@@ -2,8 +2,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+using System.IO;
 
-namespace Microsoft.Xunit.Performance.Api
+namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 {
     /// <summary>
     /// Loaded module for the corresponding process.
@@ -16,29 +17,12 @@ namespace Microsoft.Xunit.Performance.Api
         public string FileName { get; set; }
 
         /// <summary>
-        /// Unique identifier for the associated process that loaded this module.
+        /// File name and extension of the module.
         /// </summary>
-        public int ProcessId { get; set; }
+        public string ImageName => Path.GetFileName(FileName);
 
         /// <summary>
-        /// The size of the module when loaded in memory.
-        /// </summary>
-        public int ImageSize { get; set; }
-
-        /// <summary>
-        /// The address where the module was loaded.
-        /// </summary>
-        public ulong StartAddress { get; set; }
-
-        /// <summary>
-        /// StartAddress + ImageSize
-        /// </summary>
-        public ulong EndAddress => StartAddress + (uint)ImageSize;
-
-        internal int Checksum { get; set; }
-
-        /// <summary>
-        /// FIXME: Should PerformanceMonitorCounterData be exposed via a IReadOnlyDictionary?
+        /// TODO: Should PerformanceMonitorCounterData be exposed via a IReadOnlyDictionary?
         /// </summary>
         public IDictionary<int, long> PerformanceMonitorCounterData { get; set; }
 
@@ -46,5 +30,15 @@ namespace Microsoft.Xunit.Performance.Api
         /// Indicates whether the modules was loaded.
         /// </summary>
         internal bool IsLoaded { get; set; } = false;
+
+        /// <summary>
+        /// Represents the address range where this module was loaded.
+        /// </summary>
+        internal EtwAddressRange AddressRange { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal int Checksum { get; set; }
     }
 }
