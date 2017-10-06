@@ -1,12 +1,11 @@
-﻿using Microsoft.Diagnostics.Tracing.Session;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    public sealed class ScenarioInfo
+    public sealed class ScenarioExecutionResult
     {
-        public ScenarioInfo(Process process)
+        public ScenarioExecutionResult(Process process)
         {
             ProcessExitInfo = new ProcessExitInfo(process);
         }

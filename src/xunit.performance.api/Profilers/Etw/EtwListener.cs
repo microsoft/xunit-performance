@@ -21,9 +21,9 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
             IReadOnlyCollection<EtwUserProvider> userProviders,
             IReadOnlyCollection<EtwKernelProvider> kernelProviders)
         {
-            UserSessionData = userSessionData ?? throw new ArgumentNullException($"{nameof(userSessionData)} cannot be null.");
-            UserProviders = userProviders ?? throw new ArgumentNullException($"{nameof(userProviders)} cannot be null.");
-            KernelProviders = kernelProviders ?? throw new ArgumentNullException($"{nameof(kernelProviders)} cannot be null.");
+            UserSessionData = userSessionData ?? throw new ArgumentNullException(nameof(userSessionData));
+            UserProviders = userProviders ?? throw new ArgumentNullException(nameof(userProviders));
+            KernelProviders = kernelProviders ?? throw new ArgumentNullException(nameof(kernelProviders));
         }
 
         public EtwSessionData UserSessionData { get; }
@@ -40,7 +40,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         public TResult Record(Func<TResult> runner)
         {
             if (runner == null)
-                throw new ArgumentNullException($"{nameof(runner)} cannot be null.");
+                throw new ArgumentNullException(nameof(runner));
 
             var fi = new FileInfo(UserSessionData.FileName);
             var kernelFileName = Path.Combine($"{fi.DirectoryName}", $"{Path.GetFileNameWithoutExtension(fi.Name)}.kernel.etl");

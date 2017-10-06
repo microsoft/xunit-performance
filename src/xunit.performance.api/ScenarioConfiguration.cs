@@ -20,12 +20,8 @@ namespace Microsoft.Xunit.Performance.Api
             if (timeSpan.TotalMilliseconds < 1)
                 throw new InvalidOperationException("The time out per iteration must be a positive number.");
 
-            Debug.Assert(
-                !(startInfo.UseShellExecute && (startInfo.RedirectStandardError || startInfo.RedirectStandardInput || startInfo.RedirectStandardOutput)),
-                "UseShellExecute must be false if RedirectStandard[Error|Input|Output] is set to true.");
-
             Iterations = 10;
-            StartInfo = startInfo ?? throw new ArgumentNullException($"{nameof(startInfo)} cannot be null.");
+            StartInfo = startInfo ?? throw new ArgumentNullException(nameof(startInfo));
             TimeoutPerIteration = timeSpan;
             SuccessExitCodes = new[] { 0 };
         }
@@ -66,7 +62,7 @@ namespace Microsoft.Xunit.Performance.Api
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException($"Assigned a null collection to {nameof(SuccessExitCodes)}.");
+                    throw new ArgumentNullException(nameof(SuccessExitCodes));
                 if (value.Count() == 0)
                     throw new InvalidOperationException($"Assigned an empty collection to {nameof(SuccessExitCodes)}");
 
@@ -87,7 +83,7 @@ namespace Microsoft.Xunit.Performance.Api
         /// <summary>
         /// The action that will be executed after every benchmark scenario execution.
         /// </summary>
-        public Action<ScenarioInfo> PostIterationDelegate { get; set; }
+        public Action<ScenarioExecutionResult> PostIterationDelegate { get; set; }
 
         private int _iterations;
         private IEnumerable<int> _successExitCodes;

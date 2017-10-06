@@ -7,8 +7,8 @@ using Microsoft.Diagnostics.Tracing.Parsers.Clr;
 using Microsoft.Diagnostics.Tracing.Parsers.Kernel;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 {
@@ -22,21 +22,41 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// </summary>
         /// <param name="scenarioInfo"></param>
         /// <returns>A collection of the profiled processes for the given scenario.</returns>
-        /// <remarks>The scenario launches a single process, but itself can launch child processes.</remarks>
-        public IReadOnlyCollection<EtwProcess> GetProfileData(ScenarioInfo scenarioInfo)
+        /// <remarks>
+        /// FIXME: Some assumptions:
+        ///     1. The scenario launches a single process, but itself can launch child processes.
+        ///     2. Process started/stopped within the ETW session.
+        ///     3. Pmc source intervals were constant during the whole session.
+        /// </remarks>
+        public IReadOnlyCollection<EtwProcess> GetProfileData(ScenarioExecutionResult scenarioInfo)
         {
             var processes = new List<EtwProcess>();
             var pmcSourceIntervals = new Dictionary<int, long>();
 
             Func<int, bool> IsOurProcess = (processId) => {
-                return processId == scenarioInfo.ProcessExitInfo.Id || processes.Any(process => process.Id == processId);
+                return processId == scenarioInfo.ProcessExitInfo.ProcessId || processes.Any(process => process.Id == processId);
+            };
+            Func<EtwModule, ImageLoadTraceData, bool> AreTheSameModule = (EtwModule module, ImageLoadTraceData obj) => {
+                return module.AddressRange != null // Anonymously Hosted DynamicMethods Assembly
+                    && module.AddressRange.Start == obj.ImageBase
+                    && module.AddressRange.Size == obj.ImageSize
+                    && module.Checksum == obj.ImageChecksum
+                    && module.FullName == obj.FileName;
+            };
+            Func<EtwModule, PMCCounterProfTraceData, bool> IsWithinAddressAndTimeRange = (EtwModule module, PMCCounterProfTraceData obj) => {
+                return module.AddressRange != null // Anonymously Hosted DynamicMethods Assembly
+                    && module.AddressRange.IsWithinRange(obj.InstructionPointer)
+                    && (module.LoadTimeStamp <= obj.TimeStamp && module.UnloadTimeStamp > obj.TimeStamp);
             };
 
+            WriteDebugLine($"Parsing: {scenarioInfo.EventLogFileName}");
             using (var source = new ETWTraceEventSource(scenarioInfo.EventLogFileName))
             {
                 if (source.EventsLost > 0)
                     throw new Exception($"Events were lost in trace '{scenarioInfo.EventLogFileName}'");
 
+                ////////////////////////////////////////////////////////////////
+                // Process data
                 var parser = new KernelTraceEventParser(source);
                 parser.ProcessStart += (ProcessTraceData obj) => {
                     if (IsOurProcess(obj.ProcessID) || IsOurProcess(obj.ParentID))
@@ -45,16 +65,15 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                             Id = obj.ProcessID,
                             ParentId = obj.ParentID,
                             Name = obj.ImageFileName,
-                            Start = obj.TimeStamp,
+                            StartDateTime = obj.TimeStamp,
                             PerformanceMonitorCounterData = new Dictionary<int, long>(),
                             Modules = new List<EtwModule>(),
-                            ManagedModules = new List<EtwManagedModule>(),
                         });
                     }
                 };
                 parser.ProcessStop += (ProcessTraceData obj) => {
                     if (IsOurProcess(obj.ProcessID))
-                        processes.Single(process => process.Id == obj.ProcessID).Exit = obj.TimeStamp;
+                        processes.Single(process => process.Id == obj.ProcessID).ExitDateTime = obj.TimeStamp;
                 };
 
                 parser.ImageLoad += (ImageLoadTraceData obj) => {
@@ -63,30 +82,21 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                         return;
 
                     var module = process.Modules
-                        .SingleOrDefault(m => !m.IsLoaded
-                            && m.AddressRange.Start == obj.ImageBase
-                            && m.AddressRange.Size == obj.ImageSize
-                            && m.Checksum == obj.ImageChecksum
-                            && m.FileName == obj.FileName);
+                        .SingleOrDefault(m => !m.IsLoaded && AreTheSameModule(m, obj));
 
-                    // If the module was not in the list or the same Module.FileName is loaded, then add it.
+                    // If the module was not in the list or the same module is loaded, then add it.
                     // Otherwise, the module was probably unloaded and reloaded.
                     if (module == null)
                     {
-                        process.Modules.Add(new EtwModule {
-                            FileName = obj.FileName,
-                            IsLoaded = true,
-                            AddressRange = new EtwAddressRange(obj.ImageBase, obj.ImageSize),
-                            Checksum = obj.ImageChecksum,
-                            PerformanceMonitorCounterData = new Dictionary<int, long>(),
-                        });
+                        module = new EtwModule(obj.FileName, obj.ImageChecksum);
+                        process.Modules.Add(module);
                     }
-                    else
-                    {
-                        // Assuming nothing else has changed, and keeping the list of already measured Pmc.
-                        module.IsLoaded = true;
-                        module.AddressRange  = new EtwAddressRange(obj.ImageBase, obj.ImageSize);
-                    }
+
+                    // Assuming nothing else has changed, and keeping the list of already measured Pmc.
+                    module.IsLoaded = true;
+                    module.AddressRange = new EtwAddressRange(obj.ImageBase, obj.ImageSize);
+                    module.LoadTimeStamp = obj.TimeStamp;
+                    module.UnloadTimeStamp = DateTime.MaxValue;
                 };
                 parser.ImageUnload += (ImageLoadTraceData obj) => {
                     var process = processes.SingleOrDefault(p => p.Id == obj.ProcessID);
@@ -96,17 +106,16 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                     // Check if the unloaded module is on the list.
                     // The module must be loaded, in the same address space, and same file name.
                     var module = process.Modules
-                        .SingleOrDefault(m => m.IsLoaded
-                            && m.AddressRange.Start == obj.ImageBase
-                            && m.AddressRange.Size == obj.ImageSize
-                            && m.Checksum == obj.ImageChecksum
-                            && m.FileName == obj.FileName);
+                        .SingleOrDefault(m => m.IsLoaded && AreTheSameModule(m, obj));
                     if (module == null)
                         return;
                     module.IsLoaded = false;
+                    module.UnloadTimeStamp = obj.TimeStamp;
                 };
 
-                var etwPerfInfoPMCSample = new List<EtwPerfInfoPMCSample>();
+                ////////////////////////////////////////////////////////////////
+                // PMC data
+                var pmcRollovers = new List<EtwPerfInfoPMCSample>();
                 parser.PerfInfoCollectionStart += (SampledProfileIntervalTraceData obj) => {
                     // Update the Pmc intervals.
                     if (scenarioInfo.PerformanceMonitorCounters.Any(pmc => pmc.Id == obj.SampleSource))
@@ -131,17 +140,16 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                         return;
 
                     var module = process.Modules.SingleOrDefault(m => {
-                        return m.IsLoaded && m.AddressRange.IsWithinRange(obj.InstructionPointer);
+                        return m.IsLoaded && IsWithinAddressAndTimeRange(m, obj);
                     });
 
                     if (module == null)
                     {
                         // This might fall in managed code. We need to buffer and test it afterwards.
-                        etwPerfInfoPMCSample.Add(new EtwPerfInfoPMCSample {
+                        pmcRollovers.Add(new EtwPerfInfoPMCSample {
                             InstructionPointer = obj.InstructionPointer,
                             ProcessId = obj.ProcessID,
-                            ProfileSource = obj.ProfileSource,
-                            ThreadId = obj.ThreadID,
+                            ProfileSourceId = obj.ProfileSource,
                             TimeStamp = obj.TimeStamp,
                         });
                         return;

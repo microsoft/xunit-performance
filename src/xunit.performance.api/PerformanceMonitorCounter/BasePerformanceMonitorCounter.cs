@@ -18,6 +18,7 @@ namespace Microsoft.Xunit.Performance.Api
             {
                 yield return new KernelProviderInfo() {
                     Keywords = unchecked((ulong)(KernelTraceEventParser.Keywords.PMCProfile | KernelTraceEventParser.Keywords.Profile)),
+                    StackKeywords = unchecked((ulong)KernelTraceEventParser.Keywords.PMCProfile),
                 };
                 yield return new CpuCounterInfo() {
                     CounterName = Id,

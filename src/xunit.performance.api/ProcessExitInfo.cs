@@ -15,11 +15,11 @@ namespace Microsoft.Xunit.Performance.Api
         public ProcessExitInfo(Process process)
         {
             if (process == null)
-                throw new ArgumentNullException($"{nameof(process)} cannot be null.");
+                throw new ArgumentNullException(nameof(process));
             if (!process.HasExited)
                 throw new InvalidOperationException($"{process.ProcessName} has not exited.");
 
-            Id = process.Id;
+            ProcessId = process.Id;
             ExitCode = process.ExitCode;
             StartTime = process.StartTime;
             ExitTime = process.ExitTime;
@@ -33,7 +33,7 @@ namespace Microsoft.Xunit.Performance.Api
         /// <summary>
         /// Gets the unique identifier that was assigned to the process.
         /// </summary>
-        public int Id { get; }
+        public int ProcessId { get; }
 
         /// <summary>
         /// Gets the time that the associated process was started.

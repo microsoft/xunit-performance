@@ -12,18 +12,16 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     {
         static EtwKernelProvider()
         {
-            // FIXME: It is not clear we want these as the default, but when kernel profiling is needed. Instead use the commented flags below?
+            // Currently, all pmc set by the API have these flags set:
+            // - Flags = Profile | PMCProfile
+            // - StackCapture = PMCProfile
             Default = new EtwKernelProvider {
                 Flags = KernelTraceEventParser.Keywords.ImageLoad
                     | KernelTraceEventParser.Keywords.Process
                     | KernelTraceEventParser.Keywords.Thread,
                 StackCapture = KernelTraceEventParser.Keywords.ContextSwitch
-                    | KernelTraceEventParser.Keywords.Profile,
+                    | KernelTraceEventParser.Keywords.SystemCall,
             };
-            //Default = new EtwKernelProvider {
-            //    Flags = KernelTraceEventParser.Keywords.Process | KernelTraceEventParser.Keywords.Profile,
-            //    StackCapture = KernelTraceEventParser.Keywords.Profile,
-            //};
         }
 
         /// <summary>

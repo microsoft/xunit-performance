@@ -40,7 +40,10 @@ namespace Microsoft.Xunit.Performance.Api
 
         public void RunBenchmarks(string assemblyFileName)
         {
-            Validate(assemblyFileName);
+            if (string.IsNullOrEmpty(assemblyFileName))
+                throw new ArgumentNullException(nameof(assemblyFileName));
+            if (!File.Exists(assemblyFileName))
+                throw new FileNotFoundException(assemblyFileName);
 
             Action<string> xUnitAction = (assemblyPath) => { XunitRunner.Run(assemblyPath, _typeNames); };
             var xUnitPerformanceSessionData = new XUnitPerformanceSessionData {
@@ -88,9 +91,9 @@ namespace Microsoft.Xunit.Performance.Api
         public void RunScenario(ScenarioConfiguration configuration, Func<ScenarioBenchmark> teardownDelegate)
         {
             if (configuration == null)
-                throw new ArgumentNullException($"{nameof(configuration)} cannot be null.");
+                throw new ArgumentNullException(nameof(configuration));
             if (teardownDelegate == null)
-                throw new ArgumentNullException($"{nameof(teardownDelegate)} cannot be null.");
+                throw new ArgumentNullException(nameof(teardownDelegate));
 
             Action<string> OutputFileCallback = (fileName) => {
                 WriteInfoLine($"File saved to: \"{fileName}\"");
@@ -103,7 +106,7 @@ namespace Microsoft.Xunit.Performance.Api
             {
                 using (var scenario = new Scenario(configuration))
                 {
-                    ScenarioInfo scenarioInfo;
+                    ScenarioExecutionResult scenarioExecutionResult;
 
                     configuration.PreIterationDelegate?.Invoke(scenario);
 
@@ -139,15 +142,15 @@ namespace Microsoft.Xunit.Performance.Api
 
                         EtwHelper.SetPreciseMachineCounters(profileSourceInfos.ToList());
 
-                        var listener = new EtwListener<ScenarioInfo>(
+                        var listener = new EtwListener<ScenarioExecutionResult>(
                             new EtwSessionData(sessionName, etlFileName) { BufferSizeMB = 256 },
                             EtwUserProvider.Defaults,
                             etwKernelProviders.ToList());
 
-                        scenarioInfo = listener.Record(() => { return Run(configuration, scenario); });
+                        scenarioExecutionResult = listener.Record(() => { return Run(configuration, scenario); });
 
-                        scenarioInfo.EventLogFileName = etlFileName;
-                        scenarioInfo.PerformanceMonitorCounters = userSpecifiedMetrics
+                        scenarioExecutionResult.EventLogFileName = etlFileName;
+                        scenarioExecutionResult.PerformanceMonitorCounters = userSpecifiedMetrics
                             .Where(m => EtwHelper.AvailablePreciseMachineCounters.Keys.Contains(m.Id))
                             .Select(m => {
                                 var psi = EtwHelper.AvailablePreciseMachineCounters[m.Id];
@@ -158,10 +161,10 @@ namespace Microsoft.Xunit.Performance.Api
                     }
                     else
                     {
-                        scenarioInfo = Run(configuration, scenario);
+                        scenarioExecutionResult = Run(configuration, scenario);
                     }
 
-                    configuration.PostIterationDelegate?.Invoke(scenarioInfo);
+                    configuration.PostIterationDelegate?.Invoke(scenarioExecutionResult);
                 }
             }
 
@@ -191,7 +194,7 @@ namespace Microsoft.Xunit.Performance.Api
             return XunitPerformanceHarnessOptions.Usage();
         }
 
-        private static ScenarioInfo Run(ScenarioConfiguration configuration, Scenario scenario)
+        private static ScenarioExecutionResult Run(ScenarioConfiguration configuration, Scenario scenario)
         {
             if (!scenario.Process.Start())
                 throw new Exception($"Failed to start {scenario.Process.ProcessName}");
@@ -214,15 +217,7 @@ namespace Microsoft.Xunit.Performance.Api
             if (!configuration.SuccessExitCodes.Contains(scenario.Process.ExitCode))
                 throw new Exception($"'{scenario.Process.StartInfo.FileName}' exited with an invalid exit code: {scenario.Process.ExitCode}");
 
-            return new ScenarioInfo(scenario.Process);
-        }
-
-        private static void Validate(string assemblyPath)
-        {
-            if (string.IsNullOrEmpty(assemblyPath))
-                throw new ArgumentNullException(nameof(assemblyPath));
-            if (!File.Exists(assemblyPath))
-                throw new FileNotFoundException(assemblyPath);
+            return new ScenarioExecutionResult(scenario.Process);
         }
 
         private void ProcessResults(XUnitPerformanceSessionData xUnitSessionData, XUnitPerformanceMetricData xUnitPerformanceMetricData)

@@ -361,7 +361,7 @@ namespace Microsoft.Xunit.Performance.Api
 
     public sealed class MetricModel
     {
-        // TODO: Should it be internal? 'MetricModel.Name' is only used to generate the 'XmlElement.Name' & 'XmlAttribute.Name'.
+        // TODO: This should be internal 'MetricModel.Name' is only used to generate the 'XmlElement.Name' & 'XmlAttribute.Name'.
         public string Name
         {
             get => _name;

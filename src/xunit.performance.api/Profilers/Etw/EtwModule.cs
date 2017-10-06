@@ -1,30 +1,38 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 {
     /// <summary>
     /// Loaded module for the corresponding process.
     /// </summary>
-    public sealed class EtwModule
+    public class EtwModule
     {
+        public EtwModule(string fullName, int checksum)
+        {
+            if (string.IsNullOrWhiteSpace(fullName))
+                throw new ArgumentNullException(nameof(fullName));
+
+            FullName = fullName;
+            Checksum = checksum;
+            PerformanceMonitorCounterData = new Dictionary<int, long>();
+
+            LoadTimeStamp = DateTime.MinValue;
+            UnloadTimeStamp = DateTime.MaxValue;
+        }
+
         /// <summary>
         /// The fully qualified name of the module file.
         /// </summary>
-        public string FileName { get; set; }
-
-        /// <summary>
-        /// File name and extension of the module.
-        /// </summary>
-        public string ImageName => Path.GetFileName(FileName);
+        public string FullName { get; }
 
         /// <summary>
         /// TODO: Should PerformanceMonitorCounterData be exposed via a IReadOnlyDictionary?
         /// </summary>
-        public IDictionary<int, long> PerformanceMonitorCounterData { get; set; }
+        public IDictionary<int, long> PerformanceMonitorCounterData { get; }
 
         /// <summary>
         /// Indicates whether the modules was loaded.
@@ -37,8 +45,18 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         internal EtwAddressRange AddressRange { get; set; }
 
         /// <summary>
-        /// 
+        /// Timestamp when the module was loaded.
         /// </summary>
-        internal int Checksum { get; set; }
+        internal DateTime LoadTimeStamp { get; set; }
+
+        /// <summary>
+        /// Timestamp when the module was unloaded.
+        /// </summary>
+        internal DateTime UnloadTimeStamp { get; set; }
+
+        /// <summary>
+        /// Module's checksum.
+        /// </summary>
+        internal int Checksum { get; }
     }
 }

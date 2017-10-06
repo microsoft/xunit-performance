@@ -37,7 +37,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         public static void SetPreciseMachineCounters(IReadOnlyCollection<ProfileSourceInfo> profileSourceInfos)
         {
             if (profileSourceInfos == null)
-                throw new ArgumentNullException($"{nameof(profileSourceInfos)} cannot be null.");
+                throw new ArgumentNullException(nameof(profileSourceInfos));
             if (!Kernel32.IsWindows8OrGreater())
                 throw new InvalidOperationException("System Tracing is only supported on Windows 8 and above.");
 
@@ -84,7 +84,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         public static bool NeedSeparateKernelSession(EtwKernelProvider kernelProvider)
         {
             if (kernelProvider == null)
-                throw new ArgumentNullException($"{nameof(kernelProvider)} cannot be null.");
+                throw new ArgumentNullException(nameof(kernelProvider));
 
             // CPU counters need the special kernel session
             return ((kernelProvider.Flags & (KernelTraceEventParser.Keywords.Profile | KernelTraceEventParser.Keywords.PMCProfile))

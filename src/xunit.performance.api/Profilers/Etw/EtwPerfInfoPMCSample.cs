@@ -11,9 +11,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 
         public ulong InstructionPointer { get; set; }
 
-        public int ProfileSource { get; set; }
-
-        public int ThreadId { get; set; }
+        public int ProfileSourceId { get; set; }
 
         public DateTime TimeStamp { get; set; }
     }

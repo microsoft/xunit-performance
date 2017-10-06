@@ -56,7 +56,7 @@ namespace Microsoft.Xunit.Performance.Api
         private static IPerformanceMetricDiscoverer GetPerformanceMetricDiscoverer(IAttributeInfo metricDiscovererAttribute)
         {
             if (metricDiscovererAttribute == null)
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(metricDiscovererAttribute));
 
             var args = metricDiscovererAttribute.GetConstructorArguments().Cast<string>().ToList();
             var discovererType = GetType(args[1], args[0]);

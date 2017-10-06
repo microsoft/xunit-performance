@@ -5,7 +5,7 @@ using System;
 
 namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 {
-    internal sealed class EtwManagedMethod
+    internal sealed class EtwDotNetMethod
     {
         public long Id { get; set; }
 
@@ -20,6 +20,16 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         internal bool IsGeneric { get; set; }
 
         internal bool IsJitted { get; set; }
+
+        /// <summary>
+        /// Timestamp when the method was loaded.
+        /// </summary>
+        internal DateTime LoadTimeStamp { get; set; } = DateTime.MinValue;
+
+        /// <summary>
+        /// Timestamp when the method was unloaded.
+        /// </summary>
+        internal DateTime UnloadTimeStamp { get; set; } = DateTime.MaxValue;
 
         /// <summary>
         /// Represents the address range where this method was loaded.

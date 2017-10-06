@@ -27,7 +27,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// <remarks>
         /// It will be null if the process started before the ETW session was enabled.
         /// </remarks>
-        public DateTime? Start { get; set; }
+        public DateTime? StartDateTime { get; set; }
 
         /// <summary>
         /// The time that the associated process exited.
@@ -35,7 +35,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// <remarks>
         /// It will be null if the process continued running when the ETW session was stopped.
         /// </remarks>
-        public DateTime? Exit { get; set; }
+        public DateTime? ExitDateTime { get; set; }
 
         /// <summary>
         /// TODO: Should PerformanceMonitorCounterData be exposed via a IReadOnlyDictionary?
@@ -46,11 +46,6 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// The modules that have been loaded by the associated process.
         /// </summary>
         public IList<EtwModule> Modules { get; set; }
-
-        /// <summary>
-        /// The managed .NET modules that have been loaded by the associated process.
-        /// </summary>
-        public IList<EtwManagedModule> ManagedModules { get; set; }
 
         /// <summary>
         /// Unique identifier associated with this process' parent.
