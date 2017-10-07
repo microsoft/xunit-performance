@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Microsoft.Diagnostics.Tracing.Parsers;
-using Microsoft.Diagnostics.Tracing.Session;
 using Microsoft.Xunit.Performance.Sdk;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -36,6 +35,7 @@ namespace Microsoft.Xunit.Performance
                 {
                     yield return new KernelProviderInfo() {
                         Keywords = unchecked((ulong)(KernelTraceEventParser.Keywords.PMCProfile | KernelTraceEventParser.Keywords.Profile)),
+                        StackKeywords = unchecked((ulong)KernelTraceEventParser.Keywords.PMCProfile),
                     };
                     yield return new CpuCounterInfo() {
                         CounterName = CounterName,

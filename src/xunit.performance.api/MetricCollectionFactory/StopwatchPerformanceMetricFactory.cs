@@ -6,7 +6,7 @@ namespace Microsoft.Xunit.Performance.Api
 {
     internal sealed class StopwatchPerformanceMetricFactory : IPerformanceMetricFactory
     {
-        public IEnumerable<PerformanceMetric> GetMetrics(string assemblyFileName)
+        public IEnumerable<PerformanceMetric> GetMetrics()
         {
             return new List<PerformanceMetric> { new BenchmarkDurationMetric() };
         }

@@ -30,6 +30,7 @@ namespace Microsoft.Xunit.Performance
                     }
                     else
                     {
+                        // FIXME: We should fail here instead.
                         Debug.Assert(_context == context);
                         Debug.Assert(_profileSource == profileSource);
                     }

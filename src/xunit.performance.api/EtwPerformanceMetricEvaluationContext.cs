@@ -86,8 +86,10 @@ namespace Microsoft.Xunit.Performance.Api
 
             foreach (var info in testInfo)
             {
-                var evaluators = info.Metrics.Cast<PerformanceMetric>().Select(m => new KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>(m, m.CreateEvaluator(this))).ToList();
-                _evaluators[info.TestCase.DisplayName] = evaluators;
+                _evaluators[info.TestCase.DisplayName] = info.Metrics
+                    .Cast<PerformanceMetric>()
+                    .Select(m => new KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>(m, m.CreateEvaluator(this)))
+                    .ToList();
             }
         }
 

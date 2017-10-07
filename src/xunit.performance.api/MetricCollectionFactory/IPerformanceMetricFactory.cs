@@ -8,8 +8,7 @@ namespace Microsoft.Xunit.Performance.Api
         /// <summary>
         /// Gets the list of performance metrics that needs to be collected.
         /// </summary>
-        /// <param name="assemblyFileName"></param>
-        /// <returns></returns>
-        IEnumerable<PerformanceMetric> GetMetrics(string assemblyFileName);
+        /// <returns>A collection of PerformanceMetric objects to be collected.</returns>
+        IEnumerable<PerformanceMetric> GetMetrics();
     }
 }

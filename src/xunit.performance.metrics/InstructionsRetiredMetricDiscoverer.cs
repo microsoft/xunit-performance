@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Microsoft.Diagnostics.Tracing.Session;
 using Microsoft.Xunit.Performance.Sdk;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +10,7 @@ namespace Microsoft.Xunit.Performance
 {
     internal partial class InstructionsRetiredMetricDiscoverer : IPerformanceMetricDiscoverer
     {
-        public const int DefaultInterval = 100000; // Instructions per event.
+        public const int DefaultInterval = 1000000; // Instructions per event.
         public const string CounterName = "InstructionRetired";
 
         private int ProfileSource { get; }

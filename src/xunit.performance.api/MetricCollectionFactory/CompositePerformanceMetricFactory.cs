@@ -11,11 +11,11 @@ namespace Microsoft.Xunit.Performance.Api
             _factories = new List<IPerformanceMetricFactory>();
         }
 
-        public IEnumerable<PerformanceMetric> GetMetrics(string assemblyFileName)
+        public IEnumerable<PerformanceMetric> GetMetrics()
         {
             var metrics = new List<PerformanceMetric>();
             foreach (var factory in _factories)
-                metrics.AddRange(factory.GetMetrics(assemblyFileName));
+                metrics.AddRange(factory.GetMetrics());
             return metrics;
         }
 

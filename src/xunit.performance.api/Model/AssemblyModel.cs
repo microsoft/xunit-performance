@@ -43,13 +43,14 @@ namespace Microsoft.Xunit.Performance.Api
         internal DataTable GetStatistics()
         {
             var dt = new DataTable();
-            var col0_testName = dt.AddColumn(TableHeader.TestName);
+            var col0_testName = dt.AddColumn(Name);
             var col1_metric = dt.AddColumn(TableHeader.Metric);
-            var col2_iterations = dt.AddColumn(TableHeader.Iterations);
-            var col3_average = dt.AddColumn(TableHeader.AVG);
-            var col4_stdevs = dt.AddColumn(TableHeader.SD);
-            var col5_min = dt.AddColumn(TableHeader.MIN);
-            var col6_max = dt.AddColumn(TableHeader.MAX);
+            var col2_unit = dt.AddColumn(TableHeader.Unit);
+            var col3_iterations = dt.AddColumn(TableHeader.Iterations);
+            var col4_average = dt.AddColumn(TableHeader.Average);
+            var col5_stdevs = dt.AddColumn(TableHeader.StandardDeviation);
+            var col6_min = dt.AddColumn(TableHeader.Minimum);
+            var col7_max = dt.AddColumn(TableHeader.Maximum);
 
             foreach (var testModel in Collection)
             {
@@ -74,12 +75,13 @@ namespace Microsoft.Xunit.Performance.Api
                     var newRow = dt.AppendRow();
                     newRow[col0_testName] = testModel.Name;
                     newRow[col1_metric] = metric.DisplayName;
+                    newRow[col2_unit] = metric.Unit;
 
-                    newRow[col2_iterations] = values.Count().ToString();
-                    newRow[col3_average] = avg.ToString();
-                    newRow[col4_stdevs] = stdev_s.ToString();
-                    newRow[col5_min] = min.ToString();
-                    newRow[col6_max] = max.ToString();
+                    newRow[col3_iterations] = values.Count().ToString();
+                    newRow[col4_average] = avg.ToString();
+                    newRow[col5_stdevs] = stdev_s.ToString();
+                    newRow[col6_min] = min.ToString();
+                    newRow[col7_max] = max.ToString();
                 }
             }
 
@@ -193,7 +195,7 @@ namespace Microsoft.Xunit.Performance.Api
         [XmlArray("Tests")]
         public List<ScenarioTestModel> Tests { get; set; }
 
-        public ScenarioBenchmark()
+        private ScenarioBenchmark()
         {
             Namespace = "";
             Tests = new List<ScenarioTestModel>();
@@ -221,13 +223,14 @@ namespace Microsoft.Xunit.Performance.Api
         internal DataTable GetStatistics()
         {
             var dt = new DataTable();
-            var col0_testName = dt.AddColumn(TableHeader.TestName);
+            var col0_testName = dt.AddColumn(Name);
             var col1_metric = dt.AddColumn(TableHeader.Metric);
-            var col2_iterations = dt.AddColumn(TableHeader.Iterations);
-            var col3_average = dt.AddColumn(TableHeader.AVG);
-            var col4_stdevs = dt.AddColumn(TableHeader.SD);
-            var col5_min = dt.AddColumn(TableHeader.MIN);
-            var col6_max = dt.AddColumn(TableHeader.MAX);
+            var col2_unit = dt.AddColumn(TableHeader.Unit);
+            var col3_iterations = dt.AddColumn(TableHeader.Iterations);
+            var col4_average = dt.AddColumn(TableHeader.Average);
+            var col5_stdevs = dt.AddColumn(TableHeader.StandardDeviation);
+            var col6_min = dt.AddColumn(TableHeader.Minimum);
+            var col7_max = dt.AddColumn(TableHeader.Maximum);
 
             foreach (var test in Tests)
             {
@@ -252,12 +255,13 @@ namespace Microsoft.Xunit.Performance.Api
                     var newRow = dt.AppendRow();
                     newRow[col0_testName] = test.Name;
                     newRow[col1_metric] = metric.DisplayName;
+                    newRow[col2_unit] = metric.Unit;
 
-                    newRow[col2_iterations] = values.Count().ToString();
-                    newRow[col3_average] = avg.ToString();
-                    newRow[col4_stdevs] = stdev_s.ToString();
-                    newRow[col5_min] = min.ToString();
-                    newRow[col6_max] = max.ToString();
+                    newRow[col3_iterations] = values.Count().ToString();
+                    newRow[col4_average] = avg.ToString();
+                    newRow[col5_stdevs] = stdev_s.ToString();
+                    newRow[col6_min] = min.ToString();
+                    newRow[col7_max] = max.ToString();
                 }
             }
 
@@ -278,7 +282,7 @@ namespace Microsoft.Xunit.Performance.Api
         [XmlElement("Performance")]
         public PerformanceModel Performance { get; set; }
 
-        public ScenarioTestModel()
+        private ScenarioTestModel()
         {
             Namespace = "";
             Performance = new PerformanceModel {
@@ -357,11 +361,18 @@ namespace Microsoft.Xunit.Performance.Api
 
     public sealed class MetricModel
     {
-        public string Name { get; set; }
+        // TODO: This should be internal 'MetricModel.Name' is only used to generate the 'XmlElement.Name' & 'XmlAttribute.Name'.
+        public string Name
+        {
+            get => _name;
+            set => _name = XmlConvert.EncodeName(value);
+        }
 
         public string DisplayName { get; set; }
 
         public string Unit { get; set; }
+
+        private string _name = null;
     }
 
     public sealed class IterationModel

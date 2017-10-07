@@ -48,25 +48,28 @@ namespace Microsoft.Xunit.Performance.Api
 
             var cellValueFunctions = new Func<Row, object>[] {
                 (row) => {
-                    return row[dt.ColumnNames["Test Name"]];
+                    return row[dt.ColumnNames[dt.ColumnNames.First().Name]];
                 },
                 (row) => {
-                    return row[dt.ColumnNames["Metric"]];
+                    return row[dt.ColumnNames[TableHeader.Metric]];
                 },
                 (row) => {
-                    return row[dt.ColumnNames["Iterations"]];
+                    return row[dt.ColumnNames[TableHeader.Unit]];
                 },
                 (row) => {
-                    return ConvertToDoubleFormattedString(row[dt.ColumnNames["AVERAGE"]]);
+                    return row[dt.ColumnNames[TableHeader.Iterations]];
                 },
                 (row) => {
-                    return ConvertToDoubleFormattedString(row[dt.ColumnNames["STDEV.S"]]);
+                    return ConvertToDoubleFormattedString(row[dt.ColumnNames[TableHeader.Average]]);
                 },
                 (row) => {
-                    return ConvertToDoubleFormattedString(row[dt.ColumnNames["MIN"]]);
+                    return ConvertToDoubleFormattedString(row[dt.ColumnNames[TableHeader.StandardDeviation]]);
                 },
                 (row) => {
-                    return ConvertToDoubleFormattedString(row[dt.ColumnNames["MAX"]]);
+                    return ConvertToDoubleFormattedString(row[dt.ColumnNames[TableHeader.Minimum]]);
+                },
+                (row) => {
+                    return ConvertToDoubleFormattedString(row[dt.ColumnNames[TableHeader.Maximum]]);
                 },
             };
 
@@ -78,13 +81,14 @@ namespace Microsoft.Xunit.Performance.Api
                               };
             mdTable.Columns = new TableColumn[]
             {
-                new TableColumn(){ HeaderCell = new TableCell() { Text = "Test Name" }, Alignment = TableColumnAlignment.Left },
-                new TableColumn(){ HeaderCell = new TableCell() { Text = "Metric" }, Alignment = TableColumnAlignment.Left },
-                new TableColumn(){ HeaderCell = new TableCell() { Text = "Iterations" }, Alignment = TableColumnAlignment.Center },
-                new TableColumn(){ HeaderCell = new TableCell() { Text = "AVERAGE" }, Alignment = TableColumnAlignment.Right },
-                new TableColumn(){ HeaderCell = new TableCell() { Text = "STDEV.S" }, Alignment = TableColumnAlignment.Right },
-                new TableColumn(){ HeaderCell = new TableCell() { Text = "MIN" }, Alignment = TableColumnAlignment.Right },
-                new TableColumn(){ HeaderCell = new TableCell() { Text = "MAX" }, Alignment = TableColumnAlignment.Right },
+                new TableColumn(){ HeaderCell = new TableCell() { Text = dt.ColumnNames.First().Name }, Alignment = TableColumnAlignment.Left },
+                new TableColumn(){ HeaderCell = new TableCell() { Text = TableHeader.Metric }, Alignment = TableColumnAlignment.Left },
+                new TableColumn(){ HeaderCell = new TableCell() { Text = TableHeader.Unit }, Alignment = TableColumnAlignment.Center },
+                new TableColumn(){ HeaderCell = new TableCell() { Text = TableHeader.Iterations }, Alignment = TableColumnAlignment.Center },
+                new TableColumn(){ HeaderCell = new TableCell() { Text = TableHeader.Average }, Alignment = TableColumnAlignment.Right },
+                new TableColumn(){ HeaderCell = new TableCell() { Text = TableHeader.StandardDeviation }, Alignment = TableColumnAlignment.Right },
+                new TableColumn(){ HeaderCell = new TableCell() { Text = TableHeader.Minimum }, Alignment = TableColumnAlignment.Right },
+                new TableColumn(){ HeaderCell = new TableCell() { Text = TableHeader.Maximum }, Alignment = TableColumnAlignment.Right },
             };
             return mdTable;
         }

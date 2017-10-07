@@ -40,7 +40,7 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
-        public IEnumerable<PerformanceMetric> GetMetrics(string assemblyFileName)
+        public IEnumerable<PerformanceMetric> GetMetrics()
         {
             return _metrics;
         }

@@ -5,7 +5,7 @@
 setlocal EnableDelayedExpansion
   set errorlevel=
   set BuildConfiguration=Release
-  set VersionSuffix=beta-build0007
+  set VersionSuffix=beta-build0008
 
   REM Check that git is on path.
   where.exe /Q git.exe || (
@@ -28,6 +28,13 @@ setlocal EnableDelayedExpansion
   if exist "%LocalDotNet_ToolsDir%" rmdir /s /q "%LocalDotNet_ToolsDir%"
   if exist "%LocalDotNet_ToolsDir%" (
     echo ERROR: Failed to remove "%LocalDotNet_ToolsDir%" folder.
+    exit /b 1
+  )
+
+  set LocalDotNet_PackagesDir=%~dp0packages
+  if exist "%LocalDotNet_PackagesDir%" rmdir /s /q "%LocalDotNet_PackagesDir%"
+  if exist "%LocalDotNet_PackagesDir%" (
+    echo ERROR: Failed to remove "%LocalDotNet_PackagesDir%" folder.
     exit /b 1
   )
 

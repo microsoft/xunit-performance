@@ -1,6 +1,8 @@
+using Microsoft.Diagnostics.Tracing.Parsers;
+using Microsoft.Diagnostics.Tracing.Session;
+using Microsoft.Xunit.Performance.Api.Profilers.Etw;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using static Microsoft.Xunit.Performance.Api.Common;
@@ -38,7 +40,10 @@ namespace Microsoft.Xunit.Performance.Api
 
         public void RunBenchmarks(string assemblyFileName)
         {
-            Validate(assemblyFileName);
+            if (string.IsNullOrEmpty(assemblyFileName))
+                throw new ArgumentNullException(nameof(assemblyFileName));
+            if (!File.Exists(assemblyFileName))
+                throw new FileNotFoundException(assemblyFileName);
 
             Action<string> xUnitAction = (assemblyPath) => { XunitRunner.Run(assemblyPath, _typeNames); };
             var xUnitPerformanceSessionData = new XUnitPerformanceSessionData {
@@ -52,7 +57,7 @@ namespace Microsoft.Xunit.Performance.Api
                 RunId = Configuration.RunId
             };
 
-            var metrics = _metricCollectionFactory.GetMetrics(assemblyFileName);
+            var metrics = _metricCollectionFactory.GetMetrics();
             var xUnitPerformanceMetricData = XunitBenchmark.GetMetadata(
                 assemblyFileName,
                 metrics,
@@ -81,70 +86,107 @@ namespace Microsoft.Xunit.Performance.Api
         /// If the benchmark scenario has not exited, then it will immediately
         /// stop the associated process, and a TimeoutException will be thrown.
         /// </summary>
-        /// <param name="processStartInfo">The ProcessStartInfo that contains the information that is used to start the benchmark scenario process.</param>
-        /// <param name="preIterationDelegate">The action that will be executed before every benchmark scenario execution.</param>
-        /// <param name="postIterationDelegate">The action that will be executed after every benchmark scenario execution.</param>
+        /// <param name="configuration">ScenarioConfiguration object that defined the scenario execution.</param>
         /// <param name="teardownDelegate">The action that will be executed after running all benchmark scenario iterations.</param>
-        /// <param name="scenarioConfiguration">ScenarioConfiguration object that defined the scenario execution.</param>
-        public void RunScenario(
-            ProcessStartInfo processStartInfo,
-            Action preIterationDelegate,
-            Action postIterationDelegate,
-            Func<ScenarioBenchmark> teardownDelegate,
-            ScenarioConfiguration scenarioConfiguration)
+        public void RunScenario(ScenarioConfiguration configuration, Func<ScenarioBenchmark> teardownDelegate)
         {
-            if (processStartInfo == null)
-                throw new ArgumentNullException($"{nameof(processStartInfo)} cannot be null.");
+            if (configuration == null)
+                throw new ArgumentNullException(nameof(configuration));
             if (teardownDelegate == null)
-                throw new ArgumentNullException($"{nameof(teardownDelegate)} cannot be null.");
-            if (scenarioConfiguration == null)
-                throw new ArgumentNullException($"{nameof(scenarioConfiguration)} cannot be null.");
+                throw new ArgumentNullException(nameof(teardownDelegate));
 
-            // Make a copy of the user input to avoid potential bugs due to changes behind the scenes.
-            var configuration = new ScenarioConfiguration(scenarioConfiguration);
+            Action<string> OutputFileCallback = (fileName) => {
+                WriteInfoLine($"File saved to: \"{fileName}\"");
+            };
+
+            var scenarioFileName = $"{Configuration.RunId}-{Path.GetFileNameWithoutExtension(configuration.StartInfo.FileName)}";
+            var fileNameWithoutExtension = Path.Combine(OutputDirectory, $"{scenarioFileName}");
 
             for (int i = 0; i < configuration.Iterations; ++i)
             {
-                preIterationDelegate?.Invoke();
-
-                // TODO: Start scenario profiling.
-
-                using (var process = new Process())
+                using (var scenario = new Scenario(configuration))
                 {
-                    process.StartInfo = processStartInfo;
-                    process.Start();
-                    if (process.WaitForExit((int)(configuration.TimeoutPerIteration.TotalMilliseconds)) == false)
+                    ScenarioExecutionResult scenarioExecutionResult;
+
+                    configuration.PreIterationDelegate?.Invoke(scenario);
+
+                    WriteInfoLine($"$ {Path.GetFileName(scenario.Process.StartInfo.FileName)} {scenario.Process.StartInfo.Arguments}");
+
+                    if (IsWindowsPlatform && _requireEtw)
                     {
-                        process.Kill();
-                        throw new TimeoutException("Running benchmark scenario has timed out.");
+                        var sessionName = $"Performance-Api-Session-{Configuration.RunId}";
+                        var etlFileName = $"{fileNameWithoutExtension}({i}).etl";
+
+                        var userSpecifiedMetrics = _metricCollectionFactory.GetMetrics();
+                        var etwKernelProviders = userSpecifiedMetrics
+                            .SelectMany(pmi => pmi.ProviderInfo)
+                            .OfType<KernelProviderInfo>()
+                            .Select(kernelProviderInfo => new EtwKernelProvider {
+                                Flags = (KernelTraceEventParser.Keywords)kernelProviderInfo.Keywords,
+                                StackCapture = (KernelTraceEventParser.Keywords)kernelProviderInfo.StackKeywords
+                            });
+                        var profileSourceInfos = userSpecifiedMetrics
+                            .SelectMany(pmi => pmi.ProviderInfo)
+                            .OfType<CpuCounterInfo>()
+                            .Where(cpuCounterInfo => EtwHelper.AvailablePreciseMachineCounters.Keys.Contains(cpuCounterInfo.CounterName))
+                            .Select(cpuCounterInfo => {
+                                var profileSourceInfo = EtwHelper.AvailablePreciseMachineCounters[cpuCounterInfo.CounterName];
+                                return new ProfileSourceInfo {
+                                    ID = profileSourceInfo.ID,
+                                    Interval = cpuCounterInfo.Interval,
+                                    MaxInterval = profileSourceInfo.MaxInterval,
+                                    MinInterval = profileSourceInfo.MinInterval,
+                                    Name = profileSourceInfo.Name,
+                                };
+                            });
+
+                        EtwHelper.SetPreciseMachineCounters(profileSourceInfos.ToList());
+
+                        var listener = new EtwListener<ScenarioExecutionResult>(
+                            new EtwSessionData(sessionName, etlFileName) { BufferSizeMB = 256 },
+                            EtwUserProvider.Defaults,
+                            etwKernelProviders.ToList());
+
+                        scenarioExecutionResult = listener.Record(() => { return Run(configuration, scenario); });
+
+                        scenarioExecutionResult.EventLogFileName = etlFileName;
+                        scenarioExecutionResult.PerformanceMonitorCounters = userSpecifiedMetrics
+                            .Where(m => EtwHelper.AvailablePreciseMachineCounters.Keys.Contains(m.Id))
+                            .Select(m => {
+                                var psi = EtwHelper.AvailablePreciseMachineCounters[m.Id];
+                                return new PerformanceMonitorCounter(m.DisplayName, psi.Name, m.Unit, psi.ID);
+                            });
+
+                        OutputFileCallback?.Invoke(etlFileName);
+                    }
+                    else
+                    {
+                        scenarioExecutionResult = Run(configuration, scenario);
                     }
 
-                    // Check for the exit code.
-                    if (!configuration.SuccessExitCodes.Contains(process.ExitCode))
-                        throw new Exception($"'{processStartInfo.FileName}' exited with an invalid exit code: {process.ExitCode}");
+                    configuration.PostIterationDelegate?.Invoke(scenarioExecutionResult);
                 }
-
-                // TODO: Stop scenario profiling.
-
-                postIterationDelegate?.Invoke();
             }
 
             ScenarioBenchmark scenarioBenchmark = teardownDelegate();
             if (scenarioBenchmark == null)
                 throw new InvalidOperationException("The Teardown Delegate should return a valid instance of ScenarioBenchmark.");
-            scenarioBenchmark.Serialize(Configuration.RunId + "-" + scenarioBenchmark.Namespace + ".xml");
+
+            var xmlFileName = $"{fileNameWithoutExtension}.xml";
+            scenarioBenchmark.Serialize(xmlFileName);
+            OutputFileCallback?.Invoke(xmlFileName);
 
             var dt = scenarioBenchmark.GetStatistics();
             var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
 
-            var mdFileName = $"{Configuration.RunId}-{scenarioBenchmark.Namespace}-Statistics.md";
-            MarkdownHelper.Write(mdFileName, mdTable);
-            WriteInfoLine($"Markdown file saved to \"{mdFileName}\"");
-            Console.WriteLine(MarkdownHelper.ToTrimmedTable(mdTable));
-
-            var csvFileName = $"{Configuration.RunId}-{scenarioBenchmark.Namespace}-Statistics.csv";
+            var csvFileName = $"{fileNameWithoutExtension}.csv";
             dt.WriteToCSV(csvFileName);
-            WriteInfoLine($"Statistics written to \"{csvFileName}\"");
+            OutputFileCallback?.Invoke(csvFileName);
+
+            var mdFileName = $"{fileNameWithoutExtension}.md";
+            MarkdownHelper.Write(mdFileName, mdTable);
+            OutputFileCallback?.Invoke(mdFileName);
+            Console.WriteLine(MarkdownHelper.ToTrimmedTable(mdTable));
         }
 
         public static string Usage()
@@ -152,16 +194,40 @@ namespace Microsoft.Xunit.Performance.Api
             return XunitPerformanceHarnessOptions.Usage();
         }
 
-        private static void Validate(string assemblyPath)
+        private static ScenarioExecutionResult Run(ScenarioConfiguration configuration, Scenario scenario)
         {
-            if (string.IsNullOrEmpty(assemblyPath))
-                throw new ArgumentNullException(nameof(assemblyPath));
-            if (!File.Exists(assemblyPath))
-                throw new FileNotFoundException(assemblyPath);
+            if (!scenario.Process.Start())
+                throw new Exception($"Failed to start {scenario.Process.ProcessName}");
+
+            if (scenario.Process.StartInfo.RedirectStandardError)
+                scenario.Process.BeginErrorReadLine();
+            if (scenario.Process.StartInfo.RedirectStandardInput)
+                throw new NotSupportedException($"RedirectStandardInput is not currently supported.");
+            if (scenario.Process.StartInfo.RedirectStandardOutput)
+                scenario.Process.BeginOutputReadLine();
+
+            if (scenario.Process.WaitForExit((int)(configuration.TimeoutPerIteration.TotalMilliseconds)) == false)
+            {
+                // TODO: scenarioOutput.Process.Kill[All|Tree]();
+                scenario.Process.Kill();
+                throw new TimeoutException("Running benchmark scenario has timed out.");
+            }
+
+            // Check for the exit code.
+            if (!configuration.SuccessExitCodes.Contains(scenario.Process.ExitCode))
+                throw new Exception($"'{scenario.Process.StartInfo.FileName}' exited with an invalid exit code: {scenario.Process.ExitCode}");
+
+            return new ScenarioExecutionResult(scenario.Process);
         }
 
         private void ProcessResults(XUnitPerformanceSessionData xUnitSessionData, XUnitPerformanceMetricData xUnitPerformanceMetricData)
         {
+            if (!File.Exists(Configuration.FileLogPath))
+            {
+                WriteWarningLine($"Results file '{Configuration.FileLogPath}' does not exist. Skipping processing of results.");
+                return;
+            }
+
             var reader = new CSVMetricReader(Configuration.FileLogPath);
             var fileNameWithoutExtension = $"{xUnitSessionData.RunId}-{Path.GetFileNameWithoutExtension(xUnitSessionData.AssemblyFileName)}";
 
@@ -248,12 +314,7 @@ namespace Microsoft.Xunit.Performance.Api
         {
             if (!_disposed)
             {
-                if (disposing)
-                {
-                }
-
                 FreeUnManagedResources();
-
                 _disposed = true;
             }
         }
