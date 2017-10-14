@@ -13,8 +13,6 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 
         public string MethodNamespace { get; set; }
 
-        internal bool IsLoaded { get; set; } = false;
-
         internal bool IsDynamic { get; set; }
 
         internal bool IsGeneric { get; set; }
@@ -22,18 +20,13 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         internal bool IsJitted { get; set; }
 
         /// <summary>
-        /// Timestamp when the method was loaded.
+        /// Life span of this method (From the time it was loaded until the time it was unloaded).
         /// </summary>
-        internal DateTime LoadTimeStamp { get; set; } = DateTime.MinValue;
+        internal EtwLifeSpan LifeSpan { get; } = new EtwLifeSpan();
 
         /// <summary>
-        /// Timestamp when the method was unloaded.
+        /// Represents the address space where this method was loaded.
         /// </summary>
-        internal DateTime UnloadTimeStamp { get; set; } = DateTime.MaxValue;
-
-        /// <summary>
-        /// Represents the address range where this method was loaded.
-        /// </summary>
-        internal EtwAddressRange AddressRange { get; set; }
+        internal EtwAddressSpace AddressSpace { get; set; }
     }
 }

@@ -11,6 +11,11 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// </summary>
     public class EtwModule
     {
+        /// <summary>
+        /// Initializes a new instance of the EtwModule class.
+        /// </summary>
+        /// <param name="fullName"></param>
+        /// <param name="checksum"></param>
         public EtwModule(string fullName, int checksum)
         {
             if (string.IsNullOrWhiteSpace(fullName))
@@ -18,10 +23,9 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 
             FullName = fullName;
             Checksum = checksum;
-            PerformanceMonitorCounterData = new Dictionary<int, long>();
+            LifeSpan = new EtwLifeSpan();
 
-            LoadTimeStamp = DateTime.MinValue;
-            UnloadTimeStamp = DateTime.MaxValue;
+            PerformanceMonitorCounterData = new Dictionary<int, long>();
         }
 
         /// <summary>
@@ -30,33 +34,36 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         public string FullName { get; }
 
         /// <summary>
-        /// TODO: Should PerformanceMonitorCounterData be exposed via a IReadOnlyDictionary?
-        /// </summary>
-        public IDictionary<int, long> PerformanceMonitorCounterData { get; }
-
-        /// <summary>
-        /// Indicates whether the modules was loaded.
-        /// </summary>
-        internal bool IsLoaded { get; set; } = false;
-
-        /// <summary>
-        /// Represents the address range where this module was loaded.
-        /// </summary>
-        internal EtwAddressRange AddressRange { get; set; }
-
-        /// <summary>
-        /// Timestamp when the module was loaded.
-        /// </summary>
-        internal DateTime LoadTimeStamp { get; set; }
-
-        /// <summary>
-        /// Timestamp when the module was unloaded.
-        /// </summary>
-        internal DateTime UnloadTimeStamp { get; set; }
-
-        /// <summary>
         /// Module's checksum.
         /// </summary>
         internal int Checksum { get; }
+
+        /// <summary>
+        /// TODO: Should PerformanceMonitorCounterData be exposed via a IReadOnlyDictionary?
+        /// </summary>
+        public IDictionary<int, long> PerformanceMonitorCounterData { get; private set; }
+
+        /// <summary>
+        /// Represents the address space where this module was loaded.
+        /// </summary>
+        internal EtwAddressSpace AddressSpace { get; set; }
+
+        /// <summary>
+        /// Life span of this module (From the time it was loaded until the time it was unloaded).
+        /// </summary>
+        internal EtwLifeSpan LifeSpan { get; }
+
+        internal EtwModule Copy()
+        {
+            var newModule = new EtwModule(FullName, Checksum) {
+                AddressSpace = AddressSpace,
+                PerformanceMonitorCounterData = new Dictionary<int, long>(PerformanceMonitorCounterData),
+            };
+
+            newModule.LifeSpan.Start = LifeSpan.Start;
+            newModule.LifeSpan.End = LifeSpan.End;
+
+            return newModule;
+        }
     }
 }

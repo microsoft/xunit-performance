@@ -24,7 +24,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         }
 
         /// <summary>
-        /// Module Id
+        /// Module Id.
         /// </summary>
         public long Id { get; }
 
