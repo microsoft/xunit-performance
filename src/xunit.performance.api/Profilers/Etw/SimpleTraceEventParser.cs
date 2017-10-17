@@ -29,7 +29,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         public IReadOnlyCollection<Process> GetProfileData(ScenarioExecutionResult scenarioInfo)
         {
             var processes = new List<Process>();
-            Module tmpNtoskrnlModule = null;
+            Module defaultNtoskrnlModule = null;
             var pmcSamplingIntervals = new Dictionary<int, long>();
 
             Func<int, bool> IsOurProcess = (processId) => {
@@ -93,22 +93,21 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                 parser.ImageDCStart += (ImageLoadTraceData obj) => {
                     if (IsNtoskrnlModule(obj))
                     {
-                        if (tmpNtoskrnlModule == null)
-                            tmpNtoskrnlModule = new Module(obj.FileName, obj.ImageChecksum);
+                        if (defaultNtoskrnlModule == null)
+                            defaultNtoskrnlModule = new Module(obj.FileName, obj.ImageChecksum);
 
-                        // Assuming nothing else has changed, and keeping the list of already measured Pmc.
-                        tmpNtoskrnlModule.AddressSpace = new AddressSpace(obj.ImageBase, obj.ImageSize);
-                        tmpNtoskrnlModule.LifeSpan.Start = obj.TimeStamp;
-                        tmpNtoskrnlModule.LifeSpan.End = DateTime.MaxValue;
+                        defaultNtoskrnlModule.AddressSpace = new AddressSpace(obj.ImageBase, obj.ImageSize);
+                        defaultNtoskrnlModule.LifeSpan.Start = obj.TimeStamp;
+                        defaultNtoskrnlModule.LifeSpan.End = DateTime.MaxValue;
                     }
                 };
                 parser.ImageDCStop += (ImageLoadTraceData obj) => {
                     if (IsNtoskrnlModule(obj)
-                        && tmpNtoskrnlModule != null
-                        && obj.TimeStamp > tmpNtoskrnlModule.LifeSpan.End
-                        && obj.Equal(tmpNtoskrnlModule))
+                        && defaultNtoskrnlModule != null
+                        && obj.TimeStamp > defaultNtoskrnlModule.LifeSpan.End
+                        && obj.Equal(defaultNtoskrnlModule))
                     {
-                        tmpNtoskrnlModule.LifeSpan.End = obj.TimeStamp;
+                        defaultNtoskrnlModule.LifeSpan.End = obj.TimeStamp;
                     }
                 };
 
@@ -141,14 +140,14 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                     process.PerformanceMonitorCounterData[performanceMonitorCounter] += pmcSamplingIntervals[obj.ProfileSource];
 
                     // Is the IP in the kernel (Under this process)?
-                    if (tmpNtoskrnlModule != null && obj.IsInTimeAndAddressIntervals(tmpNtoskrnlModule))
+                    if (defaultNtoskrnlModule != null && obj.IsInTimeAndAddressIntervals(defaultNtoskrnlModule))
                     {
-                        var krnlModule = process.Modules.SingleOrDefault(m => m.Checksum == tmpNtoskrnlModule.Checksum
-                            && m.AddressSpace == tmpNtoskrnlModule.AddressSpace
-                            && m.FullName == tmpNtoskrnlModule.FullName);
+                        var krnlModule = process.Modules.SingleOrDefault(m => m.Checksum == defaultNtoskrnlModule.Checksum
+                            && m.AddressSpace == defaultNtoskrnlModule.AddressSpace
+                            && m.FullName == defaultNtoskrnlModule.FullName);
                         if (krnlModule == null)
                         {
-                            krnlModule = tmpNtoskrnlModule.Copy();
+                            krnlModule = defaultNtoskrnlModule.Copy();
                             process.Modules.Add(krnlModule);
                         }
                     }
