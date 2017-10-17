@@ -6,7 +6,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Specifies a set of values that represent a loaded .NET method.
     /// </summary>
-    internal sealed class EtwDotNetMethod
+    internal sealed class DotNetMethod
     {
         /// <summary>
         /// Method's Id.
@@ -41,11 +41,11 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// <summary>
         /// Life span of this method (From the time it was loaded until the time it was unloaded).
         /// </summary>
-        internal EtwLifeSpan LifeSpan { get; } = new EtwLifeSpan();
+        internal LifeSpan LifeSpan { get; } = new LifeSpan();
 
         /// <summary>
         /// Represents the address space where this method was loaded.
         /// </summary>
-        internal EtwAddressSpace AddressSpace { get; set; }
+        internal AddressSpace AddressSpace { get; set; }
     }
 }

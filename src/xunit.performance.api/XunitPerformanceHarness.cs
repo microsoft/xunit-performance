@@ -118,19 +118,19 @@ namespace Microsoft.Xunit.Performance.Api
                         var etlFileName = $"{fileNameWithoutExtension}({i}).etl";
 
                         var userSpecifiedMetrics = _metricCollectionFactory.GetMetrics();
-                        var etwKernelProviders = userSpecifiedMetrics
+                        var kernelProviders = userSpecifiedMetrics
                             .SelectMany(pmi => pmi.ProviderInfo)
                             .OfType<KernelProviderInfo>()
-                            .Select(kernelProviderInfo => new EtwKernelProvider {
+                            .Select(kernelProviderInfo => new KernelProvider {
                                 Flags = (KernelTraceEventParser.Keywords)kernelProviderInfo.Keywords,
                                 StackCapture = (KernelTraceEventParser.Keywords)kernelProviderInfo.StackKeywords
                             });
                         var profileSourceInfos = userSpecifiedMetrics
                             .SelectMany(pmi => pmi.ProviderInfo)
                             .OfType<CpuCounterInfo>()
-                            .Where(cpuCounterInfo => EtwHelper.AvailablePreciseMachineCounters.Keys.Contains(cpuCounterInfo.CounterName))
+                            .Where(cpuCounterInfo => Helper.AvailablePreciseMachineCounters.Keys.Contains(cpuCounterInfo.CounterName))
                             .Select(cpuCounterInfo => {
-                                var profileSourceInfo = EtwHelper.AvailablePreciseMachineCounters[cpuCounterInfo.CounterName];
+                                var profileSourceInfo = Helper.AvailablePreciseMachineCounters[cpuCounterInfo.CounterName];
                                 return new ProfileSourceInfo {
                                     ID = profileSourceInfo.ID,
                                     Interval = cpuCounterInfo.Interval,
@@ -140,20 +140,20 @@ namespace Microsoft.Xunit.Performance.Api
                                 };
                             });
 
-                        EtwHelper.SetPreciseMachineCounters(profileSourceInfos.ToList());
+                        Helper.SetPreciseMachineCounters(profileSourceInfos.ToList());
 
-                        var listener = new EtwListener<ScenarioExecutionResult>(
-                            new EtwSessionData(sessionName, etlFileName) { BufferSizeMB = 256 },
-                            EtwUserProvider.Defaults,
-                            etwKernelProviders.ToList());
+                        var listener = new Listener<ScenarioExecutionResult>(
+                            new SessionData(sessionName, etlFileName) { BufferSizeMB = 256 },
+                            UserProvider.Defaults,
+                            kernelProviders.ToList());
 
                         scenarioExecutionResult = listener.Record(() => { return Run(configuration, scenario); });
 
                         scenarioExecutionResult.EventLogFileName = etlFileName;
                         scenarioExecutionResult.PerformanceMonitorCounters = userSpecifiedMetrics
-                            .Where(m => EtwHelper.AvailablePreciseMachineCounters.Keys.Contains(m.Id))
+                            .Where(m => Helper.AvailablePreciseMachineCounters.Keys.Contains(m.Id))
                             .Select(m => {
-                                var psi = EtwHelper.AvailablePreciseMachineCounters[m.Id];
+                                var psi = Helper.AvailablePreciseMachineCounters[m.Id];
                                 return new PerformanceMonitorCounter(m.DisplayName, psi.Name, m.Unit, psi.ID);
                             })
                             .ToHashSet();

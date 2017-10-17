@@ -8,14 +8,14 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Provides a simple interface to ETW session data.
     /// </summary>
-    internal sealed class EtwSessionData
+    internal sealed class SessionData
     {
         /// <summary>
-        /// Initializes a new instance of the EtwSessionData class, using the session name and file name to write to.
+        /// Initializes a new instance of the SessionData class, using the session name and file name to write to.
         /// </summary>
         /// <param name="name"></param>
         /// <param name="fileName"></param>
-        public EtwSessionData(string name, string fileName)
+        public SessionData(string name, string fileName)
         {
             Name = name;
             FileName = fileName;

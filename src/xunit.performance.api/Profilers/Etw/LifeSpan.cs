@@ -8,7 +8,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Defines the length of time for which an object lives.
     /// </summary>
-    public sealed class EtwLifeSpan : ISpan<DateTime>
+    public sealed class LifeSpan : ISpan<DateTime>
     {
         /// <summary>
         /// Gets the time associated with the object lifetime start.
@@ -45,7 +45,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
             if (obj == null)
                 return false;
 
-            var lifeSpan = obj as EtwLifeSpan;
+            var lifeSpan = obj as LifeSpan;
             if (lifeSpan == null)
                 return false;
 
@@ -62,12 +62,12 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         }
 
         /// <summary>
-        /// Determines whether two specified EtwLifeSpan have the same value.
+        /// Determines whether two specified LifeSpan have the same value.
         /// </summary>
-        /// <param name="lhs">The first EtwLifeSpan to compare, or null.</param>
-        /// <param name="rhs">The second EtwLifeSpan to compare, or null.</param>
+        /// <param name="lhs">The first LifeSpan to compare, or null.</param>
+        /// <param name="rhs">The second LifeSpan to compare, or null.</param>
         /// <returns>True if its two operands refer to the same object or if the values of its operands are equal; otherwise, false.</returns>
-        public static bool operator ==(EtwLifeSpan lhs, EtwLifeSpan rhs)
+        public static bool operator ==(LifeSpan lhs, LifeSpan rhs)
         {
             if (ReferenceEquals(lhs, rhs))
                 return true;
@@ -79,12 +79,12 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         }
 
         /// <summary>
-        /// Determines whether two specified EtwLifeSpans have different values.
+        /// Determines whether two specified LifeSpan objects have different values.
         /// </summary>
-        /// <param name="lhs">The first EtwLifeSpan to compare, or null.</param>
-        /// <param name="rhs">The second EtwLifeSpan to compare, or null.</param>
+        /// <param name="lhs">The first LifeSpan to compare, or null.</param>
+        /// <param name="rhs">The second LifeSpan to compare, or null.</param>
         /// <returns>True if the value of a is different from the value of b; otherwise, false.</returns>
-        public static bool operator !=(EtwLifeSpan lhs, EtwLifeSpan rhs)
+        public static bool operator !=(LifeSpan lhs, LifeSpan rhs)
         {
             return !(lhs == rhs);
         }

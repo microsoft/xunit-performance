@@ -12,17 +12,17 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Provides a simple interface for ETW user providers.
     /// </summary>
-    internal sealed class EtwUserProvider
+    internal sealed class UserProvider
     {
-        static EtwUserProvider()
+        static UserProvider()
         {
             Defaults = new[] {
-                new EtwUserProvider {
+                new UserProvider {
                     Guid = MicrosoftXunitBenchmarkTraceEventParser.ProviderGuid,
                     Keywords = ulong.MaxValue,
                     Level = TraceEventLevel.Verbose,
                 },
-                new EtwUserProvider {
+                new UserProvider {
                     Guid = ClrTraceEventParser.ProviderGuid,
                     Keywords = (ulong)(ClrTraceEventParser.Keywords.Exception | ClrTraceEventParser.Keywords.GC | ClrTraceEventParser.Keywords.Jit | ClrTraceEventParser.Keywords.JittedMethodILToNativeMap | ClrTraceEventParser.Keywords.Loader),
                     Level = TraceEventLevel.Verbose,
@@ -55,6 +55,6 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// <summary>
         /// Default ETW user providers enabled by the xUnit-Performance Api.
         /// </summary>
-        public static IReadOnlyCollection<EtwUserProvider> Defaults { get; set; }
+        public static IReadOnlyCollection<UserProvider> Defaults { get; set; }
     }
 }

@@ -6,14 +6,14 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Represents an address space as given by the Microsoft.Diagnostics.Tracing.Parsers
     /// </summary>
-    internal sealed class EtwAddressSpace : ISpan<ulong>
+    internal sealed class AddressSpace : ISpan<ulong>
     {
         /// <summary>
-        /// Initializes a new instance of the EtwAddressSpace class.
+        /// Initializes a new instance of the AddressSpace class.
         /// </summary>
         /// <param name="address">Interval's start address.</param>
         /// <param name="size">Interval's size.</param>
-        public EtwAddressSpace(ulong address, int size)
+        public AddressSpace(ulong address, int size)
         {
             Start = address;
             Size = size;
@@ -55,7 +55,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
             if (obj == null)
                 return false;
 
-            var addressSpace = obj as EtwAddressSpace;
+            var addressSpace = obj as AddressSpace;
             if (addressSpace == null)
                 return false;
 
@@ -72,12 +72,12 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         }
 
         /// <summary>
-        /// Determines whether two specified EtwAddressSpace have the same value.
+        /// Determines whether two specified AddressSpace have the same value.
         /// </summary>
-        /// <param name="lhs">The first EtwAddressSpace to compare, or null.</param>
-        /// <param name="rhs">The second EtwAddressSpace to compare, or null.</param>
+        /// <param name="lhs">The first AddressSpace to compare, or null.</param>
+        /// <param name="rhs">The second AddressSpace to compare, or null.</param>
         /// <returns>True if its two operands refer to the same object or if the values of its operands are equal; otherwise, false.</returns>
-        public static bool operator ==(EtwAddressSpace lhs, EtwAddressSpace rhs)
+        public static bool operator ==(AddressSpace lhs, AddressSpace rhs)
         {
             if (ReferenceEquals(lhs, rhs))
                 return true;
@@ -89,12 +89,12 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         }
 
         /// <summary>
-        /// Determines whether two specified EtwAddressSpaces have different values.
+        /// Determines whether two specified AddressSpace objects have different values.
         /// </summary>
-        /// <param name="lhs">The first EtwAddressSpace to compare, or null.</param>
-        /// <param name="rhs">The second EtwAddressSpace to compare, or null.</param>
+        /// <param name="lhs">The first AddressSpace to compare, or null.</param>
+        /// <param name="rhs">The second AddressSpace to compare, or null.</param>
         /// <returns>True if the value of a is different from the value of b; otherwise, false.</returns>
-        public static bool operator !=(EtwAddressSpace lhs, EtwAddressSpace rhs)
+        public static bool operator !=(AddressSpace lhs, AddressSpace rhs)
         {
             return !(lhs == rhs);
         }

@@ -8,23 +8,23 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Provides information about a profiled process.
     /// </summary>
-    public sealed class EtwProcess
+    public sealed class Process
     {
         /// <summary>
-        /// Initializes a new instance of the EtwProcess class.
+        /// Initializes a new instance of the Process class.
         /// </summary>
         /// <param name="name">Process image file name</param>
         /// <param name="id">Process Id</param>
         /// <param name="parentId">Process' parent Id</param>
-        public EtwProcess(string name, int id, int parentId)
+        public Process(string name, int id, int parentId)
         {
             Name = name;
             Id = id;
             ParentId = parentId;
-            LifeSpan = new EtwLifeSpan();
+            LifeSpan = new LifeSpan();
 
             PerformanceMonitorCounterData = new Dictionary<PerformanceMonitorCounter, long>();
-            Modules = new List<EtwModule>();
+            Modules = new List<Module>();
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// <summary>
         /// Life span of this process (From the time that the associated process was started until the time that the associated process exited).
         /// </summary>
-        public EtwLifeSpan LifeSpan { get; }
+        public LifeSpan LifeSpan { get; }
 
         /// <summary>
         /// TODO: Should PerformanceMonitorCounterData be exposed via a IReadOnlyDictionary?
@@ -55,6 +55,6 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// <summary>
         /// The modules that have been loaded by the associated process.
         /// </summary>
-        public IList<EtwModule> Modules { get; }
+        public IList<Module> Modules { get; }
     }
 }

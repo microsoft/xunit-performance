@@ -14,7 +14,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Provides a simple interface to extract ETW process/modules data from an *.etl file.
     /// </summary>
-    public sealed class SimpleEtwTraceEventParser
+    public sealed class SimpleTraceEventParser
     {
         /// <summary>
         /// Gets profile data from the provided ScenarioInfo object
@@ -26,10 +26,10 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         ///     1. The scenario launches a single process, but itself can launch child processes.
         ///     2. Process started/stopped within the ETW session.
         /// </remarks>
-        public IReadOnlyCollection<EtwProcess> GetProfileData(ScenarioExecutionResult scenarioInfo)
+        public IReadOnlyCollection<Process> GetProfileData(ScenarioExecutionResult scenarioInfo)
         {
-            var processes = new List<EtwProcess>();
-            EtwModule tmpNtoskrnlModule = null;
+            var processes = new List<Process>();
+            Module tmpNtoskrnlModule = null;
             var pmcSamplingIntervals = new Dictionary<int, long>();
 
             Func<int, bool> IsOurProcess = (processId) => {
@@ -47,7 +47,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                 parser.ProcessStart += (ProcessTraceData obj) => {
                     if (IsOurProcess(obj.ProcessID) || IsOurProcess(obj.ParentID))
                     {
-                        var process = new EtwProcess(obj.ImageFileName, obj.ProcessID, obj.ParentID);
+                        var process = new Process(obj.ImageFileName, obj.ProcessID, obj.ParentID);
                         process.LifeSpan.Start = obj.TimeStamp;
                         processes.Add(process);
                     }
@@ -64,8 +64,8 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                     if (process == null)
                         return;
 
-                    var module = new EtwModule(obj.FileName, obj.ImageChecksum) {
-                        AddressSpace = new EtwAddressSpace(obj.ImageBase, obj.ImageSize)
+                    var module = new Module(obj.FileName, obj.ImageChecksum) {
+                        AddressSpace = new AddressSpace(obj.ImageBase, obj.ImageSize)
                     };
                     module.LifeSpan.Start = obj.TimeStamp;
 
@@ -94,10 +94,10 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                     if (IsNtoskrnlModule(obj))
                     {
                         if (tmpNtoskrnlModule == null)
-                            tmpNtoskrnlModule = new EtwModule(obj.FileName, obj.ImageChecksum);
+                            tmpNtoskrnlModule = new Module(obj.FileName, obj.ImageChecksum);
 
                         // Assuming nothing else has changed, and keeping the list of already measured Pmc.
-                        tmpNtoskrnlModule.AddressSpace = new EtwAddressSpace(obj.ImageBase, obj.ImageSize);
+                        tmpNtoskrnlModule.AddressSpace = new AddressSpace(obj.ImageBase, obj.ImageSize);
                         tmpNtoskrnlModule.LifeSpan.Start = obj.TimeStamp;
                         tmpNtoskrnlModule.LifeSpan.End = DateTime.MaxValue;
                     }
@@ -151,11 +151,6 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                             krnlModule = tmpNtoskrnlModule.Copy();
                             process.Modules.Add(krnlModule);
                         }
-
-                        //if (!krnlModule.PerformanceMonitorCounterData.ContainsKey(obj.ProfileSource))
-                        //    krnlModule.PerformanceMonitorCounterData.Add(obj.ProfileSource, 0);
-                        //krnlModule.PerformanceMonitorCounterData[obj.ProfileSource] += pmcSourceIntervals[obj.ProfileSource];
-                        //return;
                     }
 
                     var modules = process.Modules
@@ -198,13 +193,13 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                     {
                         // Not previously loaded (For example, 'Anonymously Hosted DynamicMethods Assembly')
                         const int AnonymouslyHostedDynamicMethodsAssemblyChecksum = 0;
-                        module = new EtwDotNetModule(obj.ModuleILPath, AnonymouslyHostedDynamicMethodsAssemblyChecksum, obj.ModuleID);
+                        module = new DotNetModule(obj.ModuleILPath, AnonymouslyHostedDynamicMethodsAssemblyChecksum, obj.ModuleID);
                         process.Modules.Add(module);
                     }
                     else
                     {
                         // Update/Swap the module. It is a .NET module.
-                        var dotnetModule = new EtwDotNetModule(module.FullName, module.Checksum, obj.ModuleID) {
+                        var dotnetModule = new DotNetModule(module.FullName, module.Checksum, obj.ModuleID) {
                             AddressSpace = module.AddressSpace,
                         };
                         dotnetModule.LifeSpan.Start = obj.TimeStamp;
@@ -220,7 +215,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                         return;
 
                     var module = process.Modules
-                        .OfType<EtwDotNetModule>()
+                        .OfType<DotNetModule>()
                         .SingleOrDefault(m => m.Id == obj.ModuleID);
                     if (module == null)
                         return;
@@ -236,7 +231,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                         return;
 
                     var module = process.Modules
-                        .OfType<EtwDotNetModule>()
+                        .OfType<DotNetModule>()
                         .SingleOrDefault(m => m.Id == obj.ModuleID);
                     if (module == null)
                         throw new InvalidOperationException($"Method for non-loaded module found! ModuleId: {obj.ModuleID}, MethodName: {obj.MethodName}");
@@ -245,9 +240,9 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                         .SingleOrDefault(m => m.Id == obj.MethodID);
                     if (method == null)
                     {
-                        method = new EtwDotNetMethod {
+                        method = new DotNetMethod {
                             Id = obj.MethodID,
-                            AddressSpace = new EtwAddressSpace(obj.MethodStartAddress, obj.MethodSize),
+                            AddressSpace = new AddressSpace(obj.MethodStartAddress, obj.MethodSize),
                             IsDynamic = obj.IsDynamic,
                             IsGeneric = obj.IsGeneric,
                             IsJitted = obj.IsJitted,
@@ -266,7 +261,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                         return;
 
                     var module = process.Modules
-                        .OfType<EtwDotNetModule>()
+                        .OfType<DotNetModule>()
                         .SingleOrDefault(m => m.Id == obj.ModuleID);
                     if (module == null)
                         return;
@@ -291,7 +286,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 
                         processes
                             .Single(p => p.Id == pmc.ProcessId).Modules
-                            .OfType<EtwDotNetModule>()
+                            .OfType<DotNetModule>()
                             .ForEach(module => {
                                 var isInModule = module.AddressSpace != null
                                     && module.LifeSpan.IsInInterval(pmc.TimeStamp)
@@ -340,7 +335,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 
                         if (unknownModule == null)
                         {
-                            unknownModule = new EtwModule(UnknownModuleName, 0);
+                            unknownModule = new Module(UnknownModuleName, 0);
                             process.Modules.Add(unknownModule);
                         }
 
@@ -357,7 +352,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 
     static class Extensions
     {
-        public static bool Equal(this ImageLoadTraceData @this, EtwModule module)
+        public static bool Equal(this ImageLoadTraceData @this, Module module)
         {
             if (module.AddressSpace != null)
             {
@@ -373,7 +368,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
             }
         }
 
-        public static bool IsInTimeAndAddressIntervals(this PMCCounterProfTraceData @this, EtwModule module)
+        public static bool IsInTimeAndAddressIntervals(this PMCCounterProfTraceData @this, Module module)
         {
             return module.LifeSpan.IsInInterval(@this.TimeStamp)
                 && module.AddressSpace != null // For example, 'Anonymously Hosted DynamicMethods Assembly'

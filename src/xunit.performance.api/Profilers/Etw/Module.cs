@@ -9,21 +9,21 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Loaded module for the corresponding process.
     /// </summary>
-    public class EtwModule
+    public class Module
     {
         /// <summary>
-        /// Initializes a new instance of the EtwModule class.
+        /// Initializes a new instance of the Module class.
         /// </summary>
         /// <param name="fullName"></param>
         /// <param name="checksum"></param>
-        public EtwModule(string fullName, int checksum)
+        public Module(string fullName, int checksum)
         {
             if (string.IsNullOrWhiteSpace(fullName))
                 throw new ArgumentNullException(nameof(fullName));
 
             FullName = fullName;
             Checksum = checksum;
-            LifeSpan = new EtwLifeSpan();
+            LifeSpan = new LifeSpan();
 
             PerformanceMonitorCounterData = new Dictionary<PerformanceMonitorCounter, long>();
         }
@@ -46,20 +46,20 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// <summary>
         /// Represents the address space where this module was loaded.
         /// </summary>
-        internal EtwAddressSpace AddressSpace { get; set; }
+        internal AddressSpace AddressSpace { get; set; }
 
         /// <summary>
         /// Life span of this module (From the time it was loaded until the time it was unloaded).
         /// </summary>
-        internal EtwLifeSpan LifeSpan { get; }
+        internal LifeSpan LifeSpan { get; }
 
         /// <summary>
         /// Creates a new object that is a deep copy of the current instance.
         /// </summary>
         /// <returns>A new object that is a deep copy of this instance.</returns>
-        internal EtwModule Copy()
+        internal Module Copy()
         {
-            var newModule = new EtwModule(FullName, Checksum) {
+            var newModule = new Module(FullName, Checksum) {
                 AddressSpace = AddressSpace,
                 PerformanceMonitorCounterData = new Dictionary<PerformanceMonitorCounter, long>(PerformanceMonitorCounterData),
             };

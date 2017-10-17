@@ -16,7 +16,7 @@ namespace Microsoft.Xunit.Performance.Api
         /// Initializes a new instance of the ScenarioExecutionResult class.
         /// </summary>
         /// <param name="process">Scenario benchmark process that was run.</param>
-        public ScenarioExecutionResult(Process process)
+        public ScenarioExecutionResult(System.Diagnostics.Process process)
         {
             ProcessExitInfo = new ProcessExitInfo(process);
         }

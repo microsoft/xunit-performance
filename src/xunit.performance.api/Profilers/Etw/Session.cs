@@ -18,13 +18,13 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// before exiting, so resources are not held even when the application has
     /// terminated.
     /// </summary>
-    internal sealed class EtwSession : IDisposable
+    internal sealed class Session : IDisposable
     {
         /// <summary>
-        /// Initializes a new instance of a EtwSession class with the provider data.
+        /// Initializes a new instance of a Session class with the provider data.
         /// </summary>
         /// <param name="sessionData"></param>
-        public EtwSession(EtwSessionData sessionData)
+        public Session(SessionData sessionData)
         {
             _disposedValue = false;
             TraceEventSessionHandle = new SafeTerminateHandler<TraceEventSession>(() =>
@@ -76,7 +76,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
             }
         }
 
-        ~EtwSession()
+        ~Session()
         {
             Dispose(false);
         }
