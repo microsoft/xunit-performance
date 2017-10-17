@@ -6,7 +6,7 @@ using System;
 namespace Microsoft.Xunit.Performance.Api
 {
     /// <summary>
-    /// Defines an interval with a mechanism for testing if a value falls in the range.
+    /// Defines a span with a mechanism for testing if a value falls in the range.
     /// </summary>
     /// <typeparam name="T">The type span space.</typeparam>
     internal interface ISpan<T>
@@ -25,8 +25,8 @@ namespace Microsoft.Xunit.Performance.Api
         /// <summary>
         /// Determines if a value falls in this range.
         /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        /// <param name="value">Value to test against this span.</param>
+        /// <returns>True if value is within the span, otherwise false.</returns>
         bool IsInInterval(T value);
     }
 }
