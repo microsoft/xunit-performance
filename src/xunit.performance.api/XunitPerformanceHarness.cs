@@ -155,7 +155,8 @@ namespace Microsoft.Xunit.Performance.Api
                             .Select(m => {
                                 var psi = EtwHelper.AvailablePreciseMachineCounters[m.Id];
                                 return new PerformanceMonitorCounter(m.DisplayName, psi.Name, m.Unit, psi.ID);
-                            });
+                            })
+                            .ToHashSet();
 
                         OutputFileCallback?.Invoke(etlFileName);
                     }

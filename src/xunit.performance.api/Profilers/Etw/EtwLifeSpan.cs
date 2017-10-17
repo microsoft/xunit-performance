@@ -1,15 +1,35 @@
-﻿using System;
+﻿// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 
 namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 {
+    /// <summary>
+    /// Defines the length of time for which an object lives.
+    /// </summary>
     public sealed class EtwLifeSpan : ISpan<DateTime>
     {
+        /// <summary>
+        /// Gets the time associated with the object lifetime start.
+        /// </summary>
         public DateTime Start { get; set; } = DateTime.MinValue;
 
+        /// <summary>
+        /// Gets the time associated with the object lifetime end.
+        /// </summary>
         public DateTime End { get; set; } = DateTime.MaxValue;
 
+        /// <summary>
+        /// Lifetime duration.
+        /// </summary>
         public TimeSpan Duration => End - Start;
 
+        /// <summary>
+        /// Tests if a DateTime object is within the extents of this lifespan.
+        /// </summary>
+        /// <param name="dt">DateTime object to test against this timespan.</param>
+        /// <returns>True if dt is within the interval, otherwise false.</returns>
         public bool IsInInterval(DateTime dt)
         {
             return (Start <= dt) && (dt < End);

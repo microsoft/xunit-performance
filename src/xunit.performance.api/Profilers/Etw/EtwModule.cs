@@ -25,7 +25,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
             Checksum = checksum;
             LifeSpan = new EtwLifeSpan();
 
-            PerformanceMonitorCounterData = new Dictionary<int, long>();
+            PerformanceMonitorCounterData = new Dictionary<PerformanceMonitorCounter, long>();
         }
 
         /// <summary>
@@ -36,12 +36,12 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// <summary>
         /// Module's checksum.
         /// </summary>
-        internal int Checksum { get; }
+        public int Checksum { get; }
 
         /// <summary>
         /// TODO: Should PerformanceMonitorCounterData be exposed via a IReadOnlyDictionary?
         /// </summary>
-        public IDictionary<int, long> PerformanceMonitorCounterData { get; private set; }
+        public IDictionary<PerformanceMonitorCounter, long> PerformanceMonitorCounterData { get; private set; }
 
         /// <summary>
         /// Represents the address space where this module was loaded.
@@ -53,11 +53,15 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// </summary>
         internal EtwLifeSpan LifeSpan { get; }
 
+        /// <summary>
+        /// Creates a new object that is a deep copy of the current instance.
+        /// </summary>
+        /// <returns>A new object that is a deep copy of this instance.</returns>
         internal EtwModule Copy()
         {
             var newModule = new EtwModule(FullName, Checksum) {
                 AddressSpace = AddressSpace,
-                PerformanceMonitorCounterData = new Dictionary<int, long>(PerformanceMonitorCounterData),
+                PerformanceMonitorCounterData = new Dictionary<PerformanceMonitorCounter, long>(PerformanceMonitorCounterData),
             };
 
             newModule.LifeSpan.Start = LifeSpan.Start;

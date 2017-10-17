@@ -25,13 +25,12 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// Some assumptions:
         ///     1. The scenario launches a single process, but itself can launch child processes.
         ///     2. Process started/stopped within the ETW session.
-        ///     3. Pmc source intervals were constant during the whole session.
         /// </remarks>
         public IReadOnlyCollection<EtwProcess> GetProfileData(ScenarioExecutionResult scenarioInfo)
         {
             var processes = new List<EtwProcess>();
             EtwModule tmpNtoskrnlModule = null;
-            var pmcSourceIntervals = new Dictionary<int, long>();
+            var pmcSamplingIntervals = new Dictionary<int, long>();
 
             Func<int, bool> IsOurProcess = (processId) => {
                 return processId == scenarioInfo.ProcessExitInfo.ProcessId || processes.Any(process => process.Id == processId);
@@ -115,38 +114,31 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 
                 ////////////////////////////////////////////////////////////////
                 // PMC data
-                var pmcRollovers = new List<EtwPerfInfoPMCSample>();
+                var pmcRollovers = new List<PmcRollover>();
                 parser.PerfInfoCollectionStart += (SampledProfileIntervalTraceData obj) => {
                     // Update the Pmc intervals.
                     if (scenarioInfo.PerformanceMonitorCounters.Any(pmc => pmc.Id == obj.SampleSource))
                     {
-                        if (!pmcSourceIntervals.ContainsKey(obj.SampleSource))
-                            pmcSourceIntervals.Add(obj.SampleSource, obj.NewInterval);
+                        if (!pmcSamplingIntervals.ContainsKey(obj.SampleSource))
+                            pmcSamplingIntervals.Add(obj.SampleSource, obj.NewInterval);
                         else
-                            pmcSourceIntervals[obj.SampleSource] = obj.NewInterval;
+                            pmcSamplingIntervals[obj.SampleSource] = obj.NewInterval;
                     }
                 };
                 parser.PerfInfoPMCSample += (PMCCounterProfTraceData obj) => {
                     var process = processes.SingleOrDefault(p => p.Id == obj.ProcessID);
-                    if (process == null || !scenarioInfo.PerformanceMonitorCounters.Any(pmc => pmc.Id == obj.ProfileSource))
+                    if (process == null)
                         return;
 
-                    // FIXME: How is it possible to get Pmc timestamps greater than my process.ExitTime?
-                    if (!process.LifeSpan.IsInInterval(obj.TimeStamp))
-                    {
-                        pmcRollovers.Add(new EtwPerfInfoPMCSample {
-                            InstructionPointer = obj.InstructionPointer,
-                            ProcessId = obj.ProcessID,
-                            ProfileSourceId = obj.ProfileSource,
-                            TimeStamp = obj.TimeStamp,
-                        });
+                    var performanceMonitorCounter = scenarioInfo.PerformanceMonitorCounters
+                        .SingleOrDefault(pmc => pmc.Id == obj.ProfileSource);
+                    if (performanceMonitorCounter == null)
                         return;
-                    }
 
                     // If this is our process and it is a Pmc we care to measure.
-                    if (!process.PerformanceMonitorCounterData.ContainsKey(obj.ProfileSource))
-                        process.PerformanceMonitorCounterData.Add(obj.ProfileSource, 0);
-                    process.PerformanceMonitorCounterData[obj.ProfileSource] += pmcSourceIntervals[obj.ProfileSource];
+                    if (!process.PerformanceMonitorCounterData.ContainsKey(performanceMonitorCounter))
+                        process.PerformanceMonitorCounterData.Add(performanceMonitorCounter, 0);
+                    process.PerformanceMonitorCounterData[performanceMonitorCounter] += pmcSamplingIntervals[obj.ProfileSource];
 
                     // Is the IP in the kernel (Under this process)?
                     if (tmpNtoskrnlModule != null && obj.IsInTimeAndAddressIntervals(tmpNtoskrnlModule))
@@ -175,19 +167,20 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                     if (modules.Count() == 0)
                     {
                         // This might fall in managed code. We need to buffer and test it afterwards.
-                        pmcRollovers.Add(new EtwPerfInfoPMCSample {
+                        pmcRollovers.Add(new PmcRollover {
                             InstructionPointer = obj.InstructionPointer,
                             ProcessId = obj.ProcessID,
                             ProfileSourceId = obj.ProfileSource,
                             TimeStamp = obj.TimeStamp,
+                            SamplingInterval = pmcSamplingIntervals[obj.ProfileSource],
                         });
                         return;
                     }
 
                     modules.ForEach(module => {
-                        if (!module.PerformanceMonitorCounterData.ContainsKey(obj.ProfileSource))
-                            module.PerformanceMonitorCounterData.Add(obj.ProfileSource, 0);
-                        module.PerformanceMonitorCounterData[obj.ProfileSource] += pmcSourceIntervals[obj.ProfileSource];
+                        if (!module.PerformanceMonitorCounterData.ContainsKey(performanceMonitorCounter))
+                            module.PerformanceMonitorCounterData.Add(performanceMonitorCounter, 0);
+                        module.PerformanceMonitorCounterData[performanceMonitorCounter] += pmcSamplingIntervals[obj.ProfileSource];
                     });
                 };
 
@@ -291,6 +284,11 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                 // Map PMC to managed modules.
                 pmcRollovers
                     .ForEach(pmc => {
+                        var performanceMonitorCounter = scenarioInfo.PerformanceMonitorCounters
+                            .SingleOrDefault(p => p.Id == pmc.ProfileSourceId);
+                        if (performanceMonitorCounter == null)
+                            return;
+
                         processes
                             .Single(p => p.Id == pmc.ProcessId).Modules
                             .OfType<EtwDotNetModule>()
@@ -300,9 +298,9 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                                     && module.AddressSpace.IsInInterval(pmc.InstructionPointer);
                                 if (isInModule)
                                 {
-                                    if (!module.PerformanceMonitorCounterData.ContainsKey(pmc.ProfileSourceId))
-                                        module.PerformanceMonitorCounterData.Add(pmc.ProfileSourceId, 0);
-                                    module.PerformanceMonitorCounterData[pmc.ProfileSourceId] += pmcSourceIntervals[pmc.ProfileSourceId];
+                                    if (!module.PerformanceMonitorCounterData.ContainsKey(performanceMonitorCounter))
+                                        module.PerformanceMonitorCounterData.Add(performanceMonitorCounter, 0);
+                                    module.PerformanceMonitorCounterData[performanceMonitorCounter] += pmc.SamplingInterval;
                                     pmcRollovers.Remove(pmc);
                                     return;
                                 }
@@ -315,9 +313,9 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                                     .Select(m => m);
                                 if (methods.Count() != 0)
                                 {
-                                    if (!module.PerformanceMonitorCounterData.ContainsKey(pmc.ProfileSourceId))
-                                        module.PerformanceMonitorCounterData.Add(pmc.ProfileSourceId, 0);
-                                    module.PerformanceMonitorCounterData[pmc.ProfileSourceId] += pmcSourceIntervals[pmc.ProfileSourceId];
+                                    if (!module.PerformanceMonitorCounterData.ContainsKey(performanceMonitorCounter))
+                                        module.PerformanceMonitorCounterData.Add(performanceMonitorCounter, 0);
+                                    module.PerformanceMonitorCounterData[performanceMonitorCounter] += pmc.SamplingInterval;
                                     pmcRollovers.Remove(pmc);
                                 }
                             });
@@ -327,6 +325,11 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                 const string UnknownModuleName = "Unknown";
                 pmcRollovers
                     .ForEach(pmc => {
+                        var performanceMonitorCounter = scenarioInfo.PerformanceMonitorCounters
+                            .SingleOrDefault(p => p.Id == pmc.ProfileSourceId);
+                        if (performanceMonitorCounter == null)
+                            return;
+
                         var process = processes
                             .SingleOrDefault(p => p.Id == pmc.ProcessId && p.LifeSpan.IsInInterval(pmc.TimeStamp));
                         if (process == null)
@@ -341,9 +344,9 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                             process.Modules.Add(unknownModule);
                         }
 
-                        if (!unknownModule.PerformanceMonitorCounterData.ContainsKey(pmc.ProfileSourceId))
-                            unknownModule.PerformanceMonitorCounterData.Add(pmc.ProfileSourceId, 0);
-                        unknownModule.PerformanceMonitorCounterData[pmc.ProfileSourceId] += pmcSourceIntervals[pmc.ProfileSourceId];
+                        if (!unknownModule.PerformanceMonitorCounterData.ContainsKey(performanceMonitorCounter))
+                            unknownModule.PerformanceMonitorCounterData.Add(performanceMonitorCounter, 0);
+                        unknownModule.PerformanceMonitorCounterData[performanceMonitorCounter] += pmc.SamplingInterval;
                         pmcRollovers.Remove(pmc);
                     });
 

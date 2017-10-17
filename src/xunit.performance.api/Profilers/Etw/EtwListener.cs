@@ -16,6 +16,12 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <typeparam name="TResult">The type of the return value of the method that the runner delegate encapsulates.</typeparam>
     internal sealed class EtwListener<TResult> : ICanListenEvents<TResult>
     {
+        /// <summary>
+        /// Initializes a new instance of the EtwListener class.
+        /// </summary>
+        /// <param name="userSessionData">ETW session data.</param>
+        /// <param name="userProviders">A collection of user providers to be enabled.</param>
+        /// <param name="kernelProviders">A collection of kernel providers to be enabled.</param>
         public EtwListener(
             EtwSessionData userSessionData,
             IReadOnlyCollection<EtwUserProvider> userProviders,
@@ -26,10 +32,19 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
             KernelProviders = kernelProviders ?? throw new ArgumentNullException(nameof(kernelProviders));
         }
 
+        /// <summary>
+        /// ETW session data.
+        /// </summary>
         public EtwSessionData UserSessionData { get; }
 
+        /// <summary>
+        /// A collection of user providers to be enabled during ETW recording.
+        /// </summary>
         public IReadOnlyCollection<EtwUserProvider> UserProviders { get; }
 
+        /// <summary>
+        /// A collection of kernel providers to be enabled during ETW recording.
+        /// </summary>
         public IReadOnlyCollection<EtwKernelProvider> KernelProviders { get; }
 
         /// <summary>

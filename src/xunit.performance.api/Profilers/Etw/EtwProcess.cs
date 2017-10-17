@@ -23,7 +23,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
             ParentId = parentId;
             LifeSpan = new EtwLifeSpan();
 
-            PerformanceMonitorCounterData = new Dictionary<int, long>();
+            PerformanceMonitorCounterData = new Dictionary<PerformanceMonitorCounter, long>();
             Modules = new List<EtwModule>();
         }
 
@@ -50,7 +50,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// <summary>
         /// TODO: Should PerformanceMonitorCounterData be exposed via a IReadOnlyDictionary?
         /// </summary>
-        public IDictionary<int, long> PerformanceMonitorCounterData { get; }
+        public IDictionary<PerformanceMonitorCounter, long> PerformanceMonitorCounterData { get; }
 
         /// <summary>
         /// The modules that have been loaded by the associated process.
