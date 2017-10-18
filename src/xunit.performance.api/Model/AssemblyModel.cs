@@ -203,6 +203,8 @@ namespace Microsoft.Xunit.Performance.Api
 
         public ScenarioBenchmark(string name) : this()
         {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException($"{nameof(name)} cannot be null, empty or white space.");
             Name = name;
         }
 
@@ -275,7 +277,7 @@ namespace Microsoft.Xunit.Performance.Api
     public sealed class ScenarioTestModel
     {
         [XmlAttribute("Name")]
-        public string Name { get; set; }
+        public string Name { get; }
 
         [XmlAttribute("Namespace")]
         public string Namespace { get => _namespace; set => _namespace = value ?? ""; }
