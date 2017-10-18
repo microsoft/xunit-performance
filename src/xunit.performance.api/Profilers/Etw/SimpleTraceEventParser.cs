@@ -246,8 +246,8 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                             IsDynamic = obj.IsDynamic,
                             IsGeneric = obj.IsGeneric,
                             IsJitted = obj.IsJitted,
-                            MethodName = obj.MethodName,
-                            MethodNamespace = obj.MethodNamespace,
+                            Name = obj.MethodName,
+                            Namespace = obj.MethodNamespace,
                         };
                         method.LifeSpan.Start = obj.TimeStamp;
                         method.LifeSpan.End = DateTime.MaxValue;

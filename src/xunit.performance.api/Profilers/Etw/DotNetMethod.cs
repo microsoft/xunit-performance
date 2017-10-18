@@ -16,12 +16,12 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// <summary>
         /// Method's name.
         /// </summary>
-        public string MethodName { get; set; }
+        public string Name { get; set; }
 
         /// <summary>
         /// Method's namespace.
         /// </summary>
-        public string MethodNamespace { get; set; }
+        public string Namespace { get; set; }
 
         /// <summary>
         /// Gets a value indicating whether the associated method is dynamic.
