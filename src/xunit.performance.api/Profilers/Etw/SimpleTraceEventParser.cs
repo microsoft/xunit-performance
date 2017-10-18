@@ -32,8 +32,9 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
             Module defaultNtoskrnlModule = null;
             var pmcSamplingIntervals = new Dictionary<int, long>();
 
-            Func<int, bool> IsOurProcess = (processId) => {
-                return processId == scenarioInfo.ProcessExitInfo.ProcessId || processes.Any(process => process.Id == processId);
+            Func<ProcessTraceData, bool> IsOurProcess = (ProcessTraceData obj) => {
+                return obj.ProcessID == scenarioInfo.ProcessExitInfo.ProcessId
+                    || processes.Any(process => process.Id == obj.ProcessID || process.Id == obj.ParentID);
             };
 
             using (var source = new ETWTraceEventSource(scenarioInfo.EventLogFileName))
@@ -45,7 +46,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                 // Process data
                 var parser = new KernelTraceEventParser(source);
                 parser.ProcessStart += (ProcessTraceData obj) => {
-                    if (IsOurProcess(obj.ProcessID) || IsOurProcess(obj.ParentID))
+                    if (IsOurProcess(obj))
                     {
                         var process = new Process(obj.ImageFileName, obj.ProcessID, obj.ParentID);
                         process.LifeSpan.Start = obj.TimeStamp;
@@ -53,7 +54,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                     }
                 };
                 parser.ProcessStop += (ProcessTraceData obj) => {
-                    if (IsOurProcess(obj.ProcessID))
+                    if (IsOurProcess(obj))
                         processes.Single(process => process.Id == obj.ProcessID).LifeSpan.End = obj.TimeStamp;
                 };
 
