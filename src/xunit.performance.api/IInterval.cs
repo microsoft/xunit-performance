@@ -6,27 +6,27 @@ using System;
 namespace Microsoft.Xunit.Performance.Api
 {
     /// <summary>
-    /// Defines a span with a mechanism for testing if a value falls in the range.
+    /// Defines an interval with a mechanism for testing if a value falls in the range.
     /// </summary>
-    /// <typeparam name="T">The type span space.</typeparam>
-    internal interface ISpan<T>
+    /// <typeparam name="T">The type interval space.</typeparam>
+    internal interface IInterval<T>
         where T : IComparable, IComparable<T>
     {
         /// <summary>
-        /// Start limit of the span.
+        /// Start limit of the interval.
         /// </summary>
         T Start { get; }
 
         /// <summary>
-        /// End limit of the span.
+        /// End limit of the interval.
         /// </summary>
         T End { get; }
 
         /// <summary>
         /// Determines if a value falls in this range.
         /// </summary>
-        /// <param name="value">Value to test against this span.</param>
-        /// <returns>True if value is within the span, otherwise false.</returns>
+        /// <param name="value">Value to test against this interval.</param>
+        /// <returns>True if value is within the interval, otherwise false.</returns>
         bool IsInInterval(T value);
     }
 }

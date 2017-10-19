@@ -6,7 +6,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Represents an address space as given by the Microsoft.Diagnostics.Tracing.Parsers
     /// </summary>
-    internal sealed class AddressSpace : ISpan<ulong>
+    internal sealed class AddressSpace : IInterval<ulong>
     {
         /// <summary>
         /// Initializes a new instance of the AddressSpace class.

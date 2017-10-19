@@ -8,7 +8,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Defines the length of time for which an object lives.
     /// </summary>
-    public sealed class LifeSpan : ISpan<DateTime>
+    public sealed class LifeSpan : IInterval<DateTime>
     {
         /// <summary>
         /// Gets the time associated with the object lifetime start.
