@@ -66,7 +66,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                         return;
 
                     var module = new Module(obj.FileName, obj.ImageChecksum) {
-                        AddressSpace = new AddressSpace(obj.ImageBase, obj.ImageSize)
+                        AddressSpace = new AddressSpace(obj.ImageBase, (uint)obj.ImageSize)
                     };
                     module.LifeSpan.Start = obj.TimeStamp;
 
@@ -242,7 +242,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                     {
                         method = new DotNetMethod {
                             Id = obj.MethodID,
-                            AddressSpace = new AddressSpace(obj.MethodStartAddress, obj.MethodSize),
+                            AddressSpace = new AddressSpace(obj.MethodStartAddress, (uint)obj.MethodSize),
                             IsDynamic = obj.IsDynamic,
                             IsGeneric = obj.IsGeneric,
                             IsJitted = obj.IsJitted,

@@ -13,17 +13,17 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// </summary>
         /// <param name="address">Interval's start address.</param>
         /// <param name="size">Interval's size.</param>
-        public AddressSpace(ulong address, int size)
+        public AddressSpace(ulong address, uint size)
         {
             Start = address;
             Size = size;
-            End = Start + (uint)Size;
+            End = Start + Size;
         }
 
         /// <summary>
         /// The size of the address space.
         /// </summary>
-        public int Size { get; }
+        public uint Size { get; }
 
         /// <summary>
         /// The address where the module was loaded.
@@ -68,7 +68,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// <returns>A hash code for the current object.</returns>
         public override int GetHashCode()
         {
-            return Start.GetHashCode() ^ Size;
+            return Start.GetHashCode() ^ Size.GetHashCode();
         }
 
         /// <summary>
