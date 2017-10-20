@@ -97,7 +97,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                         if (defaultNtoskrnlModule == null)
                             defaultNtoskrnlModule = new Module(obj.FileName, obj.ImageChecksum);
 
-                        defaultNtoskrnlModule.AddressSpace = new AddressSpace(obj.ImageBase, obj.ImageSize);
+                        defaultNtoskrnlModule.AddressSpace = new AddressSpace(obj.ImageBase, (uint)obj.ImageSize);
                         defaultNtoskrnlModule.LifeSpan.Start = obj.TimeStamp;
                         defaultNtoskrnlModule.LifeSpan.End = DateTime.MaxValue;
                     }
