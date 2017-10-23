@@ -12,7 +12,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     public class Module
     {
         /// <summary>
-        /// Initializes a new instance of the Module class.
+        /// Initializes a new instance of the <see cref="Module"/> class.
         /// </summary>
         /// <param name="fullName"></param>
         /// <param name="checksum"></param>
@@ -41,7 +41,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// <summary>
         /// TODO: Should PerformanceMonitorCounterData be exposed via a IReadOnlyDictionary?
         /// </summary>
-        public IDictionary<PerformanceMonitorCounter, long> PerformanceMonitorCounterData { get; private set; }
+        public IDictionary<PerformanceMonitorCounter, long> PerformanceMonitorCounterData { get; set; }
 
         /// <summary>
         /// Represents the address space where this module was loaded.
@@ -52,22 +52,5 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// Life span of this module (From the time it was loaded until the time it was unloaded).
         /// </summary>
         internal LifeSpan LifeSpan { get; }
-
-        /// <summary>
-        /// Creates a new object that is a deep copy of the current instance.
-        /// </summary>
-        /// <returns>A new object that is a deep copy of this instance.</returns>
-        internal Module Copy()
-        {
-            var newModule = new Module(FullName, Checksum) {
-                AddressSpace = AddressSpace,
-                PerformanceMonitorCounterData = new Dictionary<PerformanceMonitorCounter, long>(PerformanceMonitorCounterData),
-            };
-
-            newModule.LifeSpan.Start = LifeSpan.Start;
-            newModule.LifeSpan.End = LifeSpan.End;
-
-            return newModule;
-        }
     }
 }

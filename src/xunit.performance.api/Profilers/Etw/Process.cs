@@ -11,7 +11,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     public sealed class Process
     {
         /// <summary>
-        /// Initializes a new instance of the Process class.
+        /// Initializes a new instance of the <see cref="Process"/> class.
         /// </summary>
         /// <param name="name">Process image file name</param>
         /// <param name="id">Process Id</param>

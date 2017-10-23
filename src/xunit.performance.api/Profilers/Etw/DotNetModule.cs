@@ -11,7 +11,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     internal sealed class DotNetModule : Module
     {
         /// <summary>
-        /// Initializes a new instance of the DotNetModule class.
+        /// Initializes a new instance of the <see cref="DotNetModule"/> class.
         /// </summary>
         /// <param name="fullName"></param>
         /// <param name="checksum"></param>
@@ -29,7 +29,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         public long Id { get; }
 
         /// <summary>
-        /// Collection of loaded methods for this module.
+        /// Collection of loaded <see cref="DotNetMethod"/> objects.
         /// </summary>
         internal IList<DotNetMethod> Methods { get; }
     }

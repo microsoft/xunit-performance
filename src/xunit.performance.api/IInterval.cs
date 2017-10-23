@@ -26,7 +26,7 @@ namespace Microsoft.Xunit.Performance.Api
         /// Determines if a value falls in this range.
         /// </summary>
         /// <param name="value">Value to test against this interval.</param>
-        /// <returns>True if value is within the interval, otherwise false.</returns>
-        bool IsInInterval(T value);
+        /// <returns>Less than zero, if value precedes Start. Greater than zero, if value follows End. Othewise, zero.</returns>
+        int IsInInterval(T value);
     }
 }

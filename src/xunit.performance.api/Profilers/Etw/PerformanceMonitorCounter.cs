@@ -1,15 +1,17 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
+
 namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 {
     /// <summary>
     /// Defines a performance monitor counter object as collected by the Event Tracing for Windows.
     /// </summary>
-    public sealed class PerformanceMonitorCounter
+    public sealed class PerformanceMonitorCounter : IEquatable<PerformanceMonitorCounter>
     {
         /// <summary>
-        /// Initializes a new instance of the PerformanceMonitorCounter class.
+        /// Initializes a new instance of the <see cref="PerformanceMonitorCounter"/> class.
         /// </summary>
         /// <param name="displayName">User friendly name given to the performance monitor counter.</param>
         /// <param name="name">Performance monitor counter name.</param>
@@ -59,44 +61,40 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// <returns>True if the specified object is equal to the current object; otherwise, false.</returns>
         public override bool Equals(object obj)
         {
-            if (obj == null)
-                return false;
-
-            var pmc = obj as PerformanceMonitorCounter;
-            if (pmc == null)
-                return false;
-
-            return Id == pmc.Id
-                && DisplayName == pmc.DisplayName
-                && Name == pmc.Name
-                && Unit == pmc.Unit;
+            return Equals(obj as PerformanceMonitorCounter);
         }
 
         /// <summary>
-        /// Determines whether two specified PerformanceMonitorCounter objects have the same value.
+        /// Indicates whether the current object is equal to another <see cref="PerformanceMonitorCounter"/> object.
         /// </summary>
-        /// <param name="lhs">The first PerformanceMonitorCounter to compare, or null.</param>
-        /// <param name="rhs">The second PerformanceMonitorCounter to compare, or null.</param>
+        /// <param name="other">A <see cref="PerformanceMonitorCounter"/> object to compare with this object.</param>
+        /// <returns>true if the current object is equal to the other parameter; otherwise, false.</returns>
+        public bool Equals(PerformanceMonitorCounter other)
+        {
+            if ((object)other == null)
+                return false;
+            return Id == other.Id
+                && DisplayName == other.DisplayName
+                && Name == other.Name
+                && Unit == other.Unit;
+        }
+
+        /// <summary>
+        /// Determines whether two specified <see cref="PerformanceMonitorCounter"/> objects have the same value.
+        /// </summary>
+        /// <param name="lhs">The first <see cref="PerformanceMonitorCounter"/> to compare, or null.</param>
+        /// <param name="rhs">The second <see cref="PerformanceMonitorCounter"/> to compare, or null.</param>
         /// <returns>True if its two operands refer to the same object or if the values of its operands are equal; otherwise, false.</returns>
         public static bool operator ==(PerformanceMonitorCounter lhs, PerformanceMonitorCounter rhs)
         {
-            if (ReferenceEquals(lhs, rhs))
-                return true;
-
-            if ((object)lhs == null || (object)rhs == null)
-                return false;
-
-            return lhs.Id == rhs.Id
-                && lhs.DisplayName == rhs.DisplayName
-                && lhs.Name == rhs.Name
-                && lhs.Unit == rhs.Unit;
+            return (object)lhs != null ? lhs.Equals(rhs) : (object)rhs == null;
         }
 
         /// <summary>
-        /// Determines whether two specified PerformanceMonitorCounter objects have different values.
+        /// Determines whether two specified <see cref="PerformanceMonitorCounter"/> objects have different values.
         /// </summary>
-        /// <param name="lhs">The first PerformanceMonitorCounter to compare, or null.</param>
-        /// <param name="rhs">The second PerformanceMonitorCounter to compare, or null.</param>
+        /// <param name="lhs">The first <see cref="PerformanceMonitorCounter"/> to compare, or null.</param>
+        /// <param name="rhs">The second <see cref="PerformanceMonitorCounter"/> to compare, or null.</param>
         /// <returns>True if the value of a is different from the value of b; otherwise, false.</returns>
         public static bool operator !=(PerformanceMonitorCounter lhs, PerformanceMonitorCounter rhs)
         {

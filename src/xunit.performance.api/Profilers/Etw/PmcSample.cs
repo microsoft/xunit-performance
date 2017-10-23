@@ -8,7 +8,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Defines a performance monitor sample.
     /// </summary>
-    internal sealed class PmcRollover
+    internal sealed class PmcSample
     {
         /// <summary>
         /// Process Id associated to this sample.
