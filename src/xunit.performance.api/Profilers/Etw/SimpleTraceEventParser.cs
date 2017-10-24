@@ -43,6 +43,9 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                 if (source.EventsLost > 0)
                     throw new Exception($"Events lost in trace '{scenarioExecutionResult.EventLogFileName}'");
 
+                const string UnknownModuleName = "Unknown";
+                const int DefaultModuleChecksum = 0;
+
                 ////////////////////////////////////////////////////////////////
                 // Process data
                 var parser = new KernelTraceEventParser(source);
@@ -184,7 +187,6 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                     if (module == null)
                     {
                         // Not previously loaded (For example, 'Anonymously Hosted DynamicMethods Assembly')
-                        const int DefaultModuleChecksum = 0;
                         module = new DotNetModule(modulePath, DefaultModuleChecksum, obj.ModuleID);
                         process.Modules.Add(module);
                     }
@@ -268,72 +270,53 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                 source.Process();
 
                 // Map PMC to managed modules.
-                pmcSamples
-                    .ForEach(pmc => {
-                        var performanceMonitorCounter = scenarioExecutionResult.PerformanceMonitorCounters
+                for (int i = pmcSamples.Count - 1; i >= 0; i--)
+                {
+                    var pmc = pmcSamples[i];
+
+                    var performanceMonitorCounter = scenarioExecutionResult.PerformanceMonitorCounters
                             .SingleOrDefault(p => p.Id == pmc.ProfileSourceId);
-                        if (performanceMonitorCounter == null)
-                            return;
+                    if (performanceMonitorCounter == null)
+                        continue;
 
-                        processes
-                            .Single(p => p.Id == pmc.ProcessId).Modules
-                            .OfType<DotNetModule>()
-                            .ForEach(module => {
-                                var isInModule = module.AddressSpace != null
-                                    && module.LifeSpan.IsInInterval(pmc.TimeStamp) == 0
-                                    && module.AddressSpace.IsInInterval(pmc.InstructionPointer) == 0;
-                                if (isInModule)
-                                {
-                                    if (!module.PerformanceMonitorCounterData.ContainsKey(performanceMonitorCounter))
-                                        module.PerformanceMonitorCounterData.Add(performanceMonitorCounter, 0);
-                                    module.PerformanceMonitorCounterData[performanceMonitorCounter] += pmc.SamplingInterval;
-                                    pmcSamples.Remove(pmc);
-                                    return;
-                                }
+                    processes
+                        .Single(p => p.Id == pmc.ProcessId).Modules
+                        .OfType<DotNetModule>()
+                        .ForEach(module => {
+                            var methodsCount = module.Methods
+                                .Where(m => {
+                                    return m.LifeSpan.IsInInterval(pmc.TimeStamp) == 0
+                                        && m.AddressSpace.IsInInterval(pmc.InstructionPointer) == 0;
+                                })
+                                .Count();
+                            if (methodsCount != 0)
+                            {
+                                if (!module.PerformanceMonitorCounterData.ContainsKey(performanceMonitorCounter))
+                                    module.PerformanceMonitorCounterData.Add(performanceMonitorCounter, 0);
+                                module.PerformanceMonitorCounterData[performanceMonitorCounter] += pmc.SamplingInterval;
+                                pmcSamples.RemoveAt(i);
+                            }
+                        });
+                }
 
-                                var methods = module.Methods
-                                    .Where(m => {
-                                        return m.LifeSpan.IsInInterval(pmc.TimeStamp) == 0
-                                            && m.AddressSpace.IsInInterval(pmc.InstructionPointer) == 0;
-                                    })
-                                    .Select(m => m);
-                                if (methods.Count() != 0)
-                                {
-                                    if (!module.PerformanceMonitorCounterData.ContainsKey(performanceMonitorCounter))
-                                        module.PerformanceMonitorCounterData.Add(performanceMonitorCounter, 0);
-                                    module.PerformanceMonitorCounterData[performanceMonitorCounter] += pmc.SamplingInterval;
-                                    pmcSamples.Remove(pmc);
-                                }
-                            });
-                    });
-
-                // Map PMC to managed and Unknown module.
-                const string UnknownModuleName = "Unknown";
+                // Map PMC to Unknown module.
                 pmcSamples
-                    .ForEach(pmc => {
-                        var performanceMonitorCounter = scenarioExecutionResult.PerformanceMonitorCounters
-                            .SingleOrDefault(p => p.Id == pmc.ProfileSourceId);
-                        if (performanceMonitorCounter == null)
-                            return;
-
-                        var process = processes
-                            .SingleOrDefault(p => p.Id == pmc.ProcessId && p.LifeSpan.IsInInterval(pmc.TimeStamp) == 0);
-                        if (process == null)
-                            return;
-
-                        var unknownModule = process.Modules
-                            .SingleOrDefault(m => m.FullName == UnknownModuleName);
-
-                        if (unknownModule == null)
-                        {
-                            unknownModule = new Module(UnknownModuleName, 0);
-                            process.Modules.Add(unknownModule);
-                        }
-
-                        if (!unknownModule.PerformanceMonitorCounterData.ContainsKey(performanceMonitorCounter))
-                            unknownModule.PerformanceMonitorCounterData.Add(performanceMonitorCounter, 0);
-                        unknownModule.PerformanceMonitorCounterData[performanceMonitorCounter] += pmc.SamplingInterval;
-                        pmcSamples.Remove(pmc);
+                    .GroupBy(pmc => pmc.ProcessId)
+                    .Select(g1 => {
+                        return new {
+                            ProcessId = g1.Key,
+                            PerformanceMonitorCounters = g1
+                                .GroupBy(pmc => pmc.ProfileSourceId)
+                                .ToDictionary(
+                                    g2 => scenarioExecutionResult.PerformanceMonitorCounters.Single(pmc => pmc.Id == g2.Key),
+                                    g2 => g2.Aggregate(0, (long count, PmcSample pmcSample) => count + pmcSample.SamplingInterval)),
+                        };
+                    })
+                    .ForEach(pmcRollover => {
+                        var process = processes.Single(p => p.Id == pmcRollover.ProcessId);
+                        process.Modules.Add(new Module(UnknownModuleName, DefaultModuleChecksum) {
+                            PerformanceMonitorCounterData = pmcRollover.PerformanceMonitorCounters,
+                        });
                     });
 
                 return processes;
