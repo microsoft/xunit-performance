@@ -99,7 +99,8 @@ namespace Microsoft.Xunit.Performance.Api
                 WriteInfoLine($"File saved to: \"{fileName}\"");
             };
 
-            var scenarioFileName = $"{Configuration.RunId}-{Path.GetFileNameWithoutExtension(configuration.StartInfo.FileName)}";
+            var scenarioFileName = $"{Configuration.RunId}-{configuration.TestName ?? Path.GetFileNameWithoutExtension(configuration.StartInfo.FileName)}";
+            var fileNameWithoutExtension = Path.Combine(OutputDirectory, $"{scenarioFileName}");
 
             for (int i = 0; i < configuration.Iterations; ++i)
             {
@@ -114,7 +115,14 @@ namespace Microsoft.Xunit.Performance.Api
                     if (IsWindowsPlatform && _requireEtw)
                     {
                         var sessionName = $"Performance-Api-Session-{Configuration.RunId}";
-                        var etlFileName = $"{Path.Combine(OutputDirectory, $"{scenarioFileName}")}({i}).etl";
+
+                        string tracesFolder = Path.Combine(OutputDirectory, $"{fileNameWithoutExtension}-traces");
+                        if (!Directory.Exists(tracesFolder))
+                        {
+                            Directory.CreateDirectory(tracesFolder);
+                        }
+
+                        var etlFileName = Path.Combine(tracesFolder, $"{scenarioFileName}({i}).etl");
 
                         var userSpecifiedMetrics = _metricCollectionFactory.GetMetrics();
                         var kernelProviders = userSpecifiedMetrics

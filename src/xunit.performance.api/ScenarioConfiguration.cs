@@ -85,6 +85,8 @@ namespace Microsoft.Xunit.Performance.Api
         /// </summary>
         public Action<ScenarioExecutionResult> PostIterationDelegate { get; set; }
 
+        public string TestName { get; set; }
+
         private int _iterations;
         private IEnumerable<int> _successExitCodes;
     }
