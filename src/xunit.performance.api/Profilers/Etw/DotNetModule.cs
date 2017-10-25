@@ -8,29 +8,29 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Loaded .NET module for the corresponding process.
     /// </summary>
-    internal sealed class EtwDotNetModule : EtwModule
+    internal sealed class DotNetModule : Module
     {
         /// <summary>
-        /// Initializes a new instance of the EtwDotNetModule class.
+        /// Initializes a new instance of the <see cref="DotNetModule"/> class.
         /// </summary>
         /// <param name="fullName"></param>
         /// <param name="checksum"></param>
         /// <param name="id"></param>
-        public EtwDotNetModule(string fullName, int checksum, long id)
+        public DotNetModule(string fullName, int checksum, long id)
            : base(fullName, checksum)
         {
             Id = id;
-            Methods = new List<EtwDotNetMethod>();
+            Methods = new List<DotNetMethod>();
         }
 
         /// <summary>
-        /// Module Id
+        /// Module Id.
         /// </summary>
         public long Id { get; }
 
         /// <summary>
-        /// Collection of loaded methods for this module.
+        /// Collection of loaded <see cref="DotNetMethod"/> objects.
         /// </summary>
-        internal IList<EtwDotNetMethod> Methods { get; }
+        internal IList<DotNetMethod> Methods { get; }
     }
 }

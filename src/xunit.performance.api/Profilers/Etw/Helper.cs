@@ -12,9 +12,9 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Provides a basic interface for ETW Tracing operations.
     /// </summary>
-    internal static class EtwHelper
+    internal static class Helper
     {
-        static EtwHelper()
+        static Helper()
         {
             AvailablePreciseMachineCounters = TraceEventProfileSources.GetInfo();
             CanEnableKernelProvider = TraceEventSession.IsElevated() == true;
@@ -68,10 +68,10 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// </summary>
         /// <param name="kernelFileName">Name of the etl file where the kernel session events will be written to.</param>
         /// <param name="bufferSizeMB">Sizeof of the internal buffer to be used by the kernel session.</param>
-        /// <returns>A new EtwSession data object.</returns>
-        public static EtwSession MakeKernelSession(string kernelFileName, int bufferSizeMB)
+        /// <returns>A new Session data object.</returns>
+        public static Session MakeKernelSession(string kernelFileName, int bufferSizeMB)
         {
-            return new EtwSession(new EtwSessionData(KernelTraceEventParser.KernelSessionName, kernelFileName) {
+            return new Session(new SessionData(KernelTraceEventParser.KernelSessionName, kernelFileName) {
                 BufferSizeMB = bufferSizeMB
             });
         }
@@ -81,7 +81,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// </summary>
         /// <param name="kernelProvider">Provider data that will be traced.</param>
         /// <returns>True if a kernel session is needed, False otherwise.</returns>
-        public static bool NeedSeparateKernelSession(EtwKernelProvider kernelProvider)
+        public static bool NeedSeparateKernelSession(KernelProvider kernelProvider)
         {
             if (kernelProvider == null)
                 throw new ArgumentNullException(nameof(kernelProvider));

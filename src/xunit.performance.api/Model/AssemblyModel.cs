@@ -203,6 +203,8 @@ namespace Microsoft.Xunit.Performance.Api
 
         public ScenarioBenchmark(string name) : this()
         {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException($"{nameof(name)} cannot be null, empty or white space.");
             Name = name;
         }
 
@@ -253,7 +255,8 @@ namespace Microsoft.Xunit.Performance.Api
                     var min = values.Min();
 
                     var newRow = dt.AppendRow();
-                    newRow[col0_testName] = test.Name;
+                    newRow[col0_testName] = string.IsNullOrEmpty(test.Namespace) ?
+                        $"{test.Name}" : $"{test.Namespace}{test.Separator}{test.Name}";
                     newRow[col1_metric] = metric.DisplayName;
                     newRow[col2_unit] = metric.Unit;
 
@@ -274,17 +277,20 @@ namespace Microsoft.Xunit.Performance.Api
     public sealed class ScenarioTestModel
     {
         [XmlAttribute("Name")]
-        public string Name { get; set; }
+        public string Name { get; }
 
         [XmlAttribute("Namespace")]
-        public string Namespace { get; set; }
+        public string Namespace { get => _namespace; set => _namespace = value ?? ""; }
+
+        public string Separator { get => _separator; set => _separator = value ?? "/"; }
 
         [XmlElement("Performance")]
         public PerformanceModel Performance { get; set; }
 
         private ScenarioTestModel()
         {
-            Namespace = "";
+            _namespace = "";
+            _separator = "/";
             Performance = new PerformanceModel {
                 Metrics = new List<MetricModel>(),
                 IterationModels = new List<IterationModel>()
@@ -295,6 +301,9 @@ namespace Microsoft.Xunit.Performance.Api
         {
             Name = name;
         }
+
+        private string _namespace;
+        private string _separator;
     }
 
     [Serializable]

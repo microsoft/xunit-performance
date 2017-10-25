@@ -8,14 +8,14 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Provides a simple interface to ETW kernel providers.
     /// </summary>
-    internal sealed class EtwKernelProvider
+    internal sealed class KernelProvider
     {
-        static EtwKernelProvider()
+        static KernelProvider()
         {
             // Currently, all pmc set by the API have these flags set:
             // - Flags = Profile | PMCProfile
             // - StackCapture = PMCProfile
-            Default = new EtwKernelProvider {
+            Default = new KernelProvider {
                 Flags = KernelTraceEventParser.Keywords.ImageLoad
                     | KernelTraceEventParser.Keywords.Process
                     | KernelTraceEventParser.Keywords.Thread,
@@ -37,6 +37,6 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// <summary>
         /// Default kernel flags enabled by the xUnit-Performance Api.
         /// </summary>
-        public static EtwKernelProvider Default { get; }
+        public static KernelProvider Default { get; }
     }
 }

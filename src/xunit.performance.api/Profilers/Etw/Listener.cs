@@ -14,23 +14,38 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// Implements a mechanism for listening ETW events.
     /// </summary>
     /// <typeparam name="TResult">The type of the return value of the method that the runner delegate encapsulates.</typeparam>
-    internal sealed class EtwListener<TResult> : ICanListenEvents<TResult>
+    internal sealed class Listener<TResult> : ICanListenEvents<TResult>
     {
-        public EtwListener(
-            EtwSessionData userSessionData,
-            IReadOnlyCollection<EtwUserProvider> userProviders,
-            IReadOnlyCollection<EtwKernelProvider> kernelProviders)
+        /// <summary>
+        /// Initializes a new instance of the Listener class.
+        /// </summary>
+        /// <param name="userSessionData">ETW session data.</param>
+        /// <param name="userProviders">A collection of user providers to be enabled.</param>
+        /// <param name="kernelProviders">A collection of kernel providers to be enabled.</param>
+        public Listener(
+            SessionData userSessionData,
+            IReadOnlyCollection<UserProvider> userProviders,
+            IReadOnlyCollection<KernelProvider> kernelProviders)
         {
             UserSessionData = userSessionData ?? throw new ArgumentNullException(nameof(userSessionData));
             UserProviders = userProviders ?? throw new ArgumentNullException(nameof(userProviders));
             KernelProviders = kernelProviders ?? throw new ArgumentNullException(nameof(kernelProviders));
         }
 
-        public EtwSessionData UserSessionData { get; }
+        /// <summary>
+        /// ETW session data.
+        /// </summary>
+        public SessionData UserSessionData { get; }
 
-        public IReadOnlyCollection<EtwUserProvider> UserProviders { get; }
+        /// <summary>
+        /// A collection of user providers to be enabled during ETW recording.
+        /// </summary>
+        public IReadOnlyCollection<UserProvider> UserProviders { get; }
 
-        public IReadOnlyCollection<EtwKernelProvider> KernelProviders { get; }
+        /// <summary>
+        /// A collection of kernel providers to be enabled during ETW recording.
+        /// </summary>
+        public IReadOnlyCollection<KernelProvider> KernelProviders { get; }
 
         /// <summary>
         /// Performs tasks associated with listening ETW events on Windows.
@@ -44,14 +59,14 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 
             var fi = new FileInfo(UserSessionData.FileName);
             var kernelFileName = Path.Combine($"{fi.DirectoryName}", $"{Path.GetFileNameWithoutExtension(fi.Name)}.kernel.etl");
-            var kernelProvider = KernelProviders.Aggregate(EtwKernelProvider.Default,
-                (current, item) => new EtwKernelProvider {
+            var kernelProvider = KernelProviders.Aggregate(KernelProvider.Default,
+                (current, item) => new KernelProvider {
                     Flags = current.Flags | item.Flags,
                     StackCapture = current.StackCapture | item.StackCapture,
                 });
-            var needKernelSession = EtwHelper.NeedSeparateKernelSession(kernelProvider);
+            var needKernelSession = Helper.NeedSeparateKernelSession(kernelProvider);
 
-            if (needKernelSession && !EtwHelper.CanEnableKernelProvider)
+            if (needKernelSession && !Helper.CanEnableKernelProvider)
             {
                 const string message = "The application is required to run as Administrator in order to capture kernel data.";
                 WriteErrorLine(message);
@@ -60,11 +75,11 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 
             TResult result;
             WriteDebugLine("ETW capture start.");
-            using (var kernelSession = needKernelSession ? EtwHelper.MakeKernelSession(kernelFileName, UserSessionData.BufferSizeMB) : null)
+            using (var kernelSession = needKernelSession ? Helper.MakeKernelSession(kernelFileName, UserSessionData.BufferSizeMB) : null)
             {
                 kernelSession?.EnableKernelProvider(kernelProvider.Flags, kernelProvider.StackCapture);
 
-                using (var userSession = new EtwSession(UserSessionData))
+                using (var userSession = new Session(UserSessionData))
                 {
                     UserProviders.ForEach(provider => {
                         userSession.EnableProvider(provider.Guid, provider.Level, provider.Keywords, provider.Options);
