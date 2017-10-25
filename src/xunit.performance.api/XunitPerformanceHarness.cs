@@ -78,6 +78,10 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
+        Action<string> OutputFileCallback = (fileName) => {
+            WriteInfoLine($"File saved to: \"{fileName}\"");
+        };
+
         /// <summary>
         /// Executes the benchmark scenario specified by the parameter
         /// containing the process start information.<br/>
@@ -88,29 +92,47 @@ namespace Microsoft.Xunit.Performance.Api
         /// </summary>
         /// <param name="configuration">ScenarioConfiguration object that defined the scenario execution.</param>
         /// <param name="teardownDelegate">The action that will be executed after running all benchmark scenario iterations.</param>
-        public void RunScenario(ScenarioConfiguration configuration, Func<ScenarioBenchmark> teardownDelegate)
+        public void RunScenario(ScenarioTestConfiguration configuration, Action<ScenarioBenchmark> teardownDelegate)
         {
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
             if (teardownDelegate == null)
                 throw new ArgumentNullException(nameof(teardownDelegate));
 
-            Action<string> OutputFileCallback = (fileName) => {
-                WriteInfoLine($"File saved to: \"{fileName}\"");
-            };
+            string testName;
+            if (configuration.TestName == null)
+            {
+                testName = Path.GetFileNameWithoutExtension(configuration.StartInfo.FileName);
+                if (configuration.Scenario == null)
+                {
+                    configuration.Scenario = new ScenarioBenchmark(testName);
+                }
+            }
+            else
+            {
+                if (configuration.Scenario == null)
+                {
+                    testName = configuration.TestName;
+                    configuration.Scenario = new ScenarioBenchmark(testName);
+                }
+                else
+                {
+                    testName = configuration.Scenario.Name + " - " + configuration.TestName;
+                }
+            }
 
-            var scenarioFileName = $"{Configuration.RunId}-{configuration.TestName ?? Path.GetFileNameWithoutExtension(configuration.StartInfo.FileName)}";
+            var scenarioFileName = $"{Configuration.RunId}-{testName}";
             var fileNameWithoutExtension = Path.Combine(OutputDirectory, $"{scenarioFileName}");
 
             for (int i = 0; i < configuration.Iterations; ++i)
             {
-                using (var scenario = new Scenario(configuration))
+                using (var scenarioTest = new ScenarioTest(configuration))
                 {
                     ScenarioExecutionResult scenarioExecutionResult;
 
-                    configuration.PreIterationDelegate?.Invoke(scenario);
+                    configuration.PreIterationDelegate?.Invoke(scenarioTest);
 
-                    WriteInfoLine($"$ {Path.GetFileName(scenario.Process.StartInfo.FileName)} {scenario.Process.StartInfo.Arguments}");
+                    WriteInfoLine($"$ {Path.GetFileName(scenarioTest.Process.StartInfo.FileName)} {scenarioTest.Process.StartInfo.Arguments}");
 
                     if (IsWindowsPlatform && _requireEtw)
                     {
@@ -154,7 +176,7 @@ namespace Microsoft.Xunit.Performance.Api
                             UserProvider.Defaults,
                             kernelProviders.ToList());
 
-                        scenarioExecutionResult = listener.Record(() => { return Run(configuration, scenario); });
+                        scenarioExecutionResult = listener.Record(() => { return Run(configuration, scenarioTest); });
 
                         scenarioExecutionResult.EventLogFileName = etlFileName;
                         scenarioExecutionResult.PerformanceMonitorCounters = userSpecifiedMetrics
@@ -169,31 +191,51 @@ namespace Microsoft.Xunit.Performance.Api
                     }
                     else
                     {
-                        scenarioExecutionResult = Run(configuration, scenario);
+                        scenarioExecutionResult = Run(configuration, scenarioTest);
                     }
 
                     configuration.PostIterationDelegate?.Invoke(scenarioExecutionResult);
                 }
             }
 
-            ScenarioBenchmark scenarioBenchmark = teardownDelegate();
-            if (scenarioBenchmark == null)
-                throw new InvalidOperationException("The Teardown Delegate should return a valid instance of ScenarioBenchmark.");
+            teardownDelegate(configuration.Scenario);
 
-            var scenarioBenchmarkFileNameWithoutExtension = Path.Combine(OutputDirectory, $"{Configuration.RunId}-{scenarioBenchmark.Name}");
+            if (configuration.SaveResults)
+            {
+                WriteResults(configuration.Scenario, fileNameWithoutExtension);
+            }
+        }
 
-            var xmlFileName = $"{scenarioBenchmarkFileNameWithoutExtension}.xml";
-            scenarioBenchmark.Serialize(xmlFileName);
+        public void WriteResults(ScenarioBenchmark scenario, string fileNameWithoutExtension)
+        {
+            WriteXmlResults(scenario, fileNameWithoutExtension);
+
+            WriteTableResults(new[] { scenario }, fileNameWithoutExtension, false);
+        }
+
+        public void WriteXmlResults(ScenarioBenchmark scenario, string fileNameWithoutExtension)
+        {
+            var xmlFileName = $"{fileNameWithoutExtension}.xml";
+            scenario.Serialize(xmlFileName);
             OutputFileCallback?.Invoke(xmlFileName);
+        }
 
-            var dt = scenarioBenchmark.GetStatistics();
+        public void WriteTableResults(IEnumerable<ScenarioBenchmark> scenarios, string fileNameWithoutExtension, bool includeScenarioNameColumn)
+        {
+            var dt = ScenarioBenchmark.GetEmptyTable(includeScenarioNameColumn ? null : scenarios.First().Name);
+
+            foreach (var scenario in scenarios)
+            {
+                scenario.AddRowsToTable(dt, scenario.GetStatistics(), includeScenarioNameColumn);
+            }
+
             var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
 
-            var csvFileName = $"{scenarioBenchmarkFileNameWithoutExtension}.csv";
+            var csvFileName = $"{fileNameWithoutExtension}.csv";
             dt.WriteToCSV(csvFileName);
             OutputFileCallback?.Invoke(csvFileName);
 
-            var mdFileName = $"{scenarioBenchmarkFileNameWithoutExtension}.md";
+            var mdFileName = $"{fileNameWithoutExtension}.md";
             MarkdownHelper.Write(mdFileName, mdTable);
             OutputFileCallback?.Invoke(mdFileName);
             Console.WriteLine(MarkdownHelper.ToTrimmedTable(mdTable));
@@ -204,30 +246,30 @@ namespace Microsoft.Xunit.Performance.Api
             return XunitPerformanceHarnessOptions.Usage();
         }
 
-        private static ScenarioExecutionResult Run(ScenarioConfiguration configuration, Scenario scenario)
+        private static ScenarioExecutionResult Run(ScenarioTestConfiguration configuration, ScenarioTest scenarioTest)
         {
-            if (!scenario.Process.Start())
-                throw new Exception($"Failed to start {scenario.Process.ProcessName}");
+            if (!scenarioTest.Process.Start())
+                throw new Exception($"Failed to start {scenarioTest.Process.ProcessName}");
 
-            if (scenario.Process.StartInfo.RedirectStandardError)
-                scenario.Process.BeginErrorReadLine();
-            if (scenario.Process.StartInfo.RedirectStandardInput)
+            if (scenarioTest.Process.StartInfo.RedirectStandardError)
+                scenarioTest.Process.BeginErrorReadLine();
+            if (scenarioTest.Process.StartInfo.RedirectStandardInput)
                 throw new NotSupportedException($"RedirectStandardInput is not currently supported.");
-            if (scenario.Process.StartInfo.RedirectStandardOutput)
-                scenario.Process.BeginOutputReadLine();
+            if (scenarioTest.Process.StartInfo.RedirectStandardOutput)
+                scenarioTest.Process.BeginOutputReadLine();
 
-            if (scenario.Process.WaitForExit((int)(configuration.TimeoutPerIteration.TotalMilliseconds)) == false)
+            if (scenarioTest.Process.WaitForExit((int)(configuration.TimeoutPerIteration.TotalMilliseconds)) == false)
             {
                 // TODO: scenarioOutput.Process.Kill[All|Tree]();
-                scenario.Process.Kill();
+                scenarioTest.Process.Kill();
                 throw new TimeoutException("Running benchmark scenario has timed out.");
             }
 
             // Check for the exit code.
-            if (!configuration.SuccessExitCodes.Contains(scenario.Process.ExitCode))
-                throw new Exception($"'{scenario.Process.StartInfo.FileName}' exited with an invalid exit code: {scenario.Process.ExitCode}");
+            if (!configuration.SuccessExitCodes.Contains(scenarioTest.Process.ExitCode))
+                throw new Exception($"'{scenarioTest.Process.StartInfo.FileName}' exited with an invalid exit code: {scenarioTest.Process.ExitCode}");
 
-            return new ScenarioExecutionResult(scenario.Process);
+            return new ScenarioExecutionResult(scenarioTest.Process, configuration);
         }
 
         private void ProcessResults(XUnitPerformanceSessionData xUnitSessionData, XUnitPerformanceMetricData xUnitPerformanceMetricData)

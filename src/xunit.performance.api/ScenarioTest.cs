@@ -3,9 +3,9 @@ using System.Diagnostics;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    public sealed class Scenario : IDisposable
+    public sealed class ScenarioTest : IDisposable
     {
-        public Scenario(ScenarioConfiguration configuration)
+        public ScenarioTest(ScenarioTestConfiguration configuration)
         {
             _disposedValue = false;
             Process = new Process {
