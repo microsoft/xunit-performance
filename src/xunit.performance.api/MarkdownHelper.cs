@@ -139,10 +139,10 @@ namespace Microsoft.Xunit.Performance.Api
 
         private static string ConvertToDoubleFormattedString(string data)
         {
-            const string fixedFotmat = "F3";
+            const string fixedFormat = "F3";
             const string scientificNotationFormat = "E3";
             var d = Convert.ToDouble(data);
-            var format = (d != 0 && (d > 99999 || Math.Abs(d) < 0.001)) ? scientificNotationFormat : fixedFotmat;
+            var format = (d != 0 && (d > 999999 || Math.Abs(d) < 0.001)) ? scientificNotationFormat : fixedFormat;
             return d.ToString(format, CultureInfo.InvariantCulture);
         }
     }
