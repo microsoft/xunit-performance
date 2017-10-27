@@ -100,7 +100,6 @@ namespace Microsoft.Xunit.Performance.Api
             };
 
             var scenarioFileName = $"{Configuration.RunId}-{Path.GetFileNameWithoutExtension(configuration.StartInfo.FileName)}";
-            var fileNameWithoutExtension = Path.Combine(OutputDirectory, $"{scenarioFileName}");
 
             for (int i = 0; i < configuration.Iterations; ++i)
             {
@@ -115,7 +114,7 @@ namespace Microsoft.Xunit.Performance.Api
                     if (IsWindowsPlatform && _requireEtw)
                     {
                         var sessionName = $"Performance-Api-Session-{Configuration.RunId}";
-                        var etlFileName = $"{fileNameWithoutExtension}({i}).etl";
+                        var etlFileName = $"{Path.Combine(OutputDirectory, $"{scenarioFileName}")}({i}).etl";
 
                         var userSpecifiedMetrics = _metricCollectionFactory.GetMetrics();
                         var kernelProviders = userSpecifiedMetrics
@@ -173,18 +172,20 @@ namespace Microsoft.Xunit.Performance.Api
             if (scenarioBenchmark == null)
                 throw new InvalidOperationException("The Teardown Delegate should return a valid instance of ScenarioBenchmark.");
 
-            var xmlFileName = $"{fileNameWithoutExtension}.xml";
+            var scenarioBenchmarkFileNameWithoutExtension = Path.Combine(OutputDirectory, $"{Configuration.RunId}-{scenarioBenchmark.Name}");
+
+            var xmlFileName = $"{scenarioBenchmarkFileNameWithoutExtension}.xml";
             scenarioBenchmark.Serialize(xmlFileName);
             OutputFileCallback?.Invoke(xmlFileName);
 
             var dt = scenarioBenchmark.GetStatistics();
             var mdTable = MarkdownHelper.GenerateMarkdownTable(dt);
 
-            var csvFileName = $"{fileNameWithoutExtension}.csv";
+            var csvFileName = $"{scenarioBenchmarkFileNameWithoutExtension}.csv";
             dt.WriteToCSV(csvFileName);
             OutputFileCallback?.Invoke(csvFileName);
 
-            var mdFileName = $"{fileNameWithoutExtension}.md";
+            var mdFileName = $"{scenarioBenchmarkFileNameWithoutExtension}.md";
             MarkdownHelper.Write(mdFileName, mdTable);
             OutputFileCallback?.Invoke(mdFileName);
             Console.WriteLine(MarkdownHelper.ToTrimmedTable(mdTable));
