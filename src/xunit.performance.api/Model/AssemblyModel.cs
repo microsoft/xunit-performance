@@ -277,7 +277,7 @@ namespace Microsoft.Xunit.Performance.Api
     public sealed class ScenarioTestModel
     {
         [XmlAttribute("Name")]
-        public string Name { get; }
+        public string Name { get; set; }
 
         [XmlAttribute("Namespace")]
         public string Namespace { get => _namespace; set => _namespace = value ?? ""; }
