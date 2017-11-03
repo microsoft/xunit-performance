@@ -78,9 +78,9 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
-        Action<string> OutputFileCallback = (fileName) => {
+        static void LogFileSaved(string fileName) {
             WriteInfoLine($"File saved to: \"{fileName}\"");
-        };
+        }
 
         /// <summary>
         /// Executes the benchmark scenario specified by the parameter
@@ -187,7 +187,7 @@ namespace Microsoft.Xunit.Performance.Api
                             })
                             .ToHashSet();
 
-                        OutputFileCallback?.Invoke(etlFileName);
+                        LogFileSaved(etlFileName);
                     }
                     else
                     {
@@ -206,6 +206,12 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
+        /// <summary>
+        /// Save results from an executed scenario
+        /// </summary>
+        /// <param name="scenario">The scenario to save results for</param>
+        /// <param name="fileNameWithoutExtension">The filename (without extension) to use to save results</param>
+        /// <remarks>This will save an XML, a Markdown, and a CSV file with the results.</remarks>
         public void WriteResults(ScenarioBenchmark scenario, string fileNameWithoutExtension)
         {
             WriteXmlResults(scenario, fileNameWithoutExtension);
@@ -213,13 +219,24 @@ namespace Microsoft.Xunit.Performance.Api
             WriteTableResults(new[] { scenario }, fileNameWithoutExtension, false);
         }
 
+        /// <summary>
+        /// Save results from an executed scenario in XML format
+        /// </summary>
+        /// <param name="scenario">The scenario to save results for</param>
+        /// <param name="fileNameWithoutExtension">The filename (without extension) to use to save results</param>
         public void WriteXmlResults(ScenarioBenchmark scenario, string fileNameWithoutExtension)
         {
             var xmlFileName = $"{fileNameWithoutExtension}.xml";
             scenario.Serialize(xmlFileName);
-            OutputFileCallback?.Invoke(xmlFileName);
+            LogFileSaved(xmlFileName);
         }
 
+        /// <summary>
+        /// Saves Markdown and CSV results for executed scenarios
+        /// </summary>
+        /// <param name="scenarios">The scenarios to save results for</param>
+        /// <param name="fileNameWithoutExtension">The filename (without extension) to use to save results</param>
+        /// <param name="includeScenarioNameColumn">Indicates whether scenario name should be included in the tables as the first column</param>
         public void WriteTableResults(IEnumerable<ScenarioBenchmark> scenarios, string fileNameWithoutExtension, bool includeScenarioNameColumn)
         {
             var dt = ScenarioBenchmark.GetEmptyTable(includeScenarioNameColumn ? null : scenarios.First().Name);
@@ -233,11 +250,11 @@ namespace Microsoft.Xunit.Performance.Api
 
             var csvFileName = $"{fileNameWithoutExtension}.csv";
             dt.WriteToCSV(csvFileName);
-            OutputFileCallback?.Invoke(csvFileName);
+            LogFileSaved(csvFileName);
 
             var mdFileName = $"{fileNameWithoutExtension}.md";
             MarkdownHelper.Write(mdFileName, mdTable);
-            OutputFileCallback?.Invoke(mdFileName);
+            LogFileSaved(mdFileName);
             Console.WriteLine(MarkdownHelper.ToTrimmedTable(mdTable));
         }
 

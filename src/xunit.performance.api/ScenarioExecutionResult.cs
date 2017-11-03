@@ -28,6 +28,9 @@ namespace Microsoft.Xunit.Performance.Api
         /// </summary>
         public ProcessExitInfo ProcessExitInfo { get; }
 
+        /// <summary>
+        /// Configuration for the scenario that was run
+        /// </summary>
         public ScenarioTestConfiguration Configuration { get; }
 
         /// <summary>

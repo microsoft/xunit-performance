@@ -85,11 +85,20 @@ namespace Microsoft.Xunit.Performance.Api
         /// </summary>
         public Action<ScenarioExecutionResult> PostIterationDelegate { get; set; }
 
+        /// <summary>
+        /// The name of the test
+        /// </summary>
         public string TestName { get; set; }
 
+        /// <summary>
+        /// The scenario to which this test belongs
+        /// </summary>
         public ScenarioBenchmark Scenario { get; set; }
 
-        public bool SaveResults { get; set; }
+        /// <summary>
+        /// Indicates whether the results from the test should be saved after it is run
+        /// </summary>
+        public bool SaveResults { get; set; } = true;
 
 
         private int _iterations;

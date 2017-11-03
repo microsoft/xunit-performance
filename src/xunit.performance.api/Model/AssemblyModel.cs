@@ -324,7 +324,7 @@ namespace Microsoft.Xunit.Performance.Api
         }
     }
 
-    public sealed class ScenarioTestResultRow
+    internal sealed class ScenarioTestResultRow
     {
         public string ScenarioName { get; set; }
         public string TestName { get; set; }
