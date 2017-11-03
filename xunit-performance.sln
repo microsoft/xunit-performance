@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "simpleharness", "tests\simp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "standalonesample", "tests\standalonesample\standalonesample.csproj", "{26D58C50-352F-43AA-BEEE-37C57AE2FF7C}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "scenariobenchmark", "tests\scenariobenchmark\scenariobenchmark.csproj", "{791094C8-A32E-4931-9DCD-993D9490BD33}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,10 @@ Global
 		{26D58C50-352F-43AA-BEEE-37C57AE2FF7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{26D58C50-352F-43AA-BEEE-37C57AE2FF7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{26D58C50-352F-43AA-BEEE-37C57AE2FF7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{791094C8-A32E-4931-9DCD-993D9490BD33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{791094C8-A32E-4931-9DCD-993D9490BD33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{791094C8-A32E-4931-9DCD-993D9490BD33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{791094C8-A32E-4931-9DCD-993D9490BD33}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -60,6 +66,7 @@ Global
 		{71669F0E-51F2-4975-9247-30F0306F40D4} = {FA082F5D-B78D-4D6C-B609-9F1C6E7E2A83}
 		{825C33D4-18FA-41D1-8BE6-C779B30297DB} = {14BC9B10-CF8D-4388-AD81-BFAD9BB16013}
 		{26D58C50-352F-43AA-BEEE-37C57AE2FF7C} = {14BC9B10-CF8D-4388-AD81-BFAD9BB16013}
+		{791094C8-A32E-4931-9DCD-993D9490BD33} = {14BC9B10-CF8D-4388-AD81-BFAD9BB16013}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C5EB23E1-11A8-4BF0-AC18-0F7710E784DF}
