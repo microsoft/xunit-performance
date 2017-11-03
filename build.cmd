@@ -13,6 +13,9 @@ setlocal enabledelayedexpansion
   set OutputDirectory=%~dp0LocalPackages
   call :remove_directory "%OutputDirectory%" || exit /b 1
 
+  rem Don't fall back to machine-installed versions of dotnet, only use repo-local version
+  set DOTNET_MULTILEVEL_LOOKUP=0
+
   call "%~dp0.\dotnet-install.cmd" || exit /b 1
 
   echo Where is dotnet.exe?
