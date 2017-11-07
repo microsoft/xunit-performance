@@ -3,9 +3,16 @@ using System.Diagnostics;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    public sealed class Scenario : IDisposable
+    /// <summary>
+    /// Represents a scenario test that is about to be run
+    /// </summary>
+    public sealed class ScenarioTest : IDisposable
     {
-        public Scenario(ScenarioConfiguration configuration)
+        /// <summary>
+        /// Creates a new <see cref="ScenarioTest"/> object
+        /// </summary>
+        /// <param name="configuration">The scenario configuration</param>
+        public ScenarioTest(ScenarioTestConfiguration configuration)
         {
             _disposedValue = false;
             Process = new Process {
@@ -13,6 +20,9 @@ namespace Microsoft.Xunit.Performance.Api
             };
         }
 
+        /// <summary>
+        /// The process that will be run for the test
+        /// </summary>
         public Process Process { get; }
 
         #region IDisposable Support

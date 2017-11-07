@@ -222,17 +222,66 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
-        internal DataTable GetStatistics()
+        internal static DataTable GetEmptyTable(string scenarioName = null)
         {
             var dt = new DataTable();
-            var col0_testName = dt.AddColumn(Name);
-            var col1_metric = dt.AddColumn(TableHeader.Metric);
-            var col2_unit = dt.AddColumn(TableHeader.Unit);
-            var col3_iterations = dt.AddColumn(TableHeader.Iterations);
-            var col4_average = dt.AddColumn(TableHeader.Average);
-            var col5_stdevs = dt.AddColumn(TableHeader.StandardDeviation);
-            var col6_min = dt.AddColumn(TableHeader.Minimum);
-            var col7_max = dt.AddColumn(TableHeader.Maximum);
+            if (scenarioName == null)
+            {
+                dt.AddColumn(TableHeader.ScenarioName);
+                dt.AddColumn(TableHeader.TestName);
+            }
+            else
+            {
+                dt.AddColumn(scenarioName);
+            }
+            dt.AddColumn(TableHeader.Metric);
+            dt.AddColumn(TableHeader.Unit);
+            dt.AddColumn(TableHeader.Iterations);
+            dt.AddColumn(TableHeader.Average);
+            dt.AddColumn(TableHeader.StandardDeviation);
+            dt.AddColumn(TableHeader.Minimum);
+            dt.AddColumn(TableHeader.Maximum);
+
+            return dt;
+        }
+
+        internal DataTable GetStatisticsTable(bool includeScenarioNameColumn = false)
+        {
+            var dt = GetEmptyTable(includeScenarioNameColumn ? null : Name);
+
+            AddRowsToTable(dt, GetStatistics(), includeScenarioNameColumn);
+
+            return dt;
+        }
+
+        internal void AddRowsToTable(DataTable dt, IEnumerable<ScenarioTestResultRow> rows, bool includeScenarioNameColumn = false)
+        {
+            foreach (var row in rows)
+            {
+                var newRow = dt.AppendRow();
+                if (includeScenarioNameColumn)
+                {
+                    newRow[dt.ColumnNames[TableHeader.ScenarioName]] = row.ScenarioName;
+                    newRow[dt.ColumnNames[TableHeader.TestName]] = row.TestName;
+                }
+                else
+                {
+                    newRow[dt.ColumnNames[row.ScenarioName]] = row.TestName;
+                }
+                newRow[dt.ColumnNames[TableHeader.Metric]] = row.MetricName;
+                newRow[dt.ColumnNames[TableHeader.Unit]] = row.MetricUnit;
+
+                newRow[dt.ColumnNames[TableHeader.Iterations]] = row.Iterations.ToString();
+                newRow[dt.ColumnNames[TableHeader.Average]] = row.Average.ToString();
+                newRow[dt.ColumnNames[TableHeader.StandardDeviation]] = row.StandardDeviation.ToString();
+                newRow[dt.ColumnNames[TableHeader.Minimum]] = row.Minimum.ToString();
+                newRow[dt.ColumnNames[TableHeader.Maximum]] = row.Maximum.ToString();
+            }
+        }
+
+        internal List<ScenarioTestResultRow> GetStatistics()
+        {
+            List<ScenarioTestResultRow> ret = new List<ScenarioTestResultRow>();
 
             foreach (var test in Tests)
             {
@@ -254,22 +303,38 @@ namespace Microsoft.Xunit.Performance.Api
                     var max = values.Max();
                     var min = values.Min();
 
-                    var newRow = dt.AppendRow();
-                    newRow[col0_testName] = string.IsNullOrEmpty(test.Namespace) ?
+                    ScenarioTestResultRow row = new ScenarioTestResultRow();
+                    row.ScenarioName = Name;
+                    row.TestName = string.IsNullOrEmpty(test.Namespace) ?
                         $"{test.Name}" : $"{test.Namespace}{test.Separator}{test.Name}";
-                    newRow[col1_metric] = metric.DisplayName;
-                    newRow[col2_unit] = metric.Unit;
+                    row.MetricName = metric.DisplayName;
+                    row.MetricUnit = metric.Unit;
 
-                    newRow[col3_iterations] = values.Count().ToString();
-                    newRow[col4_average] = avg.ToString();
-                    newRow[col5_stdevs] = stdev_s.ToString();
-                    newRow[col6_min] = min.ToString();
-                    newRow[col7_max] = max.ToString();
+                    row.Iterations = values.Count();
+                    row.Average = avg;
+                    row.StandardDeviation = stdev_s;
+                    row.Minimum = min;
+                    row.Maximum = max;
+
+                    ret.Add(row);
                 }
             }
 
-            return dt;
+            return ret;
         }
+    }
+
+    internal sealed class ScenarioTestResultRow
+    {
+        public string ScenarioName { get; set; }
+        public string TestName { get; set; }
+        public string MetricName { get; set; }
+        public string MetricUnit { get; set; }
+        public int Iterations { get; set; }
+        public double Average { get; set; }
+        public double StandardDeviation { get; set; }
+        public double Minimum { get; set; }
+        public double Maximum { get; set; }
     }
 
     [Serializable]

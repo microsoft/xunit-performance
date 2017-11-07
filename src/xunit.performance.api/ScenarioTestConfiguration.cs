@@ -8,14 +8,14 @@ namespace Microsoft.Xunit.Performance.Api
     /// <summary>
     /// Provides an interface to configure how benchmark scenarios are run by the XunitPerformanceHarness.
     /// </summary>
-    public sealed class ScenarioConfiguration
+    public sealed class ScenarioTestConfiguration
     {
         /// <summary>
         /// Initializes a new instance of the ScenarioConfiguration class.
         /// </summary>
         /// <param name="timeSpan">The amount of time to wait for one iteration process to exit.</param>
         /// <param name="startInfo">The data with which to start the scenario.</param>
-        public ScenarioConfiguration(TimeSpan timeSpan, ProcessStartInfo startInfo)
+        public ScenarioTestConfiguration(TimeSpan timeSpan, ProcessStartInfo startInfo)
         {
             if (timeSpan.TotalMilliseconds < 1)
                 throw new InvalidOperationException("The time out per iteration must be a positive number.");
@@ -78,12 +78,28 @@ namespace Microsoft.Xunit.Performance.Api
         /// <summary>
         /// The action that will be executed before every benchmark scenario execution.
         /// </summary>
-        public Action<Scenario> PreIterationDelegate { get; set; }
+        public Action<ScenarioTest> PreIterationDelegate { get; set; }
 
         /// <summary>
         /// The action that will be executed after every benchmark scenario execution.
         /// </summary>
         public Action<ScenarioExecutionResult> PostIterationDelegate { get; set; }
+
+        /// <summary>
+        /// The name of the test
+        /// </summary>
+        public string TestName { get; set; }
+
+        /// <summary>
+        /// The scenario to which this test belongs
+        /// </summary>
+        public ScenarioBenchmark Scenario { get; set; }
+
+        /// <summary>
+        /// Indicates whether the results from the test should be saved after it is run
+        /// </summary>
+        public bool SaveResults { get; set; } = true;
+
 
         private int _iterations;
         private IEnumerable<int> _successExitCodes;

@@ -13,6 +13,9 @@ setlocal enabledelayedexpansion
   set OutputDirectory=%~dp0LocalPackages
   call :remove_directory "%OutputDirectory%" || exit /b 1
 
+  rem Don't fall back to machine-installed versions of dotnet, only use repo-local version
+  set DOTNET_MULTILEVEL_LOOKUP=0
+
   call "%~dp0.\dotnet-install.cmd" || exit /b 1
 
   echo Where is dotnet.exe?
@@ -24,6 +27,7 @@ setlocal enabledelayedexpansion
   set procedures=%procedures% build_xunit_performance_metrics
   set procedures=%procedures% build_xunit_performance_api
   set procedures=%procedures% build_tests_simpleharness
+  set procedures=%procedures% build_tests_scenariobenchmark
 
   for %%p in (%procedures%) do (
     call :%%p || (
@@ -69,6 +73,22 @@ setlocal
   for %%v in (1.0 1.1 2.0) do (
     dotnet.exe publish -c %BuildConfiguration% --framework netcoreapp%%v                                || exit /b 1
     dotnet.exe "bin\%BuildConfiguration%\netcoreapp%%v\simpleharness.dll" --perf:collect default+gcapi  || exit /b 1
+  )
+
+  exit /b %errorlevel%
+
+:build_tests_scenariobenchmark
+setlocal
+  cd /d %~dp0tests\scenariobenchmark
+  call :dotnet_build || exit /b 1
+  net.exe session 1>nul 2>&1 || (
+    call :print_error_message Cannot run scenariobenchmark test because this is not an administrator window
+    exit /b 1
+  )
+
+  for %%v in (1.0 1.1 2.0) do (
+    dotnet.exe publish -c %BuildConfiguration% --framework netcoreapp%%v                                || exit /b 1
+    dotnet.exe "bin\%BuildConfiguration%\netcoreapp%%v\scenariobenchmark.dll" --perf:collect default    || exit /b 1
   )
 
   exit /b %errorlevel%

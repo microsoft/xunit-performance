@@ -16,15 +16,22 @@ namespace Microsoft.Xunit.Performance.Api
         /// Initializes a new instance of the ScenarioExecutionResult class.
         /// </summary>
         /// <param name="process">Scenario benchmark process that was run.</param>
-        public ScenarioExecutionResult(System.Diagnostics.Process process)
+        /// <param name="configuration">Configuration for the scenario that was run.</param>
+        public ScenarioExecutionResult(System.Diagnostics.Process process, ScenarioTestConfiguration configuration)
         {
             ProcessExitInfo = new ProcessExitInfo(process);
+            Configuration = configuration;
         }
 
         /// <summary>
         /// State of the run scenario process.
         /// </summary>
         public ProcessExitInfo ProcessExitInfo { get; }
+
+        /// <summary>
+        /// Configuration for the scenario that was run
+        /// </summary>
+        public ScenarioTestConfiguration Configuration { get; }
 
         /// <summary>
         /// Binary .etl file name where the ETW traces were logged.

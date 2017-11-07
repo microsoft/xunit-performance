@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Configuration">
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>netcoreapp1.0;netcoreapp1.1;;netcoreapp2.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\xunit.performance.api\xunit.performance.api.csproj" />
+    <ProjectReference Include="..\..\src\xunit.performance.core\xunit.performance.core.csproj" />
+    <ProjectReference Include="..\..\src\xunit.performance.execution\xunit.performance.execution.csproj" />
+    <ProjectReference Include="..\..\src\xunit.performance.metrics\xunit.performance.metrics.csproj" />
+  </ItemGroup>
+
+</Project>
