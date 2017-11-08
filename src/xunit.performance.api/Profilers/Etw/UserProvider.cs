@@ -24,7 +24,11 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                 },
                 new UserProvider {
                     Guid = ClrTraceEventParser.ProviderGuid,
-                    Keywords = (ulong)(ClrTraceEventParser.Keywords.Exception | ClrTraceEventParser.Keywords.GC | ClrTraceEventParser.Keywords.Jit | ClrTraceEventParser.Keywords.JittedMethodILToNativeMap | ClrTraceEventParser.Keywords.Loader),
+                    Keywords = (ulong)(ClrTraceEventParser.Keywords.Exception
+                        | ClrTraceEventParser.Keywords.GC
+                        | ClrTraceEventParser.Keywords.Jit
+                        | ClrTraceEventParser.Keywords.Loader
+                        | ClrTraceEventParser.Keywords.NGen),
                     Level = TraceEventLevel.Verbose,
                 },
             };
@@ -55,6 +59,6 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// <summary>
         /// Default ETW user providers enabled by the xUnit-Performance Api.
         /// </summary>
-        public static IReadOnlyCollection<UserProvider> Defaults { get; set; }
+        public static IReadOnlyCollection<UserProvider> Defaults { get; }
     }
 }
