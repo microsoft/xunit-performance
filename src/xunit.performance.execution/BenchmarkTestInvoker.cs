@@ -145,6 +145,7 @@ namespace Microsoft.Xunit.Performance
             {
                 GC.Collect(2, GCCollectionMode.Forced);
                 GC.WaitForPendingFinalizers();
+                GC.Collect(2, GCCollectionMode.Forced);
 
                 for (_currentIteration = 0; !DoneIterating; _currentIteration++)
                 {
