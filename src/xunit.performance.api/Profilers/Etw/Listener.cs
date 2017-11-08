@@ -70,7 +70,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
             {
                 const string message = "The application is required to run as Administrator in order to capture kernel data.";
                 WriteErrorLine(message);
-                throw new InvalidOperationException(message);
+                throw new UnauthorizedAccessException(message);
             }
 
             TResult result;
