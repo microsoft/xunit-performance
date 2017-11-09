@@ -1,13 +1,8 @@
-using Microsoft.Xunit.Performance;
 using Microsoft.Xunit.Performance.Api;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Xunit;
 
 
 namespace simpleharness
@@ -65,18 +60,22 @@ namespace simpleharness
             ProcessStartInfo processToMeasure;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                processToMeasure = new ProcessStartInfo("cmd", $"/c {commandName}");
+                processToMeasure = new ProcessStartInfo("cmd.exe", $"/c {commandName}");
             }
             else
             {
                 processToMeasure = new ProcessStartInfo(commandName);
-            }            
+            }
 
-            var scenarioTestConfiguration = new ScenarioTestConfiguration(Timeout, processToMeasure);
-            scenarioTestConfiguration.Iterations = Iterations;
-            scenarioTestConfiguration.PreIterationDelegate = PreIteration;
-            scenarioTestConfiguration.PostIterationDelegate = PostIteration;
-            scenarioTestConfiguration.Scenario = new ScenarioBenchmark("ExecuteCommand");
+            processToMeasure.RedirectStandardError = true;
+            processToMeasure.RedirectStandardOutput = true;
+
+            var scenarioTestConfiguration = new ScenarioTestConfiguration(Timeout, processToMeasure) {
+                Iterations = Iterations,
+                PreIterationDelegate = PreIteration,
+                PostIterationDelegate = PostIteration,
+                Scenario = new ScenarioBenchmark("ExecuteCommand")
+            };
             scenarioTestConfiguration.Scenario.Tests.Add(testModel);
             scenarioTestConfiguration.TestName = commandName;
 
