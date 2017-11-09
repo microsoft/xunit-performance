@@ -183,7 +183,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 
                     var modulePath = string.IsNullOrEmpty(obj.ModuleNativePath) ? obj.ModuleILPath : obj.ModuleNativePath;
                     var module = process.Modules
-                        .SingleOrDefault(m => m.FullName == modulePath);
+                        .SingleOrDefault(m => m.FullName == modulePath && m.LifeSpan.IsInInterval(obj.TimeStamp) == 0);
                     if (module == null)
                     {
                         // Not previously loaded (For example, 'Anonymously Hosted DynamicMethods Assembly')
@@ -228,7 +228,11 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                         .OfType<DotNetModule>()
                         .SingleOrDefault(m => m.Id == obj.ModuleID);
                     if (module == null)
-                        throw new InvalidOperationException($"Method for non-loaded module found! ModuleId: {obj.ModuleID}, MethodName: {obj.MethodName}");
+                    {
+                        var clrHelpersModule = new DotNetModule("$CLRHelpers$", DefaultModuleChecksum, 0);
+                        process.Modules.Add(clrHelpersModule);
+                        module = clrHelpersModule;
+                    }
 
                     var method = module.Methods
                         .SingleOrDefault(m => m.Id == obj.MethodID);
