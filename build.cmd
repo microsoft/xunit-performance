@@ -71,8 +71,8 @@ setlocal
   )
 
   for %%v in (1.0 1.1 2.0) do (
-    dotnet.exe publish -c %BuildConfiguration% --framework netcoreapp%%v                                || exit /b 1
-    dotnet.exe "bin\%BuildConfiguration%\netcoreapp%%v\simpleharness.dll" --perf:collect default+gcapi  || exit /b 1
+    dotnet.exe publish -c %BuildConfiguration% --framework netcoreapp%%v                                                                                              || exit /b 1
+    dotnet.exe "bin\%BuildConfiguration%\netcoreapp%%v\simpleharness.dll" --perf:collect default+gcapi --perf:outputdir "%CD%\bin\%BuildConfiguration%\netcoreapp%%v" || exit /b 1
   )
 
   exit /b %errorlevel%
@@ -87,8 +87,8 @@ setlocal
   )
 
   for %%v in (1.0 1.1 2.0) do (
-    dotnet.exe publish -c %BuildConfiguration% --framework netcoreapp%%v                                || exit /b 1
-    dotnet.exe "bin\%BuildConfiguration%\netcoreapp%%v\scenariobenchmark.dll" --perf:collect default    || exit /b 1
+    dotnet.exe publish -c %BuildConfiguration% --framework netcoreapp%%v                                                                                            || exit /b 1
+    dotnet.exe "bin\%BuildConfiguration%\netcoreapp%%v\scenariobenchmark.dll" --perf:collect default --perf:outputdir "%CD%\bin\%BuildConfiguration%\netcoreapp%%v" || exit /b 1
   )
 
   exit /b %errorlevel%
