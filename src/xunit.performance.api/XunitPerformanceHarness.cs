@@ -143,7 +143,7 @@ namespace Microsoft.Xunit.Performance.Api
                 }
                 else
                 {
-                    testName = configuration.Scenario.Name + " - " + configuration.TestName;
+                    testName = $"{configuration.Scenario.Name}-{configuration.TestName}";
                 }
             }
 
