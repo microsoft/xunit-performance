@@ -12,9 +12,6 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     {
         static KernelProvider()
         {
-            // Currently, all pmc set by the API have these flags set:
-            // - Flags = PMCProfile
-            // - StackCapture = PMCProfile
             Default = new KernelProvider {
                 Flags = KernelTraceEventParser.Keywords.ImageLoad
                     | KernelTraceEventParser.Keywords.Process
