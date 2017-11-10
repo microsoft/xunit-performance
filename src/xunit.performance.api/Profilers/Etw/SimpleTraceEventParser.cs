@@ -42,13 +42,11 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                     || processes.Any(process => process.Id == obj.ProcessID || process.Id == obj.ParentID);
             }
 
-            Console.WriteLine($"[{DateTime.Now}] Parsing starts.");
             using (var source = new ETWTraceEventSource(scenarioExecutionResult.EventLogFileName))
             {
                 if (source.EventsLost > 0)
                     throw new Exception($"Events lost in trace '{scenarioExecutionResult.EventLogFileName}'");
 
-                const string UnknownModuleName = "Unknown";
                 const int DefaultModuleChecksum = 0;
 
                 ////////////////////////////////////////////////////////////////
@@ -317,6 +315,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                 }
 
                 // Map PMC to Unknown module.
+                const string UnknownModuleName = "Unknown";
                 pmcSamples
                     .GroupBy(pmc => pmc.ProcessId)
                     .Select(g1 => {
@@ -337,8 +336,6 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                         });
                         process.Modules.Add(newModule);
                     });
-
-                Console.WriteLine($"[{DateTime.Now}] Parsing ends.");
 
                 return processes;
             }
