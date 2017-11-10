@@ -16,16 +16,33 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// </summary>
         /// <param name="fullName"></param>
         /// <param name="checksum"></param>
-        public Module(string fullName, int checksum)
+        /// <param name="monitoredCounters">A set of monitored <see cref="PerformanceMonitorCounter"/> counters.</param>
+        public Module(string fullName, int checksum, ISet<PerformanceMonitorCounter> monitoredCounters)
         {
             if (string.IsNullOrWhiteSpace(fullName))
                 throw new ArgumentNullException(nameof(fullName));
 
             FullName = fullName;
             Checksum = checksum;
-            LifeSpan = new LifeSpan();
 
             PerformanceMonitorCounterData = new Dictionary<PerformanceMonitorCounter, long>();
+            foreach (var pmc in monitoredCounters)
+                PerformanceMonitorCounterData.Add(pmc, 0);
+
+            RuntimeInstances = new List<RuntimeInstance>();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Module"/> class (Copy constructor).
+        /// </summary>
+        /// <param name="src">Instance to be copied.</param>
+        public Module(Module src)
+        {
+            FullName = src.FullName;
+            Checksum = src.Checksum;
+
+            PerformanceMonitorCounterData = new Dictionary<PerformanceMonitorCounter, long>(src.PerformanceMonitorCounterData);
+            RuntimeInstances = new List<RuntimeInstance>(src.RuntimeInstances);
         }
 
         /// <summary>
@@ -44,13 +61,8 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         public IDictionary<PerformanceMonitorCounter, long> PerformanceMonitorCounterData { get; set; }
 
         /// <summary>
-        /// Represents the address space where this module was loaded.
+        /// A collection of runtime information (lifetime and loaded address) about this module.
         /// </summary>
-        internal AddressSpace AddressSpace { get; set; }
-
-        /// <summary>
-        /// Life span of this module (From the time it was loaded until the time it was unloaded).
-        /// </summary>
-        internal LifeSpan LifeSpan { get; }
+        internal IList<RuntimeInstance> RuntimeInstances { get; }
     }
 }
