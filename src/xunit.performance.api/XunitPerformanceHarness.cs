@@ -158,7 +158,9 @@ namespace Microsoft.Xunit.Performance.Api
 
                     configuration.PreIterationDelegate?.Invoke(scenarioTest);
 
-                    WriteInfoLine($"Iteration ({i}): \"{scenarioTest.Process.StartInfo.FileName}\" {scenarioTest.Process.StartInfo.Arguments}");
+                    WriteInfoLine($"Iteration ({i})");
+                    WriteInfoLine($"  Working Directory: \"{scenarioTest.Process.StartInfo.WorkingDirectory}\"");
+                    WriteInfoLine($"  Command: \"{scenarioTest.Process.StartInfo.FileName}\" {scenarioTest.Process.StartInfo.Arguments}");
 
                     if (IsWindowsPlatform && _requireEtw)
                     {
