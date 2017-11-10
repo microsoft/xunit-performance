@@ -15,9 +15,17 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// </summary>
         /// <param name="fullName"></param>
         /// <param name="checksum"></param>
+        /// <param name="monitoredCounters"></param>
         /// <param name="id"></param>
-        public DotNetModule(string fullName, int checksum, long id)
-           : base(fullName, checksum)
+        public DotNetModule(string fullName, int checksum, ISet<PerformanceMonitorCounter> monitoredCounters, long id)
+           : base(fullName, checksum, monitoredCounters)
+        {
+            Id = id;
+            Methods = new List<DotNetMethod>();
+        }
+
+        public DotNetModule(Module src, long id)
+            : base(src)
         {
             Id = id;
             Methods = new List<DotNetMethod>();

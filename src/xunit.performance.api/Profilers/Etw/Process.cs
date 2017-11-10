@@ -16,7 +16,8 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// <param name="name">Process image file name</param>
         /// <param name="id">Process Id</param>
         /// <param name="parentId">Process' parent Id</param>
-        public Process(string name, int id, int parentId)
+        /// <param name="monitoredCounters">A set of monitored <see cref="PerformanceMonitorCounter"/> counters.</param>
+        public Process(string name, int id, int parentId, ISet<PerformanceMonitorCounter> monitoredCounters)
         {
             Name = name;
             Id = id;
@@ -24,6 +25,9 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
             LifeSpan = new LifeSpan();
 
             PerformanceMonitorCounterData = new Dictionary<PerformanceMonitorCounter, long>();
+            foreach (var pmc in monitoredCounters)
+                PerformanceMonitorCounterData.Add(pmc, 0);
+
             Modules = new List<Module>();
         }
 

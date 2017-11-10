@@ -1,6 +1,4 @@
-﻿using Microsoft.Diagnostics.Tracing;
-using Microsoft.Diagnostics.Tracing.Parsers;
-using Microsoft.Xunit.Performance.Sdk;
+﻿using Microsoft.Xunit.Performance.Sdk;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -9,37 +7,6 @@ namespace Microsoft.Xunit.Performance.Api
 {
     internal static partial class XunitBenchmark
     {
-        static XunitBenchmark()
-        {
-            RequiredProviders = new List<ProviderInfo>
-            {
-                new KernelProviderInfo()
-                {
-                    Keywords = (ulong)KernelTraceEventParser.Keywords.Process | (ulong)KernelTraceEventParser.Keywords.Profile,
-                    StackKeywords = (ulong)KernelTraceEventParser.Keywords.Profile
-                },
-                new UserProviderInfo()
-                {
-                    ProviderGuid = MicrosoftXunitBenchmarkTraceEventParser.ProviderGuid,
-                    Level = TraceEventLevel.Verbose,
-                    Keywords = ulong.MaxValue,
-                },
-                new UserProviderInfo()
-                {
-                    ProviderGuid = ClrTraceEventParser.ProviderGuid,
-                    Level = TraceEventLevel.Verbose,
-                    Keywords =
-                    (
-                        (ulong)ClrTraceEventParser.Keywords.Jit |
-                        (ulong)ClrTraceEventParser.Keywords.JittedMethodILToNativeMap |
-                        (ulong)ClrTraceEventParser.Keywords.Loader |
-                        (ulong)ClrTraceEventParser.Keywords.Exception |
-                        (ulong)ClrTraceEventParser.Keywords.GC
-                    ),
-                }
-            };
-        }
-
         public static XUnitPerformanceMetricData GetMetadata(
             string assemblyFileName,
             IEnumerable<PerformanceMetric> performanceMetricInfos,
@@ -70,27 +37,20 @@ namespace Microsoft.Xunit.Performance.Api
                     foreach (var performanceMetricInfo in performanceMetricInfos)
                         userProviders = ProviderInfo.Merge(userProviders.Concat(performanceMetricInfo.ProviderInfo));
 
-                    var comparer = new PerformanceMetricInfoComparer();
-
                     // Inject performance metrics into the tests
                     foreach (var test in testMessageVisitor.Tests)
                     {
                         test.Metrics = collectDefaultMetrics ?
-                            test.Metrics.Union(performanceMetricInfos, comparer) :
+                            test.Metrics.Union(performanceMetricInfos, new PerformanceMetricInfoComparer()) :
                             performanceMetricInfos;
                     }
 
                     return new XUnitPerformanceMetricData {
-                        Providers = ProviderInfo.Merge(RequiredProviders.Concat(testProviders).Concat(userProviders)),
-                        PerformanceTestMessages = testMessageVisitor.Tests
+                        Providers = ProviderInfo.Merge(testProviders.Concat(userProviders)),
+                        PerformanceTestMessages = testMessageVisitor.Tests,
                     };
                 }
             }
         }
-
-        /// <summary>
-        /// Defines the default list of providers needed to record ETW.
-        /// </summary>
-        public static List<ProviderInfo> RequiredProviders { get; }
     }
 }

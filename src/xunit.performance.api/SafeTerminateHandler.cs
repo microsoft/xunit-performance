@@ -19,11 +19,11 @@ namespace Microsoft.Xunit.Performance.Api
         where T : class, IDisposable
     {
         /// <summary>
-        /// Initializes a new instance of the SafeTerminateHandler&lt;T&gt; class that
+        /// Initializes a new instance of the <see cref="SafeTerminateHandler{T}"/> class that
         /// wraps a disposable object that will be created by calling the
         /// specified callback Func.
         /// </summary>
-        /// <param name="createCallback">A method that has no parameters and returns a new disposable object of the type specified by the T parameter.</param>
+        /// <param name="createCallback">A method that has no parameters and returns a new disposable object of the type specified by the <typeparamref name="T"/> parameter.</param>
         public SafeTerminateHandler(Func<T> createCallback)
         {
             _disposedValue = true;
@@ -53,6 +53,9 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
+        /// <summary>
+        /// Gets the base disposable object wrap by this handler.
+        /// </summary>
         public T BaseDisposableObject { get; }
 
         private readonly Kernel32.PHANDLER_ROUTINE _HandlerRoutine;

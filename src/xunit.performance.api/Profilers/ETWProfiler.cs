@@ -1,6 +1,7 @@
 ﻿using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Session;
+using Microsoft.Xunit.Performance.Api.Profilers.Etw;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -76,14 +77,12 @@ namespace Microsoft.Xunit.Performance.Api
                     userEventSession.BufferSizeMB = bufferSizeMB;
 
                     if (needKernelSession && CanEnableEnableKernelProvider)
-                    {
-                        var flags = KernelTraceEventParser.Keywords.Process | KernelTraceEventParser.Keywords.ImageLoad | KernelTraceEventParser.Keywords.Thread;
-                        var stackCapture = KernelTraceEventParser.Keywords.Profile | KernelTraceEventParser.Keywords.ContextSwitch;
-                        userEventSession.EnableKernelProvider(flags, stackCapture);
-                    }
+                        userEventSession.EnableKernelProvider(KernelProvider.Default.Flags, KernelProvider.Default.StackCapture);
 
-                    foreach (var userProviderInfo in xUnitPerformanceMetricData.Providers.OfType<UserProviderInfo>())
-                        userEventSession.EnableProvider(userProviderInfo.ProviderGuid, userProviderInfo.Level, userProviderInfo.Keywords);
+                    foreach (var provider in UserProvider.Defaults)
+                        userEventSession.EnableProvider(provider.Guid, provider.Level, provider.Keywords);
+                    foreach (var provider in xUnitPerformanceMetricData.Providers.OfType<UserProviderInfo>())
+                        userEventSession.EnableProvider(provider.ProviderGuid, provider.Level, provider.Keywords);
 
                     action.Invoke();
                 }
@@ -220,12 +219,9 @@ namespace Microsoft.Xunit.Performance.Api
             if (kernelProviderInfo == null)
                 return false;
 
-            // Prior to Windows 8 (NT 6.2), all kernel events needed the special kernel session.
-            if (!IsWindows8OrGreater)
-                return true;
-
             // CPU counters need the special kernel session
-            var keywords = (KernelTraceEventParser.Keywords)kernelProviderInfo.Keywords & KernelTraceEventParser.Keywords.PMCProfile;
+            var keywords = (KernelTraceEventParser.Keywords)kernelProviderInfo.Keywords
+                & (KernelTraceEventParser.Keywords.Profile | KernelTraceEventParser.Keywords.PMCProfile);
             return (keywords != KernelTraceEventParser.Keywords.None);
         }
 
@@ -236,7 +232,7 @@ namespace Microsoft.Xunit.Performance.Api
         {
             WriteDebugLine("  ===== ETW Profiling information =====");
             WriteDebugLine($"       Assembly: {assemblyFileName}");
-            WriteDebugLine($"     Process Id: {Process.GetCurrentProcess().Id}");
+            WriteDebugLine($"     Process Id: {System.Diagnostics.Process.GetCurrentProcess().Id}");
             WriteDebugLine($"   Session name: {etwOutputData.SessionName}");
             WriteDebugLine($"  ETW file name: {etwOutputData.UserFileName}");
             WriteDebugLine($"  Provider guid: {MicrosoftXunitBenchmarkTraceEventParser.ProviderGuid}");
@@ -264,7 +260,7 @@ namespace Microsoft.Xunit.Performance.Api
         [Conditional("DEBUG")]
         private static void GetRegisteredProvidersInProcess()
         {
-            new List<string>(TraceEventProviders.GetRegisteredProvidersInProcess(Process.GetCurrentProcess().Id)
+            new List<string>(TraceEventProviders.GetRegisteredProvidersInProcess(System.Diagnostics.Process.GetCurrentProcess().Id)
                 .Select(p => TraceEventProviders.GetProviderName(p))).ForEach(name => Debug.WriteLine(name));
         }
     }

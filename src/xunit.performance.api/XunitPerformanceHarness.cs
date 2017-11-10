@@ -10,15 +10,22 @@ using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
 {
+    /// <summary>
+    /// This is the main entry point of the xUnit Performance Api.
+    /// It provides the functionality to run xUnit microbenchmarks and full benchmark scenarios.
+    /// </summary>
     public sealed class XunitPerformanceHarness : IDisposable
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="XunitPerformanceHarness"/> class.
+        /// </summary>
+        /// <param name="args">String array that contains any command-line arguments passed in.</param>
         public XunitPerformanceHarness(string[] args)
         {
             _args = new string[args.Length];
             args.CopyTo(_args, 0);
 
             _disposed = false;
-            _outputFiles = new List<string>();
 
             var options = XunitPerformanceHarnessOptions.Parse(_args);
 
@@ -32,12 +39,26 @@ namespace Microsoft.Xunit.Performance.Api
             Configuration.FileLogPath = $"{Configuration.RunId}.csv"; // TODO: Conditionally set this based on whether we want a csv file written.
         }
 
+        /// <summary>
+        /// Gets the path for the output directory.
+        /// </summary>
         public string OutputDirectory { get; }
 
+        /// <summary>
+        /// Gets a collection of the type names of the test classes to run.
+        /// </summary>
+        /// <remarks>Returns an empty collection if the type names were not specified.</remarks>
         public IEnumerable<string> TypeNames => _typeNames.AsReadOnly();
 
+        /// <summary>
+        /// 
+        /// </summary>
         public BenchmarkConfiguration Configuration => BenchmarkConfiguration.Instance;
 
+        /// <summary>
+        /// Run the xUnit tests tagged with the [<see cref="BenchmarkAttribute"/>] attribute.
+        /// </summary>
+        /// <param name="assemblyFileName">Path to the assembly that contains the xUnit performance tests.</param>
         public void RunBenchmarks(string assemblyFileName)
         {
             if (string.IsNullOrEmpty(assemblyFileName))
@@ -45,27 +66,26 @@ namespace Microsoft.Xunit.Performance.Api
             if (!File.Exists(assemblyFileName))
                 throw new FileNotFoundException(assemblyFileName);
 
-            Action<string> xUnitAction = (assemblyPath) => { XunitRunner.Run(assemblyPath, _typeNames); };
+            void xUnitAction(string assemblyPath)
+            {
+                XunitRunner.Run(assemblyPath, _typeNames);
+            }
+
             var xUnitPerformanceSessionData = new XUnitPerformanceSessionData {
                 AssemblyFileName = assemblyFileName,
-                CollectOutputFilesCallback = (fileName) => {
-                    // FIXME: This will need safe guards when the client calls RunBenchmarks in different threads.
-                    _outputFiles.Add(fileName);
-                    WriteInfoLine($"File saved to: \"{fileName}\"");
-                },
+                CollectOutputFilesCallback = LogFileSaved,
                 OutputDirectory = OutputDirectory,
                 RunId = Configuration.RunId
             };
 
-            var metrics = _metricCollectionFactory.GetMetrics();
             var xUnitPerformanceMetricData = XunitBenchmark.GetMetadata(
                 assemblyFileName,
-                metrics,
+                _metricCollectionFactory.GetMetrics(),
                 _collectDefaultXUnitMetrics);
 
             if (IsWindowsPlatform && _requireEtw)
             {
-                Action winRunner = () => { xUnitAction(assemblyFileName); };
+                void winRunner() { xUnitAction(assemblyFileName); }
                 ETWProfiler.Record(
                     xUnitPerformanceSessionData,
                     xUnitPerformanceMetricData,
@@ -73,12 +93,18 @@ namespace Microsoft.Xunit.Performance.Api
             }
             else
             {
-                xUnitAction.Invoke(assemblyFileName);
+                xUnitAction(assemblyFileName);
                 ProcessResults(xUnitPerformanceSessionData, xUnitPerformanceMetricData);
             }
         }
 
-        static void LogFileSaved(string fileName) {
+        /// <summary>
+        /// Helper function.
+        /// Writes the the file name, followed by the current line terminator, to the standard output stream.
+        /// </summary>
+        /// <param name="fileName">Created file name.</param>
+        private static void LogFileSaved(string fileName)
+        {
             WriteInfoLine($"File saved to: \"{fileName}\"");
         }
 
@@ -117,7 +143,7 @@ namespace Microsoft.Xunit.Performance.Api
                 }
                 else
                 {
-                    testName = configuration.Scenario.Name + " - " + configuration.TestName;
+                    testName = $"{configuration.Scenario.Name}-{configuration.TestName}";
                 }
             }
 
@@ -132,7 +158,9 @@ namespace Microsoft.Xunit.Performance.Api
 
                     configuration.PreIterationDelegate?.Invoke(scenarioTest);
 
-                    WriteInfoLine($"$ {Path.GetFileName(scenarioTest.Process.StartInfo.FileName)} {scenarioTest.Process.StartInfo.Arguments}");
+                    WriteInfoLine($"Iteration ({i})");
+                    WriteInfoLine($"  Working Directory: \"{scenarioTest.Process.StartInfo.WorkingDirectory}\"");
+                    WriteInfoLine($"  Command: \"{scenarioTest.Process.StartInfo.FileName}\" {scenarioTest.Process.StartInfo.Arguments}");
 
                     if (IsWindowsPlatform && _requireEtw)
                     {
@@ -368,6 +396,9 @@ namespace Microsoft.Xunit.Performance.Api
 
         #region IDisposable implementation
 
+        /// <summary>
+        /// Performs tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
@@ -401,7 +432,6 @@ namespace Microsoft.Xunit.Performance.Api
         #endregion IDisposable implementation
 
         private readonly string[] _args;
-        private readonly List<string> _outputFiles;
         private readonly List<string> _typeNames;
         private readonly IPerformanceMetricFactory _metricCollectionFactory;
         private readonly bool _collectDefaultXUnitMetrics;
