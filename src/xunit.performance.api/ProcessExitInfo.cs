@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -26,17 +25,8 @@ namespace Microsoft.Xunit.Performance.Api
 
             ProcessId = process.Id;
             ExitCode = process.ExitCode;
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                StartTime = process.StartTime;
-                ExitTime = process.ExitTime;
-            }
-            else
-            {
-                StartTime = startTime;
-                ExitTime = exitTime;
-            }
+            StartTime = startTime;
+            ExitTime = exitTime;
         }
 
         /// <summary>
