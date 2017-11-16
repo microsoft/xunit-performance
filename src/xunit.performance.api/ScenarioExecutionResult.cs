@@ -2,8 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Microsoft.Xunit.Performance.Api.Profilers.Etw;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -16,10 +16,12 @@ namespace Microsoft.Xunit.Performance.Api
         /// Initializes a new instance of the ScenarioExecutionResult class.
         /// </summary>
         /// <param name="process">Scenario benchmark process that was run.</param>
+        /// <param name="startTime">The time that the associated process was started.</param>
+        /// <param name="exitTime">The time that the associated process exited.</param>
         /// <param name="configuration">Configuration for the scenario that was run.</param>
-        public ScenarioExecutionResult(System.Diagnostics.Process process, ScenarioTestConfiguration configuration)
+        internal ScenarioExecutionResult(System.Diagnostics.Process process, DateTime startTime, DateTime exitTime, ScenarioTestConfiguration configuration)
         {
-            ProcessExitInfo = new ProcessExitInfo(process);
+            ProcessExitInfo = new ProcessExitInfo(process, startTime, exitTime);
             Configuration = configuration;
         }
 

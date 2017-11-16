@@ -293,7 +293,9 @@ namespace Microsoft.Xunit.Performance.Api
 
         private static ScenarioExecutionResult Run(ScenarioTestConfiguration configuration, ScenarioTest scenarioTest)
         {
-            if (!scenarioTest.Process.Start())
+            var hasStarted = scenarioTest.Process.Start();
+            var startTime = DateTime.UtcNow;
+            if (!hasStarted)
                 throw new Exception($"Failed to start {scenarioTest.Process.ProcessName}");
 
             if (scenarioTest.Process.StartInfo.RedirectStandardError)
@@ -303,7 +305,11 @@ namespace Microsoft.Xunit.Performance.Api
             if (scenarioTest.Process.StartInfo.RedirectStandardOutput)
                 scenarioTest.Process.BeginOutputReadLine();
 
-            if (scenarioTest.Process.WaitForExit((int)(configuration.TimeoutPerIteration.TotalMilliseconds)) == false)
+            var hasExited = scenarioTest.Process.WaitForExit(
+                (int)(configuration.TimeoutPerIteration.TotalMilliseconds));
+            var exitTime = DateTime.UtcNow;
+
+            if (!hasExited)
             {
                 // TODO: scenarioOutput.Process.Kill[All|Tree]();
                 scenarioTest.Process.Kill();
@@ -314,7 +320,7 @@ namespace Microsoft.Xunit.Performance.Api
             if (!configuration.SuccessExitCodes.Contains(scenarioTest.Process.ExitCode))
                 throw new Exception($"'{scenarioTest.Process.StartInfo.FileName}' exited with an invalid exit code: {scenarioTest.Process.ExitCode}");
 
-            return new ScenarioExecutionResult(scenarioTest.Process, configuration);
+            return new ScenarioExecutionResult(scenarioTest.Process, startTime, exitTime, configuration);
         }
 
         private void ProcessResults(XUnitPerformanceSessionData xUnitSessionData, XUnitPerformanceMetricData xUnitPerformanceMetricData)

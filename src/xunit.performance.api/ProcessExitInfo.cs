@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.Xunit.Performance.Api
 {
@@ -11,18 +12,31 @@ namespace Microsoft.Xunit.Performance.Api
         /// <summary>
         /// Initializes a new instance of a ProcessExitInfo class with the run process.
         /// </summary>
-        /// <param name="process"></param>
-        public ProcessExitInfo(Process process)
+        /// <param name="process">The terminated process.</param>
+        /// <param name="startTime">The time that the associated process was started.</param>
+        /// <param name="exitTime">The time that the associated process exited.</param>
+        internal ProcessExitInfo(Process process, DateTime startTime, DateTime exitTime)
         {
             if (process == null)
                 throw new ArgumentNullException(nameof(process));
             if (!process.HasExited)
                 throw new InvalidOperationException($"{process.ProcessName} has not exited.");
+            if (exitTime < startTime)
+                throw new InvalidOperationException($"Process.ExitTime: {exitTime}, is less than the Process.StartTime: {startTime}.");
 
             ProcessId = process.Id;
             ExitCode = process.ExitCode;
-            StartTime = process.StartTime;
-            ExitTime = process.ExitTime;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                StartTime = process.StartTime;
+                ExitTime = process.ExitTime;
+            }
+            else
+            {
+                StartTime = startTime;
+                ExitTime = exitTime;
+            }
         }
 
         /// <summary>
