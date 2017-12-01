@@ -69,6 +69,7 @@ namespace simpleharness
 
             processToMeasure.RedirectStandardError = true;
             processToMeasure.RedirectStandardOutput = true;
+            processToMeasure.UseShellExecute = false;
 
             var scenarioTestConfiguration = new ScenarioTestConfiguration(Timeout, processToMeasure) {
                 Iterations = Iterations,
