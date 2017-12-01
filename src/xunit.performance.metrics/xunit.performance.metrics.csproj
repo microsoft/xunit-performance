@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <AssemblyTitle>xunit.performance.metrics</AssemblyTitle>
-    <TargetFramework>netstandard1.5</TargetFramework>
+    <TargetFrameworks>netstandard1.5;net461</TargetFrameworks>
     <Title>xUnit Performance Metrics</Title>
   </PropertyGroup>
 
