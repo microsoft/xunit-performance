@@ -432,7 +432,8 @@ namespace Microsoft.Xunit.Performance.Api
             BenchmarkEventSource.Log.Close();
 
             // Deleting raw data not used by api users.
-            File.Delete(Configuration.FileLogPath);
+            if (File.Exists(Configuration.FileLogPath))
+                File.Delete(Configuration.FileLogPath);
         }
 
         #endregion IDisposable implementation

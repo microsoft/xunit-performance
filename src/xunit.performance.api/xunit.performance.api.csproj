@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <AssemblyTitle>xunit.performance.api</AssemblyTitle>
-    <TargetFramework>netstandard1.5</TargetFramework>
+    <TargetFrameworks>netstandard1.5;net461</TargetFrameworks>
     <Title>xUnit Performance Api</Title>
     <RootNamespace>Microsoft.Xunit.Performance.Api</RootNamespace>
   </PropertyGroup>

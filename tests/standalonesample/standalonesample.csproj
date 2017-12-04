@@ -6,14 +6,14 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp1.0;netcoreapp1.1</TargetFrameworks>
+    <TargetFrameworks>netcoreapp1.0;netcoreapp1.1;netcoreapp2.0;net461</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="1.0.3-alpha-experimental">
       <IncludeAssets>All</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="xunit.performance.api" Version="1.0.0-beta-build0007" />
+    <PackageReference Include="xunit.performance.api" Version="1.0.0-beta-build0013" />
   </ItemGroup>
 
 </Project>

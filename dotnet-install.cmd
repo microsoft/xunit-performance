@@ -3,6 +3,8 @@
 
 :install_dotnet_cli
 setlocal
+  set "DOTNET_MULTILEVEL_LOOKUP=0"
+
   set /p DotNet_Version=<"%~dp0DotNetCLIVersion.txt"
   if not defined DotNet_Version (
     call :print_error_message Unknown DotNet CLI Version.

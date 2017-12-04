@@ -27,7 +27,7 @@ namespace Microsoft.Xunit.Performance.Execution
             {
                 _GetAllocatedBytesForCurrentThread = () => -0xBAAAAAAD;
                 IsAvailable = false;
-                NoAvailabilityReason = "The running implementation netcoreapp does not expose 'GC.GetAllocatedBytesForCurrentThread'.";
+                NoAvailabilityReason = "The running implementation of .NET does not expose 'GC.GetAllocatedBytesForCurrentThread'.";
             }
             else
             {
