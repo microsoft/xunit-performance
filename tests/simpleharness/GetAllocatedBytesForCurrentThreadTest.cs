@@ -6,6 +6,7 @@ namespace simpleharness
 {
     public class GetAllocatedBytesForCurrentThreadTest
     {
+#if NETCOREAPP1_1 || NETCOREAPP2_0
         [Benchmark]
         public static void WithCollect()
         {
@@ -60,5 +61,6 @@ namespace simpleharness
                 }
             });
         }
+#endif
     }
 }

@@ -68,7 +68,9 @@ namespace Microsoft.Xunit.Performance.Api
 
             void xUnitAction(string assemblyPath)
             {
-                XunitRunner.Run(assemblyPath, _typeNames);
+                var errCode = XunitRunner.Run(assemblyPath, _typeNames);
+                if (errCode != 0)
+                    throw new Exception($"{errCode} benchmark(s) failed to execute.");
             }
 
             var xUnitPerformanceSessionData = new XUnitPerformanceSessionData {
