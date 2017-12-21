@@ -48,6 +48,23 @@ namespace simpleharness
             }
         }
 
+        [MeasureGCCounts]
+        [Benchmark(InnerIterationCount = 10, Skip = "This is a duplicated benchmark that needs to be skipped.")]
+        [MemberData(nameof(InputData))]
+        public static void TestMultipleStringInputs2(string[] args)
+        {
+            foreach (BenchmarkIteration iter in Benchmark.Iterations)
+            {
+                using (iter.StartMeasurement())
+                {
+                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
+                    {
+                        FormattedString(args[0], args[0], args[0], args[0]);
+                    }
+                }
+            }
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static string FormattedString(string a, string b, string c, string d)
         {
