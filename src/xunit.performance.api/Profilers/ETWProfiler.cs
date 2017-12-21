@@ -260,8 +260,9 @@ namespace Microsoft.Xunit.Performance.Api
         [Conditional("DEBUG")]
         private static void GetRegisteredProvidersInProcess()
         {
-            new List<string>(TraceEventProviders.GetRegisteredProvidersInProcess(System.Diagnostics.Process.GetCurrentProcess().Id)
-                .Select(p => TraceEventProviders.GetProviderName(p))).ForEach(name => Debug.WriteLine(name));
+            TraceEventProviders.GetRegisteredProvidersInProcess(System.Diagnostics.Process.GetCurrentProcess().Id)
+                .Select(p => TraceEventProviders.GetProviderName(p))
+                .ForEach(name => Debug.WriteLine(name));
         }
     }
 }
