@@ -70,7 +70,7 @@ namespace Microsoft.Xunit.Performance.Api
             {
                 var errCode = XunitRunner.Run(assemblyPath, _typeNames);
                 if (errCode != 0)
-                    throw new Exception($"{errCode} benchmark(s) did not complete successfully.");
+                    throw new Exception($"{errCode} benchmark(s) failed to execute.");
             }
 
             var xUnitPerformanceSessionData = new XUnitPerformanceSessionData {
