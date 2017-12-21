@@ -65,7 +65,9 @@ namespace Microsoft.Xunit.Performance.Api
 
         private static void SetupRunnerCallbacks(AssemblyRunner runner, ManualResetEvent manualResetEvent, object consoleLock, int[] result)
         {
-            runner.TestCaseFilter = (ITestCase testCase) => testCase.GetType() == typeof(BenchmarkTestCase);
+            runner.TestCaseFilter = (ITestCase testCase) => {
+                return testCase.SkipReason == null && testCase.GetType() == typeof(BenchmarkTestCase);
+            };
 
             runner.OnDiscoveryComplete = info => {
                 lock (consoleLock)
@@ -74,11 +76,11 @@ namespace Microsoft.Xunit.Performance.Api
                     if (diff < 0) // This should never happen.
                     {
                         // TODO: Add error handling. Throwing exception is not enough because we are waiting for the async runner to finish.
-                        WriteErrorLine("There are more benchmarks than facts.");
+                        WriteErrorLine("There are more test cases to run than test cases discovered.");
                     }
                     WriteInfoLine($"Running {info.TestCasesToRun} [Benchmark]s");
                     if (diff != 0)
-                        WriteWarningLine($"Skipping {diff} Xunit [Fact]s because they are not [Benchmark]s");
+                        WriteWarningLine($"Skipping {diff} microbenchmarks.");
                 }
             };
             runner.OnErrorMessage = info => {
