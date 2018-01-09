@@ -394,3 +394,6 @@ public class DefaultTestCaseOrderer : ITestCaseOrderer
 
 [assembly: TestCaseOrderer("namespace.OrdererTypeName", "assemblyName")]
 ```
+
+**Note:** Please make sure that you have provided full type name (with namespace) and the correct assembly name. Wrong configuration ends up with a **silent error**.
+
