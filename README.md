@@ -378,3 +378,19 @@ public class ScenarioConfiguration
   public TimeSpan TimeoutPerIteration { get; }
 }
 ```
+
+## Controlling the order of executed benchmarks
+
+To control the order of benchmarks executed within a type you need to use an existing `xunit` feature. All you have to do is to implement a type which implements `ITestCaseOrderer` interface and configure it by using `[TestCaseOrderer]` attribute.
+
+Example:
+
+```cs
+public class DefaultTestCaseOrderer : ITestCaseOrderer
+{
+    public IEnumerable<TTestCase> OrderTestCases<TTestCase>(IEnumerable<TTestCase> testCases) where TTestCase : ITestCase
+        => testCases.OrderBy(test => test.DisplayName); // OrderBy provides stable sort ([msdn](https://msdn.microsoft.com/en-us/library/bb534966.aspx))
+}
+
+[assembly: TestCaseOrderer("namespace.OrdererTypeName", "assemblyName")]
+```
