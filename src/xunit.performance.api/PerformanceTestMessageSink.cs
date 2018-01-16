@@ -11,10 +11,9 @@ namespace Microsoft.Xunit.Performance.Api
 {
     internal sealed class PerformanceTestMessageSink : TestMessageSink
     {
-        private readonly ManualResetEvent _finished = new ManualResetEvent(false);
-
         public PerformanceTestMessageSink()
         {
+            Finished = new ManualResetEvent(false);
             Tests = new List<PerformanceTestMessage>();
             Discovery.TestCaseDiscoveryMessageEvent += OnTestCaseDiscoveryMessageEvent;
             Discovery.DiscoveryCompleteMessageEvent += OnDiscoveryCompleteMessageEvent;
@@ -52,7 +51,7 @@ namespace Microsoft.Xunit.Performance.Api
 
         private void OnDiscoveryCompleteMessageEvent(MessageHandlerArgs<IDiscoveryCompleteMessage> args)
         {
-            _finished.Set();
+            Finished.Set();
         }
 
         private static IEnumerable<IAttributeInfo> GetMetricAttributes(ITestMethod testMethod)
@@ -96,6 +95,6 @@ namespace Microsoft.Xunit.Performance.Api
             base.Dispose();
         }
 
-        public ManualResetEvent Finished => _finished;
+        public ManualResetEvent Finished { get; }
     }
 }
