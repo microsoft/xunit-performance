@@ -18,16 +18,15 @@ namespace Microsoft.Xunit.Performance.Api
                 appDomainSupport: AppDomainSupport.Denied,
                 diagnosticMessageSink: new ConsoleDiagnosticMessageSink()))
             {
-                using (var testMessageVisitor = new PerformanceTestMessageVisitor())
+                using (var testMessageSink = new PerformanceTestMessageSink())
                 {
                     controller.Find(
                         includeSourceInformation: false,
-                        messageSink: testMessageVisitor,
+                        messageSink: testMessageSink,
                         discoveryOptions: TestFrameworkOptions.ForDiscovery());
-                    testMessageVisitor.Finished.WaitOne();
 
                     var testProviders =
-                        from test in testMessageVisitor.Tests
+                        from test in testMessageSink.Tests
                         from metric in test.Metrics.Cast<PerformanceMetric>()
                         from provider in metric.ProviderInfo
                         select provider;
@@ -38,7 +37,7 @@ namespace Microsoft.Xunit.Performance.Api
                         userProviders = ProviderInfo.Merge(userProviders.Concat(performanceMetricInfo.ProviderInfo));
 
                     // Inject performance metrics into the tests
-                    foreach (var test in testMessageVisitor.Tests)
+                    foreach (var test in testMessageSink.Tests)
                     {
                         test.Metrics = collectDefaultMetrics ?
                             test.Metrics.Union(performanceMetricInfos, new PerformanceMetricInfoComparer()) :
@@ -47,7 +46,7 @@ namespace Microsoft.Xunit.Performance.Api
 
                     return new XUnitPerformanceMetricData {
                         Providers = ProviderInfo.Merge(testProviders.Concat(userProviders)),
-                        PerformanceTestMessages = testMessageVisitor.Tests,
+                        PerformanceTestMessages = testMessageSink.Tests,
                     };
                 }
             }
