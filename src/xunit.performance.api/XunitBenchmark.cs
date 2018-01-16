@@ -24,6 +24,7 @@ namespace Microsoft.Xunit.Performance.Api
                         includeSourceInformation: false,
                         messageSink: testMessageSink,
                         discoveryOptions: TestFrameworkOptions.ForDiscovery());
+                    testMessageSink.Finished.WaitOne();
 
                     var testProviders =
                         from test in testMessageSink.Tests

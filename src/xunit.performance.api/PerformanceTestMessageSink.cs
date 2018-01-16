@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -10,10 +11,13 @@ namespace Microsoft.Xunit.Performance.Api
 {
     internal sealed class PerformanceTestMessageSink : TestMessageSink
     {
+        private readonly ManualResetEvent _finished = new ManualResetEvent(false);
+
         public PerformanceTestMessageSink()
         {
             Tests = new List<PerformanceTestMessage>();
             Discovery.TestCaseDiscoveryMessageEvent += OnTestCaseDiscoveryMessageEvent;
+            Discovery.DiscoveryCompleteMessageEvent += OnDiscoveryCompleteMessageEvent;
         }
 
         public List<PerformanceTestMessage> Tests { get; }
@@ -44,6 +48,11 @@ namespace Microsoft.Xunit.Performance.Api
                     });
                 }
             }
+        }
+
+        private void OnDiscoveryCompleteMessageEvent(MessageHandlerArgs<IDiscoveryCompleteMessage> args)
+        {
+            _finished.Set();
         }
 
         private static IEnumerable<IAttributeInfo> GetMetricAttributes(ITestMethod testMethod)
@@ -81,9 +90,12 @@ namespace Microsoft.Xunit.Performance.Api
 
         public override void Dispose()
         {
+            Discovery.DiscoveryCompleteMessageEvent -= OnDiscoveryCompleteMessageEvent;
             Discovery.TestCaseDiscoveryMessageEvent -= OnTestCaseDiscoveryMessageEvent;
 
             base.Dispose();
         }
+
+        public ManualResetEvent Finished => _finished;
     }
 }
