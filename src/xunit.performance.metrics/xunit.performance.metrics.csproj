@@ -5,6 +5,7 @@
   <PropertyGroup>
     <AssemblyTitle>xunit.performance.metrics</AssemblyTitle>
     <TargetFrameworks>netstandard1.5;net461</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netstandard1.5</TargetFrameworks>
     <Title>xUnit Performance Metrics</Title>
   </PropertyGroup>
 
