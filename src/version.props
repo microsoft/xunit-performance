@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <MicrosoftDiagnosticsTracingLibraryVersion>1.0.3-alpha-experimental</MicrosoftDiagnosticsTracingLibraryVersion>
+    <MicrosoftDiagnosticsTracingLibraryVersion>2.0.4</MicrosoftDiagnosticsTracingLibraryVersion>
     <XunitPackageVersion>2.2.0</XunitPackageVersion>
   </PropertyGroup>
 </Project>
