@@ -5,7 +5,7 @@
   <PropertyGroup>
     <AssemblyTitle>xunit.performance.api</AssemblyTitle>
     <TargetFrameworks>netstandard1.6;net461</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netstandard1.5</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netstandard1.6</TargetFrameworks>
     <Title>xUnit Performance Api</Title>
     <RootNamespace>Microsoft.Xunit.Performance.Api</RootNamespace>
   </PropertyGroup>
