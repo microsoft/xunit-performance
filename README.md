@@ -11,7 +11,7 @@ Provides extensions over xUnit to author performance tests.
 
 1. Create a new class library project
 2. Add a reference to the latest [xunit.performance.api.dll](https://dotnet.myget.org/feed/dotnet-core/package/nuget/xunit.performance.api)
-3. Add a reference to the latest [Microsoft.Diagnostics.Tracing.TraceEvent](https://dotnet.myget.org/feed/dotnet-core/package/nuget/Microsoft.Diagnostics.Tracing.TraceEvent)
+3. Add a reference to the latest [Microsoft.Diagnostics.Tracing.TraceEvent](https://www.nuget.org/packages/Microsoft.Diagnostics.Tracing.TraceEvent)
     (It deploys native libraries needed to merge the \*.etl files)
 4. Tag your test methods with [Benchmark] instead of [Fact]
 5. Make sure that each [Benchmark]-annotated test contains a loop of this form:
