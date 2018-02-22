@@ -18,16 +18,16 @@ namespace Microsoft.Xunit.Performance.Api
                 appDomainSupport: AppDomainSupport.Denied,
                 diagnosticMessageSink: new ConsoleDiagnosticMessageSink()))
             {
-                using (var testMessageSink = new PerformanceTestMessageSink())
+                using (var testMessageVisitor = new PerformanceTestMessageVisitor())
                 {
                     controller.Find(
                         includeSourceInformation: false,
-                        messageSink: testMessageSink,
+                        messageSink: testMessageVisitor,
                         discoveryOptions: TestFrameworkOptions.ForDiscovery());
-                    testMessageSink.Finished.WaitOne();
+                    testMessageVisitor.Finished.WaitOne();
 
                     var testProviders =
-                        from test in testMessageSink.Tests
+                        from test in testMessageVisitor.Tests
                         from metric in test.Metrics.Cast<PerformanceMetric>()
                         from provider in metric.ProviderInfo
                         select provider;
@@ -38,7 +38,7 @@ namespace Microsoft.Xunit.Performance.Api
                         userProviders = ProviderInfo.Merge(userProviders.Concat(performanceMetricInfo.ProviderInfo));
 
                     // Inject performance metrics into the tests
-                    foreach (var test in testMessageSink.Tests)
+                    foreach (var test in testMessageVisitor.Tests)
                     {
                         test.Metrics = collectDefaultMetrics ?
                             test.Metrics.Union(performanceMetricInfos, new PerformanceMetricInfoComparer()) :
@@ -47,7 +47,7 @@ namespace Microsoft.Xunit.Performance.Api
 
                     return new XUnitPerformanceMetricData {
                         Providers = ProviderInfo.Merge(testProviders.Concat(userProviders)),
-                        PerformanceTestMessages = testMessageSink.Tests,
+                        PerformanceTestMessages = testMessageVisitor.Tests,
                     };
                 }
             }

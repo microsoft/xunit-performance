@@ -11,23 +11,12 @@ namespace Microsoft.Xunit.Performance.Api
     /// This is the message sink that receives IDiagnosticMessage messages from
     /// the XunitFrontController.
     /// </summary>
-    internal sealed class ConsoleDiagnosticMessageSink : TestMessageSink
+    internal sealed class ConsoleDiagnosticMessageSink : TestMessageVisitor<IDiagnosticMessage>
     {
-        public ConsoleDiagnosticMessageSink()
+        protected override bool Visit(IDiagnosticMessage diagnosticMessage)
         {
-            Diagnostics.DiagnosticMessageEvent += OnDiagnosticMessageEvent;
-        }
-
-        private static void OnDiagnosticMessageEvent(MessageHandlerArgs<IDiagnosticMessage> args)
-        {
-            WriteErrorLine(args.Message.Message);
-        }
-
-        public override void Dispose()
-        {
-            Diagnostics.DiagnosticMessageEvent -= OnDiagnosticMessageEvent;
-
-            base.Dispose();
+            WriteErrorLine(diagnosticMessage.Message);
+            return true;
         }
     }
 }
