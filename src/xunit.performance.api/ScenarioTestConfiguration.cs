@@ -13,16 +13,16 @@ namespace Microsoft.Xunit.Performance.Api
         /// <summary>
         /// Initializes a new instance of the ScenarioConfiguration class.
         /// </summary>
-        /// <param name="timeSpan">The amount of time to wait for one iteration process to exit.</param>
+        /// <param name="timeoutPerIteration">The amount of time to wait for one iteration process to exit.</param>
         /// <param name="startInfo">The data with which to start the scenario.</param>
-        public ScenarioTestConfiguration(TimeSpan timeSpan, ProcessStartInfo startInfo)
+        public ScenarioTestConfiguration(TimeSpan timeoutPerIteration, ProcessStartInfo startInfo)
         {
-            if (timeSpan.TotalMilliseconds < 1)
+            if (timeoutPerIteration.TotalMilliseconds < 1)
                 throw new InvalidOperationException("The time out per iteration must be a positive number.");
 
             Iterations = 10;
             StartInfo = startInfo ?? throw new ArgumentNullException(nameof(startInfo));
-            TimeoutPerIteration = timeSpan;
+            TimeoutPerIteration = timeoutPerIteration;
             SuccessExitCodes = new[] { 0 };
         }
 
