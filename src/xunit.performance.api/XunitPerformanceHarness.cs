@@ -202,7 +202,7 @@ namespace Microsoft.Xunit.Performance.Api
                         Helper.SetPreciseMachineCounters(profileSourceInfos.ToList());
 
                         var listener = new Listener<ScenarioExecutionResult>(
-                            new SessionData(sessionName, etlFileName) { BufferSizeMB = 256 },
+                            new SessionData(sessionName, etlFileName) { BufferSizeMB = 512 },
                             UserProvider.Defaults,
                             kernelProviders.ToList());
 

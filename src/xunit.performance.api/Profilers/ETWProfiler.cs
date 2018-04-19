@@ -35,7 +35,7 @@ namespace Microsoft.Xunit.Performance.Api
         /// <param name="action"></param>
         public static void Record(XUnitPerformanceSessionData xUnitPerformanceSessionData, XUnitPerformanceMetricData xUnitPerformanceMetricData, Action action)
         {
-            const int bufferSizeMB = 256;
+            const int bufferSizeMB = 512;
             var name = $"{xUnitPerformanceSessionData.RunId}-{Path.GetFileNameWithoutExtension(xUnitPerformanceSessionData.AssemblyFileName)}";
             var etwOutputData = new ETWOutputData {
                 KernelFileName = Path.Combine(xUnitPerformanceSessionData.OutputDirectory, $"{name}.kernel.etl"), // without this parameter, EnableKernelProvider will fail
