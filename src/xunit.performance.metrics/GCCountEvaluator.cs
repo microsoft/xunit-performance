@@ -7,12 +7,12 @@ using Microsoft.Xunit.Performance.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal partial class GCCountMetricDiscoverer : IPerformanceMetricDiscoverer
+    partial class GCCountMetricDiscoverer : IPerformanceMetricDiscoverer
     {
-        private class GCCountEvaluator : PerformanceMetricEvaluator
+        class GCCountEvaluator : PerformanceMetricEvaluator
         {
-            private readonly PerformanceMetricEvaluationContext _context;
-            private int _count;
+            readonly PerformanceMetricEvaluationContext _context;
+            int _count;
 
             public GCCountEvaluator(PerformanceMetricEvaluationContext context)
             {
@@ -20,20 +20,14 @@ namespace Microsoft.Xunit.Performance
                 _context.TraceEventSource.Clr.GCStart += GCStart;
             }
 
-            private void GCStart(GCStartTraceData ev)
+            public override void BeginIteration(TraceEvent beginEvent) => _count = 0;
+
+            public override double EndIteration(TraceEvent endEvent) => _count;
+
+            void GCStart(GCStartTraceData ev)
             {
                 if (_context.IsTestEvent(ev))
                     _count++;
-            }
-
-            public override void BeginIteration(TraceEvent beginEvent)
-            {
-                _count = 0;
-            }
-
-            public override double EndIteration(TraceEvent endEvent)
-            {
-                return _count;
             }
         }
     }

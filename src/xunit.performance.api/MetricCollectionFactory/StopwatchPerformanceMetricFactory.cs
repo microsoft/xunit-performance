@@ -4,11 +4,8 @@ using static Microsoft.Xunit.Performance.BenchmarkMetricDiscoverer;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal sealed class StopwatchPerformanceMetricFactory : IPerformanceMetricFactory
+    sealed class StopwatchPerformanceMetricFactory : IPerformanceMetricFactory
     {
-        public IEnumerable<PerformanceMetric> GetMetrics()
-        {
-            return new List<PerformanceMetric> { new BenchmarkDurationMetric() };
-        }
+        public IEnumerable<PerformanceMetric> GetMetrics() => new List<PerformanceMetric> { new BenchmarkDurationMetric() };
     }
 }

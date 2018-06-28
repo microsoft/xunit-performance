@@ -12,7 +12,7 @@ namespace Microsoft.Xunit.Performance
     /// </summary>
     [PerformanceMetricDiscoverer("Microsoft.Xunit.Performance.InstructionsRetiredMetricDiscoverer", "xunit.performance.metrics")]
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Assembly)]
-    public class MeasureInstructionsRetiredAttribute : Attribute, IPerformanceMetricAttribute
+    public sealed class MeasureInstructionsRetiredAttribute : Attribute, IPerformanceMetricAttribute
     {
         /// <summary>
         /// Mesaure instructions retired using the default sampling interval
@@ -25,7 +25,7 @@ namespace Microsoft.Xunit.Performance
         /// Measure instructions retired using the specified sampling interval
         /// </summary>
         /// <param name="maxSampleInterval">
-        /// The maximum number of retired instructions to include in each sample.  If this it outside of the valid 
+        /// The maximum number of retired instructions to include in each sample.  If this it outside of the valid
         /// range for the machine being tested, the nearest valid value will be used instead.
         /// A suggested starting point for this value is 100,000.
         /// </param>

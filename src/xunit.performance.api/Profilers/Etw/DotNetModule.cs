@@ -8,7 +8,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Loaded .NET module for the corresponding process.
     /// </summary>
-    internal sealed class DotNetModule : Module
+    sealed class DotNetModule : Module
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="DotNetModule"/> class.

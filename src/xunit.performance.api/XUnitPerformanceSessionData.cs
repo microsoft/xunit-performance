@@ -2,7 +2,7 @@
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal struct XUnitPerformanceSessionData
+    struct XUnitPerformanceSessionData
     {
         public string AssemblyFileName { get; set; }
 

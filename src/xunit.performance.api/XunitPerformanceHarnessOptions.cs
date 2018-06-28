@@ -12,8 +12,16 @@ namespace Microsoft.Xunit.Performance.Api
     /// <summary>
     /// Xunit Performance Harness Api command line options.
     /// </summary>
-    internal sealed partial class XunitPerformanceHarnessOptions
+    sealed partial class XunitPerformanceHarnessOptions
     {
+        readonly List<string> _typeNames;
+
+        IEnumerable<string> _metricNames;
+
+        string _outputDirectory;
+
+        string _runid;
+
         public XunitPerformanceHarnessOptions()
         {
             _metricNames = new List<string> { "default" };
@@ -22,97 +30,11 @@ namespace Microsoft.Xunit.Performance.Api
             _typeNames = new List<string>();
         }
 
-        [Option("perf:outputdir", Required = false, HelpText = "Specifies the output directory name.")]
-        public string OutputDirectory
-        {
-            get { return _outputDirectory; }
-
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    throw new InvalidOperationException("The output directory name cannot be null, empty or white space.");
-                }
-
-                if (value.Any(c => Path.GetInvalidPathChars().Contains(c)))
-                {
-                    throw new InvalidOperationException("Specified output directory name contains invalid path characters.");
-                }
-
-                _outputDirectory = Path.IsPathRooted(value) ? value : Path.GetFullPath(value);
-                Directory.CreateDirectory(_outputDirectory);
-            }
-        }
-
-        [Option("perf:runid", Required = false, HelpText = "User defined id given to the performance harness.")]
-        public string RunId
-        {
-            get { return _runid; }
-
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    throw new Exception("The RunId cannot be null, empty or white space.");
-                }
-
-                if (value.Any(c => Path.GetInvalidFileNameChars().Contains(c)))
-                {
-                    throw new Exception("Specified RunId contains invalid file name characters.");
-                }
-
-                _runid = value;
-            }
-        }
-
-        [Option("perf:typenames", Required = false, Separator = ',',
-            HelpText = "The (optional) type names of the test classes to run.")]
-        public IEnumerable<string> TypeNames
-        {
-            get { return _typeNames; }
-
-            set
-            {
-                _typeNames.Clear();
-                _typeNames.AddRange(value);
-            }
-        }
-
-        /*
-         * Provider & Reader
-         * 
-         *  --perf:collect [metric1[+metric2[+...]]]
-         *  
-         *    default
-         *      Set by the test author (This is the default behavior if no option is specified. It will also enable ETW to capture some of the Microsoft-Windows-DotNETRuntime tasks).
-         *  
-         *    stopwatch
-         *      Capture elapsed time using a Stopwatch (It does not require ETW).
-         *  
-         *    BranchMispredictions|CacheMisses|InstructionRetired
-         *      These are performance metric counters and require ETW.
-         *  
-         *    gcapi
-         *      It currently enable "Allocation Size on Benchmark Execution Thread" and it is only available through ETW.
-         *  
-         *  Examples
-         *    --perf:collect default
-         *      Collect metrics specified in the test source code by using xUnit Performance API attributes
-         *  
-         *    --perf:collect BranchMispredictions+CacheMisses+InstructionRetired
-         *      Collects PMC metrics
-         *  
-         *    --perf:collect stopwatch
-         *      Collects duration
-         *  
-         *    --perf:collect default+BranchMispredictions+CacheMisses+InstructionRetired+gcapi
-         *      '+' implies union of all specified options
-         */
         [Option("perf:collect", Required = false, Separator = '+', Hidden = true,
             HelpText = "The metrics to be collected.")]
         public IEnumerable<string> MetricNames
         {
-            get { return _metricNames; }
+            get => _metricNames;
 
             set
             {
@@ -134,7 +56,7 @@ namespace Microsoft.Xunit.Performance.Api
                     throw new InvalidOperationException(errorMessage);
                 }
 
-                _metricNames = reducedList.Count() > 0 ? new List<string>(reducedList) : new List<string> { "default" };
+                _metricNames = reducedList.Any() ? new List<string>(reducedList) : new List<string> { "default" };
 
                 /*
                  * Dictionary<string, Factory>
@@ -142,9 +64,97 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
+        [Option("perf:outputdir", Required = false, HelpText = "Specifies the output directory name.")]
+        public string OutputDirectory
+        {
+            get => _outputDirectory;
+
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    throw new InvalidOperationException("The output directory name cannot be null, empty or white space.");
+                }
+
+                if (value.Any(c => Path.GetInvalidPathChars().Contains(c)))
+                {
+                    throw new InvalidOperationException("Specified output directory name contains invalid path characters.");
+                }
+
+                _outputDirectory = Path.IsPathRooted(value) ? value : Path.GetFullPath(value);
+                Directory.CreateDirectory(_outputDirectory);
+            }
+        }
+
+        [Option("perf:runid", Required = false, HelpText = "User defined id given to the performance harness.")]
+        public string RunId
+        {
+            get => _runid;
+
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    throw new Exception("The RunId cannot be null, empty or white space.");
+                }
+
+                if (value.Any(c => Path.GetInvalidFileNameChars().Contains(c)))
+                {
+                    throw new Exception("Specified RunId contains invalid file name characters.");
+                }
+
+                _runid = value;
+            }
+        }
+
+        [Option("perf:typenames", Required = false, Separator = ',',
+            HelpText = "The (optional) type names of the test classes to run.")]
+        public IEnumerable<string> TypeNames
+        {
+            get => _typeNames;
+
+            set
+            {
+                _typeNames.Clear();
+                _typeNames.AddRange(value);
+            }
+        }
+
+        /*
+         * Provider & Reader
+         *
+         *  --perf:collect [metric1[+metric2[+...]]]
+         *
+         *    default
+         *      Set by the test author (This is the default behavior if no option is specified. It will also enable ETW to capture some of the Microsoft-Windows-DotNETRuntime tasks).
+         *
+         *    stopwatch
+         *      Capture elapsed time using a Stopwatch (It does not require ETW).
+         *
+         *    BranchMispredictions|CacheMisses|InstructionRetired
+         *      These are performance metric counters and require ETW.
+         *
+         *    gcapi
+         *      It currently enable "Allocation Size on Benchmark Execution Thread" and it is only available through ETW.
+         *
+         *  Examples
+         *    --perf:collect default
+         *      Collect metrics specified in the test source code by using xUnit Performance API attributes
+         *
+         *    --perf:collect BranchMispredictions+CacheMisses+InstructionRetired
+         *      Collects PMC metrics
+         *
+         *    --perf:collect stopwatch
+         *      Collects duration
+         *
+         *    --perf:collect default+BranchMispredictions+CacheMisses+InstructionRetired+gcapi
+         *      '+' implies union of all specified options
+         */
+
         public static XunitPerformanceHarnessOptions Parse(string[] args)
         {
-            using (var parser = new Parser((settings) => {
+            using (var parser = new Parser((settings) =>
+            {
                 settings.CaseInsensitiveEnumValues = true;
                 settings.CaseSensitive = false;
                 settings.HelpWriter = new StringWriter();
@@ -154,7 +164,8 @@ namespace Microsoft.Xunit.Performance.Api
                 XunitPerformanceHarnessOptions options = null;
                 var parserResult = parser.ParseArguments<XunitPerformanceHarnessOptions>(args)
                     .WithParsed(parsed => options = parsed)
-                    .WithNotParsed(errors => {
+                    .WithNotParsed(errors =>
+                    {
                         foreach (var error in errors)
                         {
                             switch (error.Tag)
@@ -166,10 +177,12 @@ namespace Microsoft.Xunit.Performance.Api
                                     Console.WriteLine(Usage());
                                     Environment.Exit(0);
                                     break;
+
                                 case ErrorType.VersionRequestedError:
                                     Console.WriteLine(new AssemblyName(typeof(XunitPerformanceHarnessOptions).GetTypeInfo().Assembly.FullName).Version);
                                     Environment.Exit(0);
                                     break;
+
                                 case ErrorType.BadFormatTokenError:
                                 case ErrorType.UnknownOptionError:
                                 case ErrorType.MissingRequiredOptionError:
@@ -190,7 +203,8 @@ namespace Microsoft.Xunit.Performance.Api
 
         public static string Usage()
         {
-            var parser = new Parser((parserSettings) => {
+            var parser = new Parser((parserSettings) =>
+            {
                 parserSettings.CaseInsensitiveEnumValues = true;
                 parserSettings.CaseSensitive = false;
                 parserSettings.EnableDashDash = true;
@@ -199,7 +213,8 @@ namespace Microsoft.Xunit.Performance.Api
             });
             var result = parser.ParseArguments<XunitPerformanceHarnessOptions>(new string[] { "--help" });
 
-            var helpTextString = new HelpText {
+            var helpTextString = new HelpText
+            {
                 AddDashesToOption = true,
                 AddEnumValuesToHelpText = true,
                 AdditionalNewLineAfterOption = false,
@@ -209,10 +224,5 @@ namespace Microsoft.Xunit.Performance.Api
             }.AddOptions(result).ToString();
             return helpTextString;
         }
-
-        private IEnumerable<string> _metricNames;
-        private string _outputDirectory;
-        private string _runid;
-        private List<string> _typeNames;
     }
 }

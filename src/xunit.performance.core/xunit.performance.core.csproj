@@ -4,12 +4,50 @@
 
   <PropertyGroup>
     <AssemblyTitle>xunit.performance.core</AssemblyTitle>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFrameworks>
+      <!-- netstandard1.0; -->
+      <!-- netstandard1.1; -->
+      <!-- netstandard1.2; -->
+      <!-- netstandard1.3; -->
+      <!-- netstandard1.4; -->
+      <!-- netstandard1.5; -->
+      <!-- netstandard1.6; -->
+      netstandard2.0;
+      <!-- netcoreapp1.0; -->
+      <!-- netcoreapp1.1; -->
+      <!-- netcoreapp2.0; -->
+      netcoreapp2.1;
+      <!-- net20; -->
+      <!-- net35; -->
+      <!-- net40; -->
+      <!--net45;
+      net451;
+      net452;
+      net46;
+      net461;
+      net462;
+      net47;
+      net471;-->
+      net472;
+    </TargetFrameworks>
     <Title>xUnit Performance Core</Title>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="xunit.extensibility.core" Version="$(XunitPackageVersion)" />
   </ItemGroup>
-
 </Project>

@@ -52,7 +52,8 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                 ////////////////////////////////////////////////////////////////
                 // Process data
                 var parser = new KernelTraceEventParser(source);
-                parser.ProcessStart += (ProcessTraceData obj) => {
+                parser.ProcessStart += (ProcessTraceData obj) =>
+                {
                     if (IsOurProcess(obj))
                     {
                         var process = new Process(obj.ImageFileName, obj.ProcessID, obj.ParentID, scenarioExecutionResult.PerformanceMonitorCounters);
@@ -60,14 +61,16 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                         processes.Add(process);
                     }
                 };
-                parser.ProcessStop += (ProcessTraceData obj) => {
+                parser.ProcessStop += (ProcessTraceData obj) =>
+                {
                     if (IsOurProcess(obj))
                         processes.Single(process => process.Id == obj.ProcessID).LifeSpan.End = obj.TimeStamp;
                 };
 
                 ////////////////////////////////////////////////////////////////
                 // Image/Module data
-                parser.ImageLoad += (ImageLoadTraceData obj) => {
+                parser.ImageLoad += (ImageLoadTraceData obj) =>
+                {
                     var process = processes.SingleOrDefault(p => p.Id == obj.ProcessID);
                     if (process == null)
                         return;
@@ -82,7 +85,8 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                     module.RuntimeInstances.Add(
                         new RuntimeInstance(new AddressSpace(obj.ImageBase, (uint)obj.ImageSize), obj.TimeStamp));
                 };
-                parser.ImageUnload += (ImageLoadTraceData obj) => {
+                parser.ImageUnload += (ImageLoadTraceData obj) =>
+                {
                     var process = processes.SingleOrDefault(p => p.Id == obj.ProcessID);
                     if (process == null)
                         return;
@@ -92,7 +96,8 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                     if (module == null)
                         return;
 
-                    var info = module.RuntimeInstances.SingleOrDefault(i => {
+                    var info = module.RuntimeInstances.SingleOrDefault(i =>
+                    {
                         return i.AddressSpace.Start == obj.ImageBase
                             && i.AddressSpace.Size == obj.ImageSize
                             && i.LifeSpan.End > obj.TimeStamp;
@@ -104,22 +109,21 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 
                 ////////////////////////////////////////////////////////////////
                 // "ntoskrnl.exe" data
-                parser.ImageDCStart += (ImageLoadTraceData obj) => {
-                    if (obj.ProcessID == 0 && obj.FileName.EndsWith("ntoskrnl.exe"))
+                parser.ImageDCStart += (ImageLoadTraceData obj) =>
+                {
+                    if (obj.ProcessID == 0 && obj.FileName.EndsWith("ntoskrnl.exe", StringComparison.Ordinal) && defaultNtoskrnlModule == null)
                     {
-                        if (defaultNtoskrnlModule == null)
-                        {
-                            defaultNtoskrnlModule = new Module(obj.FileName, obj.ImageChecksum, scenarioExecutionResult.PerformanceMonitorCounters);
-                            defaultNtoskrnlModule.RuntimeInstances.Add(
-                                new RuntimeInstance(new AddressSpace(obj.ImageBase, (uint)obj.ImageSize), obj.TimeStamp));
-                        }
+                        defaultNtoskrnlModule = new Module(obj.FileName, obj.ImageChecksum, scenarioExecutionResult.PerformanceMonitorCounters);
+                        defaultNtoskrnlModule.RuntimeInstances.Add(
+                            new RuntimeInstance(new AddressSpace(obj.ImageBase, (uint)obj.ImageSize), obj.TimeStamp));
                     }
                 };
 
                 ////////////////////////////////////////////////////////////////
                 // PMC data
                 var pmcSamples = new List<PmcSample>();
-                parser.PerfInfoCollectionStart += (SampledProfileIntervalTraceData obj) => {
+                parser.PerfInfoCollectionStart += (SampledProfileIntervalTraceData obj) =>
+                {
                     // Update the Pmc intervals.
                     if (scenarioExecutionResult.PerformanceMonitorCounters.Any(pmc => pmc.Id == obj.SampleSource))
                     {
@@ -129,7 +133,8 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                             pmcSamplingIntervals[obj.SampleSource] = obj.NewInterval;
                     }
                 };
-                parser.PerfInfoPMCSample += (PMCCounterProfTraceData obj) => {
+                parser.PerfInfoPMCSample += (PMCCounterProfTraceData obj) =>
+                {
                     var performanceMonitorCounter = scenarioExecutionResult.PerformanceMonitorCounters
                         .SingleOrDefault(pmc => pmc.Id == obj.ProfileSource);
                     if (performanceMonitorCounter == null)
@@ -154,15 +159,14 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                     }
 
                     var modules = process.Modules
-                        .Where(m => {
-                            return obj.IsInTimeAndAddressIntervals(m);
-                        })
+                        .Where(obj.IsInTimeAndAddressIntervals)
                         .Select(m => m);
 
-                    if (modules.Count() == 0)
+                    if (!modules.Any())
                     {
                         // This might fall in managed code. We need to buffer and test it afterwards.
-                        pmcSamples.Add(new PmcSample {
+                        pmcSamples.Add(new PmcSample
+                        {
                             InstructionPointer = obj.InstructionPointer,
                             ProcessId = obj.ProcessID,
                             ProfileSourceId = obj.ProfileSource,
@@ -172,14 +176,16 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                         return;
                     }
 
-                    modules.ForEach(module => {
+                    modules.ForEach(module =>
+                    {
                         module.PerformanceMonitorCounterData[performanceMonitorCounter] += pmcSamplingIntervals[obj.ProfileSource];
                     });
                 };
 
                 ////////////////////////////////////////////////////////////////
                 // .NET modules
-                parser.Source.Clr.LoaderModuleLoad += (ModuleLoadUnloadTraceData obj) => {
+                parser.Source.Clr.LoaderModuleLoad += (ModuleLoadUnloadTraceData obj) =>
+                {
                     var process = processes.SingleOrDefault(p => p.Id == obj.ProcessID);
                     if (process == null)
                         return;
@@ -201,7 +207,8 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                         process.Modules.Add(dotnetModule);  // Add it back as managed
                     }
                 };
-                parser.Source.Clr.LoaderModuleUnload += (ModuleLoadUnloadTraceData obj) => {
+                parser.Source.Clr.LoaderModuleUnload += (ModuleLoadUnloadTraceData obj) =>
+                {
                     var process = processes
                         .SingleOrDefault(p => p.Id == obj.ProcessID);
                     if (process == null)
@@ -222,7 +229,8 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 
                 ////////////////////////////////////////////////////////////////
                 // .NET methods
-                parser.Source.Clr.MethodLoadVerbose += (MethodLoadUnloadVerboseTraceData obj) => {
+                parser.Source.Clr.MethodLoadVerbose += (MethodLoadUnloadVerboseTraceData obj) =>
+                {
                     var process = processes
                         .SingleOrDefault(p => p.Id == obj.ProcessID);
                     if (process == null)
@@ -256,7 +264,8 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                     method.RuntimeInstances.Add(
                         new RuntimeInstance(new AddressSpace(obj.MethodStartAddress, (uint)obj.MethodSize), obj.TimeStamp));
                 };
-                parser.Source.Clr.MethodUnloadVerbose += (MethodLoadUnloadVerboseTraceData obj) => {
+                parser.Source.Clr.MethodUnloadVerbose += (MethodLoadUnloadVerboseTraceData obj) =>
+                {
                     var process = processes.SingleOrDefault(p => p.Id == obj.ProcessID);
                     if (process == null)
                         return;
@@ -272,7 +281,8 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                     if (method == null)
                         return;
 
-                    var info = method.RuntimeInstances.SingleOrDefault(i => {
+                    var info = method.RuntimeInstances.SingleOrDefault(i =>
+                    {
                         return i.AddressSpace.Start == obj.MethodStartAddress
                             && i.AddressSpace.Size == obj.MethodSize
                             && i.LifeSpan.End > obj.TimeStamp;
@@ -299,13 +309,14 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                     processes
                         .Single(p => p.Id == pmc.ProcessId).Modules
                         .OfType<DotNetModule>()
-                        .ForEach(module => {
+                        .ForEach(module =>
+                        {
                             var methodsCount = module.Methods
-                                .Where(m => {
-                                    return m.RuntimeInstances.Any(info => info.LifeSpan.IsInInterval(pmc.TimeStamp) == 0
-                                        && info.AddressSpace.IsInInterval(pmc.InstructionPointer) == 0);
-                                })
-                                .Count();
+                            .Count(m =>
+                            {
+                                return m.RuntimeInstances.Any(info => info.LifeSpan.IsInInterval(pmc.TimeStamp) == 0
+                                && info.AddressSpace.IsInInterval(pmc.InstructionPointer) == 0);
+                            });
                             if (methodsCount != 0)
                             {
                                 module.PerformanceMonitorCounterData[performanceMonitorCounter] += pmc.SamplingInterval;
@@ -318,8 +329,10 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                 const string UnknownModuleName = "Unknown";
                 pmcSamples
                     .GroupBy(pmc => pmc.ProcessId)
-                    .Select(g1 => {
-                        return new {
+                    .Select(g1 =>
+                    {
+                        return new
+                        {
                             ProcessId = g1.Key,
                             PerformanceMonitorCounters = g1
                                 .GroupBy(pmc => pmc.ProfileSourceId)
@@ -328,10 +341,12 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                                     g2 => g2.Aggregate(0, (long count, PmcSample pmcSample) => count + pmcSample.SamplingInterval)),
                         };
                     })
-                    .ForEach(pmcRollover => {
+                    .ForEach(pmcRollover =>
+                    {
                         var process = processes.Single(p => p.Id == pmcRollover.ProcessId);
                         var newModule = new Module(UnknownModuleName, DefaultModuleChecksum, scenarioExecutionResult.PerformanceMonitorCounters);
-                        pmcRollover.PerformanceMonitorCounters.ForEach(pair => {
+                        pmcRollover.PerformanceMonitorCounters.ForEach(pair =>
+                        {
                             newModule.PerformanceMonitorCounterData[pair.Key] = pair.Value;
                         });
                         process.Modules.Add(newModule);
@@ -344,12 +359,9 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 
     static class Extensions
     {
-        internal static bool IsInTimeAndAddressIntervals(this PMCCounterProfTraceData @this, Module module)
-        {
-            return module.RuntimeInstances
+        internal static bool IsInTimeAndAddressIntervals(this PMCCounterProfTraceData @this, Module module) => module.RuntimeInstances
                 .Any(i => i.LifeSpan.IsInInterval(@this.TimeStamp) == 0
                     && i.AddressSpace != null // For example, 'Anonymously Hosted DynamicMethods Assembly'
                     && i.AddressSpace.IsInInterval(@this.InstructionPointer) == 0);
-        }
     }
 }

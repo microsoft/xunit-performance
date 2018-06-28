@@ -4,34 +4,35 @@ using System.Collections.Generic;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal abstract class BasePerformanceMonitorCounter : PerformanceMetric
+    abstract class BasePerformanceMonitorCounter : PerformanceMetric
     {
-        public BasePerformanceMonitorCounter(IPerformanceMonitorCounter pmc) : base(pmc.Name, pmc.DisplayName, pmc.Unit)
+        readonly int _interval;
+
+        protected BasePerformanceMonitorCounter(IPerformanceMonitorCounter pmc) : base(pmc.Name, pmc.DisplayName, pmc.Unit)
         {
             _interval = pmc.Interval;
-            _profileSourceInfoID = GetProfileSourceInfoId(Id);
+            ProfileSourceInfoID = GetProfileSourceInfoId(Id);
         }
+
+        public bool IsValidPmc => ProfileSourceInfoID > -1;
 
         public override IEnumerable<ProviderInfo> ProviderInfo
         {
             get
             {
-                yield return new KernelProviderInfo() {
+                yield return new KernelProviderInfo()
+                {
                     Keywords = unchecked((ulong)KernelTraceEventParser.Keywords.PMCProfile),
                     StackKeywords = unchecked((ulong)KernelTraceEventParser.Keywords.PMCProfile),
                 };
-                yield return new CpuCounterInfo() {
+                yield return new CpuCounterInfo()
+                {
                     CounterName = Id,
                     Interval = _interval,
                 };
             }
         }
 
-        public bool IsValidPmc => _profileSourceInfoID > -1;
-
-        protected int ProfileSourceInfoID => _profileSourceInfoID;
-
-        private readonly int _interval;
-        private readonly int _profileSourceInfoID;
+        protected int ProfileSourceInfoID { get; private set; }
     }
 }

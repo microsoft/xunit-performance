@@ -1,8 +1,4 @@
-﻿using Microsoft.Xunit.Performance;
-using System;
-using System.Reflection;
-
-namespace simpleharness
+﻿namespace simpleharness
 {
     public class GetAllocatedBytesForCurrentThreadTest
     {

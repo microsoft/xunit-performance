@@ -10,14 +10,21 @@ namespace Microsoft.Xunit.Performance.Internal
     /// </summary>
     public abstract class BenchmarkIterator
     {
+        static SemaphoreSlim s_semaphore = new SemaphoreSlim(1);
+
+        protected BenchmarkIterator(long innerIterations) => InnerIterationCount = innerIterations;
+
         internal static BenchmarkIterator Current { get; private set; }
 
-        protected BenchmarkIterator(long innerIterations)
-        {
-            InnerIterationCount = innerIterations;
-        }
+        /// <summary>
+        /// Gets the inner iteration count for the current benchmark
+        /// </summary>
+        internal long InnerIterationCount { get; }
 
-        private static SemaphoreSlim s_semaphore = new SemaphoreSlim(1);
+        /// <summary>
+        /// Gets the iterations for the current benchmark
+        /// </summary>
+        protected internal abstract IEnumerable<BenchmarkIteration> Iterations { get; }
 
         /// <summary>
         /// Runs the specified method with this <see cref="BenchmarkIterator"/> as the <see cref="Current"/> iterator.
@@ -50,16 +57,6 @@ namespace Microsoft.Xunit.Performance.Internal
                 s_semaphore.Release();
             }
         }
-
-        /// <summary>
-        /// Gets the iterations for the current benchmark
-        /// </summary>
-        protected internal abstract IEnumerable<BenchmarkIteration> Iterations { get; }
-
-        /// <summary>
-        /// Gets the inner iteration count for the current benchmark
-        /// </summary>
-        internal long InnerIterationCount { get; }
 
         /// <summary>
         /// Starts measurement for the given iteration, if it is the current iteration.

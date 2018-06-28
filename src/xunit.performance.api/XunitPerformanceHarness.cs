@@ -16,6 +16,18 @@ namespace Microsoft.Xunit.Performance.Api
     /// </summary>
     public sealed class XunitPerformanceHarness : IDisposable
     {
+        readonly string[] _args;
+
+        readonly bool _collectDefaultXUnitMetrics;
+
+        readonly IPerformanceMetricFactory _metricCollectionFactory;
+
+        readonly bool _requireEtw;
+
+        readonly List<string> _typeNames;
+
+        bool _disposed;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="XunitPerformanceHarness"/> class.
         /// </summary>
@@ -40,6 +52,11 @@ namespace Microsoft.Xunit.Performance.Api
         }
 
         /// <summary>
+        ///
+        /// </summary>
+        public BenchmarkConfiguration Configuration => BenchmarkConfiguration.Instance;
+
+        /// <summary>
         /// Gets the path for the output directory.
         /// </summary>
         public string OutputDirectory { get; }
@@ -50,10 +67,7 @@ namespace Microsoft.Xunit.Performance.Api
         /// <remarks>Returns an empty collection if the type names were not specified.</remarks>
         public IEnumerable<string> TypeNames => _typeNames.AsReadOnly();
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public BenchmarkConfiguration Configuration => BenchmarkConfiguration.Instance;
+        public static string Usage() => XunitPerformanceHarnessOptions.Usage();
 
         /// <summary>
         /// Run the xUnit tests tagged with the [<see cref="BenchmarkAttribute"/>] attribute.
@@ -73,7 +87,8 @@ namespace Microsoft.Xunit.Performance.Api
                     throw new Exception($"{errCode} benchmark(s) failed to execute.");
             }
 
-            var xUnitPerformanceSessionData = new XUnitPerformanceSessionData {
+            var xUnitPerformanceSessionData = new XUnitPerformanceSessionData
+            {
                 AssemblyFileName = assemblyFileName,
                 CollectOutputFilesCallback = LogFileSaved,
                 OutputDirectory = OutputDirectory,
@@ -98,16 +113,6 @@ namespace Microsoft.Xunit.Performance.Api
                 xUnitAction(assemblyFileName);
                 ProcessResults(xUnitPerformanceSessionData, xUnitPerformanceMetricData);
             }
-        }
-
-        /// <summary>
-        /// Helper function.
-        /// Writes the the file name, followed by the current line terminator, to the standard output stream.
-        /// </summary>
-        /// <param name="fileName">Created file name.</param>
-        private static void LogFileSaved(string fileName)
-        {
-            WriteInfoLine($"File saved to: \"{fileName}\"");
         }
 
         /// <summary>
@@ -168,7 +173,7 @@ namespace Microsoft.Xunit.Performance.Api
                     {
                         var sessionName = $"Performance-Api-Session-{Configuration.RunId}";
 
-                        string tracesFolder = Path.Combine(OutputDirectory, $"{fileNameWithoutExtension}-traces");
+                        var tracesFolder = Path.Combine(OutputDirectory, $"{fileNameWithoutExtension}-traces");
                         if (!Directory.Exists(tracesFolder))
                         {
                             Directory.CreateDirectory(tracesFolder);
@@ -180,7 +185,8 @@ namespace Microsoft.Xunit.Performance.Api
                         var kernelProviders = userSpecifiedMetrics
                             .SelectMany(pmi => pmi.ProviderInfo)
                             .OfType<KernelProviderInfo>()
-                            .Select(kernelProviderInfo => new KernelProvider {
+                            .Select(kernelProviderInfo => new KernelProvider
+                            {
                                 Flags = (KernelTraceEventParser.Keywords)kernelProviderInfo.Keywords,
                                 StackCapture = (KernelTraceEventParser.Keywords)kernelProviderInfo.StackKeywords
                             });
@@ -188,9 +194,11 @@ namespace Microsoft.Xunit.Performance.Api
                             .SelectMany(pmi => pmi.ProviderInfo)
                             .OfType<CpuCounterInfo>()
                             .Where(cpuCounterInfo => Helper.AvailablePreciseMachineCounters.Keys.Contains(cpuCounterInfo.CounterName))
-                            .Select(cpuCounterInfo => {
+                            .Select(cpuCounterInfo =>
+                            {
                                 var profileSourceInfo = Helper.AvailablePreciseMachineCounters[cpuCounterInfo.CounterName];
-                                return new ProfileSourceInfo {
+                                return new ProfileSourceInfo
+                                {
                                     ID = profileSourceInfo.ID,
                                     Interval = cpuCounterInfo.Interval,
                                     MaxInterval = profileSourceInfo.MaxInterval,
@@ -211,7 +219,8 @@ namespace Microsoft.Xunit.Performance.Api
                         scenarioExecutionResult.EventLogFileName = etlFileName;
                         scenarioExecutionResult.PerformanceMonitorCounters = userSpecifiedMetrics
                             .Where(m => Helper.AvailablePreciseMachineCounters.Keys.Contains(m.Id))
-                            .Select(m => {
+                            .Select(m =>
+                            {
                                 var psi = Helper.AvailablePreciseMachineCounters[m.Id];
                                 return new PerformanceMonitorCounter(m.DisplayName, psi.Name, m.Unit, psi.ID);
                             })
@@ -250,18 +259,6 @@ namespace Microsoft.Xunit.Performance.Api
         }
 
         /// <summary>
-        /// Save results from an executed scenario in XML format
-        /// </summary>
-        /// <param name="scenario">The scenario to save results for</param>
-        /// <param name="fileNameWithoutExtension">The filename (without extension) to use to save results</param>
-        public void WriteXmlResults(ScenarioBenchmark scenario, string fileNameWithoutExtension)
-        {
-            var xmlFileName = $"{fileNameWithoutExtension}.xml";
-            scenario.Serialize(xmlFileName);
-            LogFileSaved(xmlFileName);
-        }
-
-        /// <summary>
         /// Saves Markdown and CSV results for executed scenarios
         /// </summary>
         /// <param name="scenarios">The scenarios to save results for</param>
@@ -288,12 +285,73 @@ namespace Microsoft.Xunit.Performance.Api
             Console.WriteLine(MarkdownHelper.ToTrimmedTable(mdTable));
         }
 
-        public static string Usage()
+        /// <summary>
+        /// Save results from an executed scenario in XML format
+        /// </summary>
+        /// <param name="scenario">The scenario to save results for</param>
+        /// <param name="fileNameWithoutExtension">The filename (without extension) to use to save results</param>
+        public void WriteXmlResults(ScenarioBenchmark scenario, string fileNameWithoutExtension)
         {
-            return XunitPerformanceHarnessOptions.Usage();
+            var xmlFileName = $"{fileNameWithoutExtension}.xml";
+            scenario.Serialize(xmlFileName);
+            LogFileSaved(xmlFileName);
         }
 
-        private static ScenarioExecutionResult Run(ScenarioTestConfiguration configuration, ScenarioTest scenarioTest)
+        static IPerformanceMetricFactory GetPerformanceMetricFactory(IEnumerable<string> metricNames)
+        {
+            var metricCollectionFactory = new CompositePerformanceMetricFactory();
+
+            foreach (var metricName in metricNames)
+            {
+                if (metricName.Equals("default", StringComparison.OrdinalIgnoreCase))
+                {
+                    metricCollectionFactory.Add(new DefaultPerformanceMetricFactory());
+                }
+                else if (metricName.Equals("gcapi", StringComparison.OrdinalIgnoreCase))
+                {
+                    metricCollectionFactory.Add(new GCAPIPerformanceMetricFactory());
+                }
+                else if (metricName.Equals("stopwatch", StringComparison.OrdinalIgnoreCase))
+                {
+                    metricCollectionFactory.Add(new StopwatchPerformanceMetricFactory());
+                }
+                else if (metricName.Equals("BranchMispredictions", StringComparison.OrdinalIgnoreCase)
+                    || metricName.Equals("CacheMisses", StringComparison.OrdinalIgnoreCase)
+                    || metricName.Equals("InstructionRetired", StringComparison.OrdinalIgnoreCase))
+                {
+                    metricCollectionFactory.Add(new PmcPerformanceMetricFactory(metricName));
+                }
+            }
+
+            return metricCollectionFactory;
+        }
+
+        /// <summary>
+        /// Helper function.
+        /// Writes the the file name, followed by the current line terminator, to the standard output stream.
+        /// </summary>
+        /// <param name="fileName">Created file name.</param>
+        static void LogFileSaved(string fileName) => WriteInfoLine($"File saved to: \"{fileName}\"");
+
+        static bool RequireEtw(IEnumerable<string> metricNames)
+        {
+            var metricsThatNeedEtw = new[] {
+                "default",
+                "BranchMispredictions",
+                "CacheMisses",
+                "InstructionRetired",
+                // FIXME: We need to decouple the way events are written
+                //  (ETW vs. CSV), and move this metric as close as possible to
+                //  the start/stop iteration marker. Currently, this is closer
+                //  to the ETW marker.
+                "gcapi"
+            };
+            var requiredEtw = metricNames.Intersect(
+                metricsThatNeedEtw, StringComparer.OrdinalIgnoreCase).Any();
+            return IsWindowsPlatform && requiredEtw;
+        }
+
+        static ScenarioExecutionResult Run(ScenarioTestConfiguration configuration, ScenarioTest scenarioTest)
         {
             var hasStarted = scenarioTest.Process.Start();
             var startTime = DateTime.UtcNow;
@@ -325,7 +383,7 @@ namespace Microsoft.Xunit.Performance.Api
             return new ScenarioExecutionResult(scenarioTest.Process, startTime, exitTime, configuration);
         }
 
-        private void ProcessResults(XUnitPerformanceSessionData xUnitSessionData, XUnitPerformanceMetricData xUnitPerformanceMetricData)
+        void ProcessResults(XUnitPerformanceSessionData xUnitSessionData, XUnitPerformanceMetricData xUnitPerformanceMetricData)
         {
             if (!File.Exists(Configuration.FileLogPath))
             {
@@ -355,54 +413,12 @@ namespace Microsoft.Xunit.Performance.Api
             BenchmarkEventSource.Log.Clear();
         }
 
-        private static IPerformanceMetricFactory GetPerformanceMetricFactory(IEnumerable<string> metricNames)
-        {
-            var metricCollectionFactory = new CompositePerformanceMetricFactory();
-
-            foreach (var metricName in metricNames)
-            {
-                if (metricName.Equals("default", StringComparison.OrdinalIgnoreCase))
-                {
-                    metricCollectionFactory.Add(new DefaultPerformanceMetricFactory());
-                }
-                else if (metricName.Equals("gcapi", StringComparison.OrdinalIgnoreCase))
-                {
-                    metricCollectionFactory.Add(new GCAPIPerformanceMetricFactory());
-                }
-                else if (metricName.Equals("stopwatch", StringComparison.OrdinalIgnoreCase))
-                {
-                    metricCollectionFactory.Add(new StopwatchPerformanceMetricFactory());
-                }
-                else if (metricName.Equals("BranchMispredictions", StringComparison.OrdinalIgnoreCase)
-                    || metricName.Equals("CacheMisses", StringComparison.OrdinalIgnoreCase)
-                    || metricName.Equals("InstructionRetired", StringComparison.OrdinalIgnoreCase))
-                {
-                    metricCollectionFactory.Add(new PmcPerformanceMetricFactory(metricName));
-                }
-            }
-
-            return metricCollectionFactory;
-        }
-
-        private static bool RequireEtw(IEnumerable<string> metricNames)
-        {
-            var metricsThatNeedEtw = new[] {
-                "default",
-                "BranchMispredictions",
-                "CacheMisses",
-                "InstructionRetired",
-                // FIXME: We need to decouple the way events are written
-                //  (ETW vs. CSV), and move this metric as close as possible to
-                //  the start/stop iteration marker. Currently, this is closer
-                //  to the ETW marker.
-                "gcapi"
-            };
-            var requiredEtw = metricNames.Intersect(
-                metricsThatNeedEtw, StringComparer.OrdinalIgnoreCase).Count() != 0;
-            return IsWindowsPlatform && requiredEtw;
-        }
-
         #region IDisposable implementation
+
+        ~XunitPerformanceHarness()
+        {
+            Dispose(false);
+        }
 
         /// <summary>
         /// Performs tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -413,12 +429,7 @@ namespace Microsoft.Xunit.Performance.Api
             GC.SuppressFinalize(this);
         }
 
-        ~XunitPerformanceHarness()
-        {
-            Dispose(false);
-        }
-
-        private void Dispose(bool disposing)
+        void Dispose(bool disposing)
         {
             if (!_disposed)
             {
@@ -427,7 +438,7 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
-        private void FreeUnManagedResources()
+        void FreeUnManagedResources()
         {
             // Close the log when all test cases have completed execution.
             // HACK: This is a hack because we haven't found a way to close the file from within xunit.
@@ -439,12 +450,5 @@ namespace Microsoft.Xunit.Performance.Api
         }
 
         #endregion IDisposable implementation
-
-        private readonly string[] _args;
-        private readonly List<string> _typeNames;
-        private readonly IPerformanceMetricFactory _metricCollectionFactory;
-        private readonly bool _collectDefaultXUnitMetrics;
-        private readonly bool _requireEtw;
-        private bool _disposed;
     }
 }

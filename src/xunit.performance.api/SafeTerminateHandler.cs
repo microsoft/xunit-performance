@@ -15,9 +15,13 @@ namespace Microsoft.Xunit.Performance.Api
     /// 2. This class owns the Disposable object that is being wrapped, and it is responsible for its cleanup.
     /// </remarks>
     /// <typeparam name="T">The type that this class encapsulates.</typeparam>
-    internal sealed class SafeTerminateHandler<T> : IDisposable
+    sealed class SafeTerminateHandler<T> : IDisposable
         where T : class, IDisposable
     {
+        readonly Kernel32.PHANDLER_ROUTINE _HandlerRoutine;
+
+        readonly object _lock;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SafeTerminateHandler{T}"/> class that
         /// wraps a disposable object that will be created by calling the
@@ -38,6 +42,7 @@ namespace Microsoft.Xunit.Performance.Api
                     case Kernel32.CtrlTypes.CTRL_CLOSE_EVENT:
                         Dispose();
                         break;
+
                     default:
                         break;
                 }
@@ -58,11 +63,23 @@ namespace Microsoft.Xunit.Performance.Api
         /// </summary>
         public T BaseDisposableObject { get; }
 
-        private readonly Kernel32.PHANDLER_ROUTINE _HandlerRoutine;
-        private readonly object _lock;
-
         #region IDisposable Support
-        private volatile bool _disposedValue; // To detect redundant calls
+
+        volatile bool _disposedValue; // To detect redundant calls
+
+        ~SafeTerminateHandler()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(false);
+        }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         void Dispose(bool disposing)
         {
@@ -88,19 +105,6 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
-        ~SafeTerminateHandler()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(false);
-        }
-
-        // This code added to correctly implement the disposable pattern.
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        #endregion
+        #endregion IDisposable Support
     }
 }

@@ -26,14 +26,14 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         }
 
         /// <summary>
-        /// Performance monitor counter Id.
-        /// </summary>
-        public int Id { get; }
-
-        /// <summary>
         /// Performance monitor counter friendly name.
         /// </summary>
         public string DisplayName { get; }
+
+        /// <summary>
+        /// Performance monitor counter Id.
+        /// </summary>
+        public int Id { get; }
 
         /// <summary>
         /// Performance monitor counter name.
@@ -46,23 +46,27 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         public string Unit { get; }
 
         /// <summary>
-        /// Serves as the default hash function.
+        /// Determines whether two specified <see cref="PerformanceMonitorCounter"/> objects have different values.
         /// </summary>
-        /// <returns>A hash code for the current object.</returns>
-        public override int GetHashCode()
-        {
-            return Id ^ DisplayName.GetHashCode() ^ Name.GetHashCode() ^ Unit.GetHashCode();
-        }
+        /// <param name="lhs">The first <see cref="PerformanceMonitorCounter"/> to compare, or null.</param>
+        /// <param name="rhs">The second <see cref="PerformanceMonitorCounter"/> to compare, or null.</param>
+        /// <returns>True if the value of a is different from the value of b; otherwise, false.</returns>
+        public static bool operator !=(PerformanceMonitorCounter lhs, PerformanceMonitorCounter rhs) => !(lhs == rhs);
+
+        /// <summary>
+        /// Determines whether two specified <see cref="PerformanceMonitorCounter"/> objects have the same value.
+        /// </summary>
+        /// <param name="lhs">The first <see cref="PerformanceMonitorCounter"/> to compare, or null.</param>
+        /// <param name="rhs">The second <see cref="PerformanceMonitorCounter"/> to compare, or null.</param>
+        /// <returns>True if its two operands refer to the same object or if the values of its operands are equal; otherwise, false.</returns>
+        public static bool operator ==(PerformanceMonitorCounter lhs, PerformanceMonitorCounter rhs) => (object)lhs != null ? lhs.Equals(rhs) : (object)rhs == null;
 
         /// <summary>
         /// Determines whether the specified object is equals to this object.
         /// </summary>
         /// <param name="obj">The object to compare with this object.</param>
         /// <returns>True if the specified object is equal to the current object; otherwise, false.</returns>
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as PerformanceMonitorCounter);
-        }
+        public override bool Equals(object obj) => Equals(obj as PerformanceMonitorCounter);
 
         /// <summary>
         /// Indicates whether the current object is equal to another <see cref="PerformanceMonitorCounter"/> object.
@@ -80,25 +84,9 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         }
 
         /// <summary>
-        /// Determines whether two specified <see cref="PerformanceMonitorCounter"/> objects have the same value.
+        /// Serves as the default hash function.
         /// </summary>
-        /// <param name="lhs">The first <see cref="PerformanceMonitorCounter"/> to compare, or null.</param>
-        /// <param name="rhs">The second <see cref="PerformanceMonitorCounter"/> to compare, or null.</param>
-        /// <returns>True if its two operands refer to the same object or if the values of its operands are equal; otherwise, false.</returns>
-        public static bool operator ==(PerformanceMonitorCounter lhs, PerformanceMonitorCounter rhs)
-        {
-            return (object)lhs != null ? lhs.Equals(rhs) : (object)rhs == null;
-        }
-
-        /// <summary>
-        /// Determines whether two specified <see cref="PerformanceMonitorCounter"/> objects have different values.
-        /// </summary>
-        /// <param name="lhs">The first <see cref="PerformanceMonitorCounter"/> to compare, or null.</param>
-        /// <param name="rhs">The second <see cref="PerformanceMonitorCounter"/> to compare, or null.</param>
-        /// <returns>True if the value of a is different from the value of b; otherwise, false.</returns>
-        public static bool operator !=(PerformanceMonitorCounter lhs, PerformanceMonitorCounter rhs)
-        {
-            return !(lhs == rhs);
-        }
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode() => Id ^ DisplayName.GetHashCode() ^ Name.GetHashCode() ^ Unit.GetHashCode();
     }
 }

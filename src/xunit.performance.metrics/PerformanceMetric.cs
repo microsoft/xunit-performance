@@ -13,14 +13,12 @@ namespace Microsoft.Xunit.Performance.Sdk
     /// </summary>
     public abstract class PerformanceMetric : PerformanceMetricInfo
     {
-        public PerformanceMetric(string id, string displayName, string unit)
+        protected PerformanceMetric(string id, string displayName, string unit)
             : base(id, displayName, unit)
         {
         }
 
         public virtual IEnumerable<ProviderInfo> ProviderInfo => Enumerable.Empty<ProviderInfo>();
-
-        public virtual PerformanceMetricEvaluator CreateEvaluator(PerformanceMetricEvaluationContext context) => null;
 
         public static int GetProfileSourceInfoId(string key)
         {
@@ -29,5 +27,7 @@ namespace Microsoft.Xunit.Performance.Sdk
             else
                 return -1;
         }
+
+        public virtual PerformanceMetricEvaluator CreateEvaluator(PerformanceMetricEvaluationContext context) => null;
     }
 }

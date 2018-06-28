@@ -12,33 +12,68 @@ using System.Xml.Serialization;
 namespace Microsoft.Xunit.Performance.Api
 {
     [Serializable]
-    [XmlRoot("assemblies")]
-    public sealed class AssemblyModelCollection : List<AssemblyModel>
-    {
-        public void Serialize(string xmlFileName)
-        {
-            var namespaces = new XmlSerializerNamespaces();
-            namespaces.Add("", "");
-            using (var stream = File.Create(xmlFileName))
-            {
-                using (var sw = new StreamWriter(stream))
-                {
-                    new XmlSerializer(typeof(AssemblyModelCollection))
-                        .Serialize(sw, this, namespaces);
-                }
-            }
-        }
-    }
-
-    [Serializable]
     [XmlType("assembly")]
     public sealed class AssemblyModel
     {
+        [XmlArray("collection")]
+        public List<TestModel> Collection { get; set; }
+
         [XmlAttribute("name")]
         public string Name { get; set; }
 
-        [XmlArray("collection")]
-        public List<TestModel> Collection { get; set; }
+        internal static AssemblyModel Create(
+            string assemblyFileName,
+            CSVMetricReader reader,
+            XUnitPerformanceMetricData xUnitPerformanceMetricData)
+        {
+            var assemblyModel = new AssemblyModel
+            {
+                Name = Path.GetFileName(assemblyFileName),
+                Collection = new List<TestModel>()
+            };
+
+            foreach (var (perfTestMsg, metric, values) in GetCollectedData(assemblyFileName, reader, xUnitPerformanceMetricData))
+            {
+                var testModel = assemblyModel.Collection.FirstOrDefault(test => test.Name == perfTestMsg.TestCase.DisplayName);
+                if (testModel == null)
+                {
+                    testModel = new TestModel
+                    {
+                        Name = perfTestMsg.TestCase.DisplayName,
+                        Method = perfTestMsg.TestCase.TestMethod.Method.Name,
+                        ClassName = perfTestMsg.TestCase.TestMethod.TestClass.Class.Name,
+                        Performance = new PerformanceModel
+                        {
+                            Metrics = new List<MetricModel>(),
+                            IterationModels = new List<IterationModel>()
+                        },
+                    };
+                }
+
+                var testMetric = testModel.Performance.Metrics.FirstOrDefault(m => m.DisplayName == metric);
+                if (testMetric == null)
+                {
+                    testModel.Performance.Metrics.Add(new MetricModel
+                    {
+                        DisplayName = metric,
+                        Name = metric,
+                        Unit = metric == "Duration" ? PerformanceMetricUnits.Milliseconds : "unknown", // We are guessing here.
+                    });
+                }
+
+                foreach (var value in values)
+                {
+                    var iterationModel = new IterationModel { Iteration = new Dictionary<string, double>() };
+                    iterationModel.Iteration.Add(metric, value);
+                    if (iterationModel.Iteration.Count > 0)
+                        testModel.Performance.IterationModels.Add(iterationModel);
+                }
+
+                assemblyModel.Collection.Add(testModel);
+            }
+
+            return assemblyModel;
+        }
 
         internal DataTable GetStatistics()
         {
@@ -60,7 +95,7 @@ namespace Microsoft.Xunit.Performance.Api
                         .Where(iter => iter.Iteration.ContainsKey(metric.Name))
                         .Select(iter => iter.Iteration[metric.Name]);
 
-                    if (values.Count() == 0) // Cannot compute statistics when there are not results (e.g. user only ran a subset of all tests).
+                    if (!values.Any()) // Cannot compute statistics when there are not results (e.g. user only ran a subset of all tests).
                         continue;
 
                     // Skip the warmup run.
@@ -88,61 +123,12 @@ namespace Microsoft.Xunit.Performance.Api
             return dt;
         }
 
-        internal static AssemblyModel Create(
+        static IEnumerable<(PerformanceTestMessage performanceTestMessage, string metric, IEnumerable<double> values)> GetCollectedData(
             string assemblyFileName,
             CSVMetricReader reader,
             XUnitPerformanceMetricData xUnitPerformanceMetricData)
         {
-            var assemblyModel = new AssemblyModel {
-                Name = Path.GetFileName(assemblyFileName),
-                Collection = new List<TestModel>()
-            };
-
-            foreach (var (perfTestMsg, metric, values) in GetCollectedData(assemblyFileName, reader, xUnitPerformanceMetricData))
-            {
-                var testModel = assemblyModel.Collection.FirstOrDefault(test => test.Name == perfTestMsg.TestCase.DisplayName);
-                if (testModel == null)
-                {
-                    testModel = new TestModel {
-                        Name = perfTestMsg.TestCase.DisplayName,
-                        Method = perfTestMsg.TestCase.TestMethod.Method.Name,
-                        ClassName = perfTestMsg.TestCase.TestMethod.TestClass.Class.Name,
-                        Performance = new PerformanceModel {
-                            Metrics = new List<MetricModel>(),
-                            IterationModels = new List<IterationModel>()
-                        },
-                    };
-                }
-
-                var testMetric = testModel.Performance.Metrics.FirstOrDefault(m => m.DisplayName == metric);
-                if (testMetric == null)
-                {
-                    testModel.Performance.Metrics.Add(new MetricModel {
-                        DisplayName = metric,
-                        Name = metric,
-                        Unit = metric == "Duration" ? PerformanceMetricUnits.Milliseconds : "unknown", // We are guessing here.
-                    });
-                }
-
-                foreach (var value in values)
-                {
-                    var iterationModel = new IterationModel { Iteration = new Dictionary<string, double>() };
-                    iterationModel.Iteration.Add(metric, value);
-                    if (iterationModel.Iteration.Count > 0)
-                        testModel.Performance.IterationModels.Add(iterationModel);
-                }
-
-                assemblyModel.Collection.Add(testModel);
-            }
-
-            return assemblyModel;
-        }
-
-        private static IEnumerable<(PerformanceTestMessage performanceTestMessage, string metric, IEnumerable<double> values)> GetCollectedData(
-            string assemblyFileName,
-            CSVMetricReader reader,
-            XUnitPerformanceMetricData xUnitPerformanceMetricData)
-        {
+            assemblyFileName = assemblyFileName ?? "";
             var testsFoundInAssembly = xUnitPerformanceMetricData.PerformanceTestMessages;
             foreach (var testFoundInAssembly in testsFoundInAssembly)
             {
@@ -159,7 +145,7 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
-        private static IEnumerable<(string testCaseName, string metric, IEnumerable<double> values)> GetMeasurements(CSVMetricReader reader)
+        static IEnumerable<(string testCaseName, string metric, IEnumerable<double> values)> GetMeasurements(CSVMetricReader reader)
         {
             foreach (var testCaseName in reader.TestCases)
             {
@@ -183,9 +169,100 @@ namespace Microsoft.Xunit.Performance.Api
     }
 
     [Serializable]
+    [XmlRoot("assemblies")]
+    public sealed class AssemblyModelCollection : List<AssemblyModel>
+    {
+        public void Serialize(string xmlFileName)
+        {
+            var namespaces = new XmlSerializerNamespaces();
+            namespaces.Add("", "");
+            using (var stream = File.Create(xmlFileName))
+            {
+                using (var sw = new StreamWriter(stream))
+                {
+                    new XmlSerializer(typeof(AssemblyModelCollection))
+                        .Serialize(sw, this, namespaces);
+                }
+            }
+        }
+    }
+
+    public sealed class IterationModel
+    {
+        public Dictionary<string, double> Iteration { get; set; }
+    }
+
+    public sealed class MetricModel
+    {
+        string _name;
+
+        public string DisplayName { get; set; }
+
+        // TODO: This should be internal 'MetricModel.Name' is only used to generate the 'XmlElement.Name' & 'XmlAttribute.Name'.
+        public string Name
+        {
+            get => _name;
+            set => _name = XmlConvert.EncodeName(value);
+        }
+
+        public string Unit { get; set; }
+    }
+
+    public sealed class PerformanceModel : IXmlSerializable
+    {
+        public List<IterationModel> IterationModels { get; set; }
+        public List<MetricModel> Metrics { get; set; }
+
+        public XmlSchema GetSchema() => null;
+
+        public void ReadXml(XmlReader reader) => throw new NotImplementedException();
+
+        public void WriteXml(XmlWriter writer)
+        {
+            writer.WriteStartElement("metrics");
+            foreach (var metric in Metrics)
+            {
+                writer.WriteStartElement(metric.Name);
+                writer.WriteAttributeString("displayName", metric.DisplayName);
+                writer.WriteAttributeString("unit", metric.Unit);
+                writer.WriteEndElement();
+            }
+            writer.WriteEndElement();
+
+            writer.WriteStartElement("iterations");
+            var index = 0;
+            foreach (var iterationModel in IterationModels)
+            {
+                writer.WriteStartElement("iteration");
+                writer.WriteAttributeString("index", index.ToString());
+                ++index;
+                foreach (var kvp in iterationModel.Iteration)
+                {
+                    writer.WriteAttributeString(kvp.Key, kvp.Value.ToString(CultureInfo.InvariantCulture));
+                }
+                writer.WriteEndElement();
+            }
+            writer.WriteEndElement();
+        }
+    }
+
+    [Serializable]
     [XmlRoot("ScenarioBenchmark")]
     public sealed class ScenarioBenchmark
     {
+        public ScenarioBenchmark(string name) : this()
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException($"{nameof(name)} cannot be null, empty or white space.");
+            Name = name;
+        }
+
+        ScenarioBenchmark()
+        {
+            Namespace = "";
+            Tests = new List<ScenarioTestModel>();
+        }
+
         [XmlAttribute("Name")]
         public string Name { get; set; }
 
@@ -194,19 +271,6 @@ namespace Microsoft.Xunit.Performance.Api
 
         [XmlArray("Tests")]
         public List<ScenarioTestModel> Tests { get; set; }
-
-        private ScenarioBenchmark()
-        {
-            Namespace = "";
-            Tests = new List<ScenarioTestModel>();
-        }
-
-        public ScenarioBenchmark(string name) : this()
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException($"{nameof(name)} cannot be null, empty or white space.");
-            Name = name;
-        }
 
         public void Serialize(string xmlFileName)
         {
@@ -245,15 +309,6 @@ namespace Microsoft.Xunit.Performance.Api
             return dt;
         }
 
-        internal DataTable GetStatisticsTable(bool includeScenarioNameColumn = false)
-        {
-            var dt = GetEmptyTable(includeScenarioNameColumn ? null : Name);
-
-            AddRowsToTable(dt, GetStatistics(), includeScenarioNameColumn);
-
-            return dt;
-        }
-
         internal void AddRowsToTable(DataTable dt, IEnumerable<ScenarioTestResultRow> rows, bool includeScenarioNameColumn = false)
         {
             foreach (var row in rows)
@@ -281,7 +336,7 @@ namespace Microsoft.Xunit.Performance.Api
 
         internal List<ScenarioTestResultRow> GetStatistics()
         {
-            List<ScenarioTestResultRow> ret = new List<ScenarioTestResultRow>();
+            var ret = new List<ScenarioTestResultRow>();
 
             foreach (var test in Tests)
             {
@@ -291,7 +346,7 @@ namespace Microsoft.Xunit.Performance.Api
                         .Where(iter => iter.Iteration.ContainsKey(metric.Name))
                         .Select(iter => iter.Iteration[metric.Name]);
 
-                    if (values.Count() == 0) // Cannot compute statistics when there are not results (e.g. user only ran a subset of all tests).
+                    if (!values.Any()) // Cannot compute statistics when there are not results (e.g. user only ran a subset of all tests).
                         continue;
 
                     // Skip the warmup run.
@@ -303,18 +358,20 @@ namespace Microsoft.Xunit.Performance.Api
                     var max = values.Max();
                     var min = values.Min();
 
-                    ScenarioTestResultRow row = new ScenarioTestResultRow();
-                    row.ScenarioName = Name;
-                    row.TestName = string.IsNullOrEmpty(test.Namespace) ?
-                        $"{test.Name}" : $"{test.Namespace}{test.Separator}{test.Name}";
-                    row.MetricName = metric.DisplayName;
-                    row.MetricUnit = metric.Unit;
+                    var row = new ScenarioTestResultRow
+                    {
+                        ScenarioName = Name,
+                        TestName = string.IsNullOrEmpty(test.Namespace) ?
+                        $"{test.Name}" : $"{test.Namespace}{test.Separator}{test.Name}",
+                        MetricName = metric.DisplayName,
+                        MetricUnit = metric.Unit,
 
-                    row.Iterations = values.Count();
-                    row.Average = avg;
-                    row.StandardDeviation = stdev_s;
-                    row.Minimum = min;
-                    row.Maximum = max;
+                        Iterations = values.Count(),
+                        Average = avg,
+                        StandardDeviation = stdev_s,
+                        Minimum = min,
+                        Maximum = max
+                    };
 
                     ret.Add(row);
                 }
@@ -322,135 +379,77 @@ namespace Microsoft.Xunit.Performance.Api
 
             return ret;
         }
-    }
 
-    internal sealed class ScenarioTestResultRow
-    {
-        public string ScenarioName { get; set; }
-        public string TestName { get; set; }
-        public string MetricName { get; set; }
-        public string MetricUnit { get; set; }
-        public int Iterations { get; set; }
-        public double Average { get; set; }
-        public double StandardDeviation { get; set; }
-        public double Minimum { get; set; }
-        public double Maximum { get; set; }
+        internal DataTable GetStatisticsTable(bool includeScenarioNameColumn = false)
+        {
+            var dt = GetEmptyTable(includeScenarioNameColumn ? null : Name);
+
+            AddRowsToTable(dt, GetStatistics(), includeScenarioNameColumn);
+
+            return dt;
+        }
     }
 
     [Serializable]
     [XmlType("Test")]
     public sealed class ScenarioTestModel
     {
+        string _namespace;
+
+        string _separator;
+
+        public ScenarioTestModel(string name) : this() => Name = name;
+
+        ScenarioTestModel()
+        {
+            _namespace = "";
+            _separator = "/";
+            Performance = new PerformanceModel
+            {
+                Metrics = new List<MetricModel>(),
+                IterationModels = new List<IterationModel>()
+            };
+        }
+
         [XmlAttribute("Name")]
         public string Name { get; set; }
 
         [XmlAttribute("Namespace")]
         public string Namespace { get => _namespace; set => _namespace = value ?? ""; }
 
-        public string Separator { get => _separator; set => _separator = value ?? "/"; }
-
         [XmlElement("Performance")]
         public PerformanceModel Performance { get; set; }
 
-        private ScenarioTestModel()
-        {
-            _namespace = "";
-            _separator = "/";
-            Performance = new PerformanceModel {
-                Metrics = new List<MetricModel>(),
-                IterationModels = new List<IterationModel>()
-            };
-        }
-
-        public ScenarioTestModel(string name) : this()
-        {
-            Name = name;
-        }
-
-        private string _namespace;
-        private string _separator;
+        public string Separator { get => _separator; set => _separator = value ?? "/"; }
     }
 
     [Serializable]
     [XmlType("test")]
     public sealed class TestModel
     {
-        [XmlAttribute("name")]
-        public string Name { get; set; }
-
         [XmlAttribute("type")]
         public string ClassName { get; set; }
 
         [XmlAttribute("method")]
         public string Method { get; set; }
 
+        [XmlAttribute("name")]
+        public string Name { get; set; }
+
         [XmlElement("performance")]
         public PerformanceModel Performance { get; set; }
     }
 
-    public sealed class PerformanceModel : IXmlSerializable
+    sealed class ScenarioTestResultRow
     {
-        public List<MetricModel> Metrics { get; set; }
-
-        public List<IterationModel> IterationModels { get; set; }
-
-        public XmlSchema GetSchema()
-        {
-            return null;
-        }
-
-        public void ReadXml(XmlReader reader)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void WriteXml(XmlWriter writer)
-        {
-            writer.WriteStartElement("metrics");
-            foreach (var metric in Metrics)
-            {
-                writer.WriteStartElement(metric.Name);
-                writer.WriteAttributeString("displayName", metric.DisplayName);
-                writer.WriteAttributeString("unit", metric.Unit);
-                writer.WriteEndElement();
-            }
-            writer.WriteEndElement();
-
-            writer.WriteStartElement("iterations");
-            var index = 0;
-            foreach (var iterationModel in IterationModels)
-            {
-                writer.WriteStartElement("iteration");
-                writer.WriteAttributeString("index", index.ToString());
-                ++index;
-                foreach (var kvp in iterationModel.Iteration)
-                {
-                    writer.WriteAttributeString(kvp.Key, kvp.Value.ToString(CultureInfo.InvariantCulture));
-                }
-                writer.WriteEndElement();
-            }
-            writer.WriteEndElement();
-        }
-    }
-
-    public sealed class MetricModel
-    {
-        // TODO: This should be internal 'MetricModel.Name' is only used to generate the 'XmlElement.Name' & 'XmlAttribute.Name'.
-        public string Name
-        {
-            get => _name;
-            set => _name = XmlConvert.EncodeName(value);
-        }
-
-        public string DisplayName { get; set; }
-
-        public string Unit { get; set; }
-
-        private string _name = null;
-    }
-
-    public sealed class IterationModel
-    {
-        public Dictionary<string, double> Iteration { get; set; }
+        public double Average { get; set; }
+        public int Iterations { get; set; }
+        public double Maximum { get; set; }
+        public string MetricName { get; set; }
+        public string MetricUnit { get; set; }
+        public double Minimum { get; set; }
+        public string ScenarioName { get; set; }
+        public double StandardDeviation { get; set; }
+        public string TestName { get; set; }
     }
 }

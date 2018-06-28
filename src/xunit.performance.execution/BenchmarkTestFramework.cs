@@ -7,13 +7,12 @@ using Xunit.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class BenchmarkTestFramework : XunitTestFramework
+    class BenchmarkTestFramework : XunitTestFramework
     {
-        public BenchmarkTestFramework(IMessageSink messageSink) : base(messageSink) { }
-
-        protected override ITestFrameworkExecutor CreateExecutor(AssemblyName assemblyName)
+        public BenchmarkTestFramework(IMessageSink messageSink) : base(messageSink)
         {
-            return new BenchmarkTestFrameworkExecutor(assemblyName, SourceInformationProvider, DiagnosticMessageSink);
         }
+
+        protected override ITestFrameworkExecutor CreateExecutor(AssemblyName assemblyName) => new BenchmarkTestFrameworkExecutor(assemblyName, SourceInformationProvider, DiagnosticMessageSink);
     }
 }

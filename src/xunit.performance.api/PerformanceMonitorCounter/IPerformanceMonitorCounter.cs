@@ -4,10 +4,9 @@
     {
         string DisplayName { get; }
 
+        int Interval { get; }
         string Name { get; }
 
         string Unit { get; }
-
-        int Interval { get; }
     }
 }

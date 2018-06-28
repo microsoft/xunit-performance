@@ -9,7 +9,7 @@ namespace Microsoft.Xunit.Performance.Api
     /// Provides a mechanism for listening events.
     /// </summary>
     /// <typeparam name="TResult">The type of the return value of the method that the runner delegate encapsulates.</typeparam>
-    internal interface ICanListenEvents<TResult>
+    interface ICanListenEvents<TResult>
     {
         /// <summary>
         /// Performs application-defined tasks associated with profiling or tracing.

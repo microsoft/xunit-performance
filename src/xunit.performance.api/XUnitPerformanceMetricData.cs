@@ -2,10 +2,9 @@
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal struct XUnitPerformanceMetricData
+    struct XUnitPerformanceMetricData
     {
-        public IEnumerable<ProviderInfo> Providers { get; set; }
-
         public IEnumerable<PerformanceTestMessage> PerformanceTestMessages { get; set; }
+        public IEnumerable<ProviderInfo> Providers { get; set; }
     }
 }

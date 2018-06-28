@@ -26,11 +26,6 @@ namespace Microsoft.Xunit.Performance.Api
         }
 
         /// <summary>
-        /// State of the run scenario process.
-        /// </summary>
-        public ProcessExitInfo ProcessExitInfo { get; }
-
-        /// <summary>
         /// Configuration for the scenario that was run
         /// </summary>
         public ScenarioTestConfiguration Configuration { get; }
@@ -44,5 +39,10 @@ namespace Microsoft.Xunit.Performance.Api
         /// This is the list of Pmc that were captured by the ETW event listener.
         /// </summary>
         public ISet<PerformanceMonitorCounter> PerformanceMonitorCounters { get; set; }
+
+        /// <summary>
+        /// State of the run scenario process.
+        /// </summary>
+        public ProcessExitInfo ProcessExitInfo { get; }
     }
 }

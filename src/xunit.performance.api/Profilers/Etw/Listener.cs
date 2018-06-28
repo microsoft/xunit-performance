@@ -14,7 +14,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// Implements a mechanism for listening ETW events.
     /// </summary>
     /// <typeparam name="TResult">The type of the return value of the method that the runner delegate encapsulates.</typeparam>
-    internal sealed class Listener<TResult> : ICanListenEvents<TResult>
+    sealed class Listener<TResult> : ICanListenEvents<TResult>
     {
         /// <summary>
         /// Initializes a new instance of the Listener class.
@@ -33,9 +33,9 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         }
 
         /// <summary>
-        /// ETW session data.
+        /// A collection of kernel providers to be enabled during ETW recording.
         /// </summary>
-        public SessionData UserSessionData { get; }
+        public IReadOnlyCollection<KernelProvider> KernelProviders { get; }
 
         /// <summary>
         /// A collection of user providers to be enabled during ETW recording.
@@ -43,9 +43,9 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         public IReadOnlyCollection<UserProvider> UserProviders { get; }
 
         /// <summary>
-        /// A collection of kernel providers to be enabled during ETW recording.
+        /// ETW session data.
         /// </summary>
-        public IReadOnlyCollection<KernelProvider> KernelProviders { get; }
+        public SessionData UserSessionData { get; }
 
         /// <summary>
         /// Performs tasks associated with listening ETW events on Windows.
@@ -60,7 +60,8 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
             var fi = new FileInfo(UserSessionData.FileName);
             var kernelFileName = Path.Combine($"{fi.DirectoryName}", $"{Path.GetFileNameWithoutExtension(fi.Name)}.kernel.etl");
             var kernelProvider = KernelProviders.Aggregate(KernelProvider.Default,
-                (current, item) => new KernelProvider {
+                (current, item) => new KernelProvider
+                {
                     Flags = current.Flags | item.Flags,
                     StackCapture = current.StackCapture | item.StackCapture,
                 });
@@ -81,7 +82,8 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
 
                 using (var userSession = new Session(UserSessionData))
                 {
-                    UserProviders.ForEach(provider => {
+                    UserProviders.ForEach(provider =>
+                    {
                         userSession.EnableProvider(provider.Guid, provider.Level, provider.Keywords, provider.Options);
                     });
 

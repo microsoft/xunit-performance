@@ -8,7 +8,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Runtime information about the corresponding loaded code.
     /// </summary>
-    internal sealed class RuntimeInstance
+    sealed class RuntimeInstance
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="RuntimeInstance"/> class.

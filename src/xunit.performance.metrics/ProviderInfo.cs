@@ -9,13 +9,15 @@ namespace Microsoft.Xunit.Performance
     [Serializable]
     public abstract class ProviderInfo
     {
-        internal ProviderInfo() { } // Only allow subclassing from this assembly
+        internal ProviderInfo()
+        {
+        } // Only allow subclassing from this assembly
 
         public static IEnumerable<ProviderInfo> Merge(IEnumerable<ProviderInfo> info)
         {
-            Dictionary<Guid, UserProviderInfo> userInfo = new Dictionary<Guid, UserProviderInfo>();
-            KernelProviderInfo kernelInfo = new KernelProviderInfo();
-            Dictionary<string, CpuCounterInfo> cpuInfo = new Dictionary<string, CpuCounterInfo>();
+            var userInfo = new Dictionary<Guid, UserProviderInfo>();
+            var kernelInfo = new KernelProviderInfo();
+            var cpuInfo = new Dictionary<string, CpuCounterInfo>();
 
             foreach (var i in info)
                 i.MergeInto(userInfo, kernelInfo, cpuInfo);

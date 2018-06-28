@@ -1,14 +1,16 @@
-﻿using System;
+﻿using Microsoft.Xunit.Performance.Sdk;
+using System;
 using System.Collections.Generic;
-using Microsoft.Xunit.Performance.Sdk;
 using static Microsoft.Xunit.Performance.Api.Common;
 using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 using static Microsoft.Xunit.Performance.InstructionsRetiredMetricDiscoverer;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal sealed class PmcPerformanceMetricFactory : IPerformanceMetricFactory
+    sealed class PmcPerformanceMetricFactory : IPerformanceMetricFactory
     {
+        readonly List<PerformanceMetric> _metrics;
+
         public PmcPerformanceMetricFactory(string pmcName)
         {
             _metrics = new List<PerformanceMetric>();
@@ -40,11 +42,6 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
-        public IEnumerable<PerformanceMetric> GetMetrics()
-        {
-            return _metrics;
-        }
-
-        private readonly List<PerformanceMetric> _metrics;
+        public IEnumerable<PerformanceMetric> GetMetrics() => _metrics;
     }
 }

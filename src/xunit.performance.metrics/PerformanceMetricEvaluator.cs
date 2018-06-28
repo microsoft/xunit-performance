@@ -8,9 +8,12 @@ namespace Microsoft.Xunit.Performance.Sdk
 {
     public abstract class PerformanceMetricEvaluator : IDisposable
     {
-        public abstract void BeginIteration(TraceEvent beginEvent);
+        ~PerformanceMetricEvaluator()
+        {
+            Dispose(false);
+        }
 
-        public abstract double EndIteration(TraceEvent endEvent);
+        public abstract void BeginIteration(TraceEvent beginEvent);
 
         public void Dispose()
         {
@@ -18,10 +21,7 @@ namespace Microsoft.Xunit.Performance.Sdk
             GC.SuppressFinalize(this);
         }
 
-        ~PerformanceMetricEvaluator()
-        {
-            Dispose(false);
-        }
+        public abstract double EndIteration(TraceEvent endEvent);
 
         protected virtual void Dispose(bool disposing)
         {

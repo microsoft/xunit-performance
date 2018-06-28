@@ -5,7 +5,7 @@ using Microsoft.Xunit.Performance.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal partial class BenchmarkMetricDiscoverer : IPerformanceMetricDiscoverer
+    partial class BenchmarkMetricDiscoverer : IPerformanceMetricDiscoverer
     {
         internal class BenchmarkDurationMetric : PerformanceMetric
         {
@@ -14,10 +14,7 @@ namespace Microsoft.Xunit.Performance
             {
             }
 
-            public override PerformanceMetricEvaluator CreateEvaluator(PerformanceMetricEvaluationContext context)
-            {
-                return new BenchmarkDurationEvaluator(context);
-            }
+            public override PerformanceMetricEvaluator CreateEvaluator(PerformanceMetricEvaluationContext context) => new BenchmarkDurationEvaluator(context);
         }
     }
 }

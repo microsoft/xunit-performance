@@ -17,7 +17,7 @@ namespace Microsoft.Xunit.Performance
     /// </remarks>
     [PerformanceMetricDiscoverer("Microsoft.Xunit.Performance.GCAllocationsMetricDiscoverer", "xunit.performance.metrics")]
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Assembly)]
-    public class MeasureGCAllocationsAttribute : Attribute, IPerformanceMetricAttribute
+    public sealed class MeasureGCAllocationsAttribute : Attribute, IPerformanceMetricAttribute
     {
     }
 }

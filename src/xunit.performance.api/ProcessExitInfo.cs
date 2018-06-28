@@ -35,6 +35,11 @@ namespace Microsoft.Xunit.Performance.Api
         public int ExitCode { get; }
 
         /// <summary>
+        /// Gets the time that the associated process exited.
+        /// </summary>
+        public DateTime ExitTime { get; }
+
+        /// <summary>
         /// Gets the unique identifier that was assigned to the process.
         /// </summary>
         public int ProcessId { get; }
@@ -43,10 +48,5 @@ namespace Microsoft.Xunit.Performance.Api
         /// Gets the time that the associated process was started.
         /// </summary>
         public DateTime StartTime { get; }
-
-        /// <summary>
-        /// Gets the time that the associated process exited.
-        /// </summary>
-        public DateTime ExitTime { get; }
     }
 }

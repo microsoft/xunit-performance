@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal partial class GCCountMetricDiscoverer : IPerformanceMetricDiscoverer
+    partial class GCCountMetricDiscoverer : IPerformanceMetricDiscoverer
     {
         internal class GCCountMetric : PerformanceMetric
         {
@@ -21,7 +21,8 @@ namespace Microsoft.Xunit.Performance
             {
                 get
                 {
-                    yield return new UserProviderInfo() {
+                    yield return new UserProviderInfo()
+                    {
                         ProviderGuid = ClrTraceEventParser.ProviderGuid,
                         Level = TraceEventLevel.Informational,
                         Keywords = (ulong)ClrTraceEventParser.Keywords.GC
@@ -29,10 +30,7 @@ namespace Microsoft.Xunit.Performance
                 }
             }
 
-            public override PerformanceMetricEvaluator CreateEvaluator(PerformanceMetricEvaluationContext context)
-            {
-                return new GCCountEvaluator(context);
-            }
+            public override PerformanceMetricEvaluator CreateEvaluator(PerformanceMetricEvaluationContext context) => new GCCountEvaluator(context);
         }
     }
 }

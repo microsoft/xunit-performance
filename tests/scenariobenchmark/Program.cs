@@ -4,11 +4,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-
 namespace simpleharness
 {
-    public class Program
+    public static class Program
     {
+        const int Iterations = 10;
+
+        static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+
         public static void Main(string[] args)
         {
             using (var harness = new XunitPerformanceHarness(args))
@@ -19,10 +22,7 @@ namespace simpleharness
             }
         }
 
-        static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
-        const int Iterations = 10;
-
-        private static void TestDir(XunitPerformanceHarness harness)
+        static void TestDir(XunitPerformanceHarness harness)
         {
             string commandName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dir" : "ls";
 
@@ -37,7 +37,6 @@ namespace simpleharness
 
             void PreIteration(ScenarioTest scenarioTest)
             {
-
             }
 
             void PostIteration(ScenarioExecutionResult scenarioExecutionResult)
@@ -54,7 +53,6 @@ namespace simpleharness
 
             void PostRun(ScenarioBenchmark scenario)
             {
-
             }
 
             ProcessStartInfo processToMeasure;
@@ -71,7 +69,8 @@ namespace simpleharness
             processToMeasure.RedirectStandardOutput = true;
             processToMeasure.UseShellExecute = false;
 
-            var scenarioTestConfiguration = new ScenarioTestConfiguration(Timeout, processToMeasure) {
+            var scenarioTestConfiguration = new ScenarioTestConfiguration(Timeout, processToMeasure)
+            {
                 Iterations = Iterations,
                 PreIterationDelegate = PreIteration,
                 PostIterationDelegate = PostIteration,

@@ -8,18 +8,21 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Provides a simple interface to ETW kernel providers.
     /// </summary>
-    internal sealed class KernelProvider
+    sealed class KernelProvider
     {
-        static KernelProvider()
+        static KernelProvider() => Default = new KernelProvider
         {
-            Default = new KernelProvider {
-                Flags = KernelTraceEventParser.Keywords.ImageLoad
+            Flags = KernelTraceEventParser.Keywords.ImageLoad
                     | KernelTraceEventParser.Keywords.Process
                     | KernelTraceEventParser.Keywords.Profile
                     | KernelTraceEventParser.Keywords.Thread,
-                StackCapture = KernelTraceEventParser.Keywords.None,
-            };
-        }
+            StackCapture = KernelTraceEventParser.Keywords.None,
+        };
+
+        /// <summary>
+        /// Default kernel flags enabled by the xUnit-Performance Api.
+        /// </summary>
+        public static KernelProvider Default { get; }
 
         /// <summary>
         /// Specifies the particular kernel events of interest.
@@ -30,10 +33,5 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// Specifies which events should have their stack traces captured when an event is logged.
         /// </summary>
         public KernelTraceEventParser.Keywords StackCapture { get; set; }
-
-        /// <summary>
-        /// Default kernel flags enabled by the xUnit-Performance Api.
-        /// </summary>
-        public static KernelProvider Default { get; }
     }
 }

@@ -12,7 +12,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Provides a basic interface for ETW Tracing operations.
     /// </summary>
-    internal static class Helper
+    static class Helper
     {
         static Helper()
         {
@@ -29,6 +29,32 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// Indicates whether an ETW kernel session can be enabled.
         /// </summary>
         public static bool CanEnableKernelProvider { get; }
+
+        /// <summary>
+        /// Creates a ETW kernel session data object.
+        /// </summary>
+        /// <param name="kernelFileName">Name of the etl file where the kernel session events will be written to.</param>
+        /// <param name="bufferSizeMB">Sizeof of the internal buffer to be used by the kernel session.</param>
+        /// <returns>A new Session data object.</returns>
+        public static Session MakeKernelSession(string kernelFileName, int bufferSizeMB) => new Session(new SessionData(KernelTraceEventParser.KernelSessionName, kernelFileName)
+        {
+            BufferSizeMB = bufferSizeMB
+        });
+
+        /// <summary>
+        /// Determines whether a kernel session is needed.
+        /// </summary>
+        /// <param name="kernelProvider">Provider data that will be traced.</param>
+        /// <returns>True if a kernel session is needed, False otherwise.</returns>
+        public static bool NeedSeparateKernelSession(KernelProvider kernelProvider)
+        {
+            if (kernelProvider == null)
+                throw new ArgumentNullException(nameof(kernelProvider));
+
+            // CPU counters need the special kernel session
+            return ((kernelProvider.Flags & (KernelTraceEventParser.Keywords.Profile | KernelTraceEventParser.Keywords.PMCProfile))
+                != KernelTraceEventParser.Keywords.None);
+        }
 
         /// <summary>
         /// Enable the PMC machine wide, for ETW capture.
@@ -61,34 +87,6 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                 //
                 TraceEventProfileSources.Set(profileSourceIDs.ToArray(), profileSourceIntervals.ToArray());
             }
-        }
-
-        /// <summary>
-        /// Creates a ETW kernel session data object.
-        /// </summary>
-        /// <param name="kernelFileName">Name of the etl file where the kernel session events will be written to.</param>
-        /// <param name="bufferSizeMB">Sizeof of the internal buffer to be used by the kernel session.</param>
-        /// <returns>A new Session data object.</returns>
-        public static Session MakeKernelSession(string kernelFileName, int bufferSizeMB)
-        {
-            return new Session(new SessionData(KernelTraceEventParser.KernelSessionName, kernelFileName) {
-                BufferSizeMB = bufferSizeMB
-            });
-        }
-
-        /// <summary>
-        /// Determines whether a kernel session is needed.
-        /// </summary>
-        /// <param name="kernelProvider">Provider data that will be traced.</param>
-        /// <returns>True if a kernel session is needed, False otherwise.</returns>
-        public static bool NeedSeparateKernelSession(KernelProvider kernelProvider)
-        {
-            if (kernelProvider == null)
-                throw new ArgumentNullException(nameof(kernelProvider));
-
-            // CPU counters need the special kernel session
-            return ((kernelProvider.Flags & (KernelTraceEventParser.Keywords.Profile | KernelTraceEventParser.Keywords.PMCProfile))
-                != KernelTraceEventParser.Keywords.None);
         }
     }
 }

@@ -14,6 +14,11 @@ namespace Microsoft.Xunit.Performance
     public static class Benchmark
     {
         /// <summary>
+        /// Gets the inner iteration count (the count of actual iterations that should occur for each benchmark iteration).
+        /// </summary>
+        public static long InnerIterationCount => BenchmarkIterator.Current.InnerIterationCount;
+
+        /// <summary>
         /// Gets a sequence of benchmark iterations.
         /// </summary>
         /// <remarks>
@@ -24,17 +29,12 @@ namespace Microsoft.Xunit.Performance
         public static IEnumerable<BenchmarkIteration> Iterations => BenchmarkIterator.Current.Iterations;
 
         /// <summary>
-        /// Gets the inner iteration count (the count of actual iterations that should occur for each benchmark iteration).
-        /// </summary>
-        public static long InnerIterationCount => BenchmarkIterator.Current.InnerIterationCount;
-
-        /// <summary>
         /// Automatically iterate over a measured operation.
         /// </summary>
         /// <param name="measuredOperation">The operation to measure and iterate over.</param>
         public static void Iterate(Action measuredOperation)
         {
-            foreach(var iteration in BenchmarkIterator.Current.Iterations)
+            foreach (var iteration in BenchmarkIterator.Current.Iterations)
             {
                 using (var measurement = iteration.StartMeasurement())
                 {

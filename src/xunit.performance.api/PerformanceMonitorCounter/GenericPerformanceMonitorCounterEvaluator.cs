@@ -5,13 +5,17 @@ using System.Diagnostics;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal class GenericPerformanceMonitorCounterEvaluator<T> : PerformanceMetricEvaluator
+    class GenericPerformanceMonitorCounterEvaluator<T> : PerformanceMetricEvaluator
         where T : IPerformanceMonitorCounter, new()
     {
-        private PerformanceMetricEvaluationContext _context;
-        private int _profileSource;
-        private int _interval;
-        private long _count;
+        PerformanceMetricEvaluationContext _context;
+        long _count;
+        int _interval;
+        int _profileSource;
+
+        public override void BeginIteration(TraceEvent beginEvent) => _count = 0;
+
+        public override double EndIteration(TraceEvent endEvent) => _count;
 
         internal void Initialize(PerformanceMetricEvaluationContext context, int profileSourceInfoID)
         {
@@ -33,26 +37,16 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
-        private void PerfInfoCollectionStart(SampledProfileIntervalTraceData ev)
+        void PerfInfoCollectionStart(SampledProfileIntervalTraceData ev)
         {
             if (ev.SampleSource == _profileSource)
                 _interval = ev.NewInterval;
         }
 
-        private void PerfInfoPMCSample(PMCCounterProfTraceData ev)
+        void PerfInfoPMCSample(PMCCounterProfTraceData ev)
         {
             if (ev.ProfileSource == _profileSource && _context.IsTestEvent(ev))
                 _count += _interval;
-        }
-
-        public override void BeginIteration(TraceEvent beginEvent)
-        {
-            _count = 0;
-        }
-
-        public override double EndIteration(TraceEvent endEvent)
-        {
-            return _count;
         }
     }
 }

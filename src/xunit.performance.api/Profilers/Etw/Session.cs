@@ -18,7 +18,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// before exiting, so resources are not held even when the application has
     /// terminated.
     /// </summary>
-    internal sealed class Session : IDisposable
+    sealed class Session : IDisposable
     {
         /// <summary>
         /// Initializes a new instance of a Session class with the provider data.
@@ -28,10 +28,15 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         {
             _disposedValue = false;
             TraceEventSessionHandle = new SafeTerminateHandler<TraceEventSession>(() =>
-                new TraceEventSession(sessionData.Name, sessionData.FileName) {
+                new TraceEventSession(sessionData.Name, sessionData.FileName)
+                {
                     BufferSizeMB = sessionData.BufferSizeMB,
                 });
         }
+
+        TraceEventSession TraceEventSession => TraceEventSessionHandle.BaseDisposableObject;
+
+        SafeTerminateHandler<TraceEventSession> TraceEventSessionHandle { get; }
 
         /// <summary>
         /// Interface to enable kernel providers.
@@ -65,16 +70,8 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         }
 
         #region IDisposable Support
-        private bool _disposedValue; // To detect redundant calls
 
-        private void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
-            {
-                TraceEventSessionHandle.Dispose();
-                _disposedValue = true;
-            }
-        }
+        bool _disposedValue; // To detect redundant calls
 
         ~Session()
         {
@@ -86,10 +83,16 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-        #endregion
 
-        private SafeTerminateHandler<TraceEventSession> TraceEventSessionHandle { get; }
+        void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                TraceEventSessionHandle.Dispose();
+                _disposedValue = true;
+            }
+        }
 
-        private TraceEventSession TraceEventSession => TraceEventSessionHandle.BaseDisposableObject;
+        #endregion IDisposable Support
     }
 }

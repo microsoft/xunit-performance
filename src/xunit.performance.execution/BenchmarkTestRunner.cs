@@ -11,7 +11,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class BenchmarkTestRunner : XunitTestRunner
+    class BenchmarkTestRunner : XunitTestRunner
     {
         public BenchmarkTestRunner(ITest test,
                                IMessageBus messageBus,
@@ -27,9 +27,6 @@ namespace Microsoft.Xunit.Performance
         {
         }
 
-        protected override Task<decimal> InvokeTestMethodAsync(ExceptionAggregator aggregator)
-        {
-            return new BenchmarkTestInvoker(Test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, BeforeAfterAttributes, aggregator, CancellationTokenSource).RunAsync();
-        }
+        protected override Task<decimal> InvokeTestMethodAsync(ExceptionAggregator aggregator) => new BenchmarkTestInvoker(Test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, BeforeAfterAttributes, aggregator, CancellationTokenSource).RunAsync();
     }
 }

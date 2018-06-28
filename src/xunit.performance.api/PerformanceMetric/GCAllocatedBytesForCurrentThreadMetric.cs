@@ -5,16 +5,15 @@ using System.Collections.Generic;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal class GCAllocatedBytesForCurrentThreadMetric : PerformanceMetric
+    class GCAllocatedBytesForCurrentThreadMetric : PerformanceMetric
     {
-        public static string GetAllocatedBytesForCurrentThreadId => "GC.GetAllocatedBytesForCurrentThread";
-
-        public static string GetAllocatedBytesForCurrentThreadDisplayName => "Allocation Size on Benchmark Execution Thread";
-
         public GCAllocatedBytesForCurrentThreadMetric()
             : base(GetAllocatedBytesForCurrentThreadId, GetAllocatedBytesForCurrentThreadDisplayName, PerformanceMetricUnits.Bytes)
         {
         }
+
+        public static string GetAllocatedBytesForCurrentThreadDisplayName => "Allocation Size on Benchmark Execution Thread";
+        public static string GetAllocatedBytesForCurrentThreadId => "GC.GetAllocatedBytesForCurrentThread";
 
         public override IEnumerable<ProviderInfo> ProviderInfo
         {
@@ -29,9 +28,6 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
-        public override PerformanceMetricEvaluator CreateEvaluator(PerformanceMetricEvaluationContext context)
-        {
-            return new GCAllocatedBytesForCurrentThreadEvaluator();
-        }
+        public override PerformanceMetricEvaluator CreateEvaluator(PerformanceMetricEvaluationContext context) => new GCAllocatedBytesForCurrentThreadEvaluator();
     }
 }

@@ -8,7 +8,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class BenchmarkTestFrameworkExecutor : XunitTestFrameworkExecutor
+    class BenchmarkTestFrameworkExecutor : XunitTestFrameworkExecutor
     {
         public BenchmarkTestFrameworkExecutor(AssemblyName assemblyName, ISourceInformationProvider sourceInformationProvider, IMessageSink diagnosticMessageSink)
             : base(assemblyName, sourceInformationProvider, diagnosticMessageSink)

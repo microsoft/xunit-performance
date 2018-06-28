@@ -7,7 +7,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class BenchmarkTestFrameworkTypeDiscoverer : ITestFrameworkTypeDiscoverer
+    class BenchmarkTestFrameworkTypeDiscoverer : ITestFrameworkTypeDiscoverer
     {
         public Type GetTestFrameworkType(IAttributeInfo attribute)
         {

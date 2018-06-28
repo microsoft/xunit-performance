@@ -8,7 +8,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Specifies a set of values that represent a loaded .NET method.
     /// </summary>
-    internal sealed class DotNetMethod
+    sealed class DotNetMethod
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="DotNetMethod"/> class.

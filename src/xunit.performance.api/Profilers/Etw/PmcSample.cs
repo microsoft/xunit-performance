@@ -8,8 +8,13 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Defines a performance monitor sample.
     /// </summary>
-    internal sealed class PmcSample
+    sealed class PmcSample
     {
+        /// <summary>
+        /// Instruction pointer
+        /// </summary>
+        public ulong InstructionPointer { get; set; }
+
         /// <summary>
         /// Process Id associated to this sample.
         /// </summary>
@@ -21,18 +26,13 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         public int ProfileSourceId { get; set; }
 
         /// <summary>
-        /// Instruction pointer
+        /// Sampling interval when the performance monitor counter was measured.
         /// </summary>
-        public ulong InstructionPointer { get; set; }
+        public long SamplingInterval { get; set; }
 
         /// <summary>
         /// DateTime when the event was captured.
         /// </summary>
         public DateTime TimeStamp { get; set; }
-
-        /// <summary>
-        /// Sampling interval when the performance monitor counter was measured.
-        /// </summary>
-        public long SamplingInterval { get; set; }
     }
 }

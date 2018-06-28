@@ -12,15 +12,14 @@ using Xunit.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class BenchmarkTestCaseRunner : XunitTestCaseRunner
+    class BenchmarkTestCaseRunner : XunitTestCaseRunner
     {
-        private readonly ExceptionAggregator _cleanupAggregator = new ExceptionAggregator();
-        private Exception _dataDiscoveryException;
-        private readonly IMessageSink _diagnosticMessageSink;
-        private readonly List<BenchmarkTestRunner> _testRunners = new List<BenchmarkTestRunner>();
-        private readonly List<IDisposable> _toDispose = new List<IDisposable>();
-        private readonly bool _discoverArguments;
-
+        readonly ExceptionAggregator _cleanupAggregator = new ExceptionAggregator();
+        readonly IMessageSink _diagnosticMessageSink;
+        readonly bool _discoverArguments;
+        readonly List<BenchmarkTestRunner> _testRunners = new List<BenchmarkTestRunner>();
+        readonly List<IDisposable> _toDispose = new List<IDisposable>();
+        Exception _dataDiscoveryException;
 
         public BenchmarkTestCaseRunner(IXunitTestCase testCase,
                                          string displayName,
@@ -35,6 +34,17 @@ namespace Microsoft.Xunit.Performance
         {
             _diagnosticMessageSink = diagnosticMessageSink;
             _discoverArguments = testMethodArguments == null;
+        }
+
+        public static Exception Unwrap(Exception ex)
+        {
+            while (true)
+            {
+                if (!(ex is TargetInvocationException tiex))
+                    return ex;
+
+                ex = tiex.InnerException;
+            }
         }
 
         protected override async Task AfterTestCaseStartingAsync()
@@ -62,13 +72,13 @@ namespace Microsoft.Xunit.Performance
 
                             if (methodToRun.IsGenericMethodDefinition)
                             {
-                                resolvedTypes = TypeUtility.ResolveGenericTypes(TestCase.TestMethod.Method, dataRow);
+                                resolvedTypes = TestCase.TestMethod.Method.ResolveGenericTypes(dataRow);
                                 methodToRun = methodToRun.MakeGenericMethod(resolvedTypes.Select(t => ((IReflectionTypeInfo)t).Type).ToArray());
                             }
 
                             var parameterTypes = methodToRun.GetParameters().Select(p => p.ParameterType).ToArray();
                             var convertedDataRow = Reflector.ConvertArguments(dataRow, parameterTypes);
-                            var theoryDisplayName = TypeUtility.GetDisplayNameWithArguments(TestCase.TestMethod.Method, DisplayName, convertedDataRow, resolvedTypes);
+                            var theoryDisplayName = TestCase.TestMethod.Method.GetDisplayNameWithArguments(DisplayName, convertedDataRow, resolvedTypes);
                             var test = new XunitTest(TestCase, theoryDisplayName);
 
                             _testRunners.Add(new BenchmarkTestRunner(test, MessageBus, TestClass, ConstructorArguments, methodToRun, convertedDataRow, SkipReason, BeforeAfterAttributes, Aggregator, CancellationTokenSource));
@@ -111,14 +121,14 @@ namespace Microsoft.Xunit.Performance
             // so they get properly reported as test case cleanup failures.
             var timer = new ExecutionTimer();
             foreach (var disposable in _toDispose)
-                timer.Aggregate(() => _cleanupAggregator.Run(() => disposable.Dispose()));
+                timer.Aggregate(() => _cleanupAggregator.Run(disposable.Dispose));
 
             runSummary.Time += timer.Total;
 
             return runSummary;
         }
 
-        private RunSummary RunTest_DataDiscoveryException()
+        RunSummary RunTest_DataDiscoveryException()
         {
             var test = new XunitTest(TestCase, DisplayName);
 
@@ -130,18 +140,6 @@ namespace Microsoft.Xunit.Performance
                 CancellationTokenSource.Cancel();
 
             return new RunSummary { Total = 1, Failed = 1 };
-        }
-
-        public static Exception Unwrap(Exception ex)
-        {
-            while (true)
-            {
-                var tiex = ex as TargetInvocationException;
-                if (tiex == null)
-                    return ex;
-
-                ex = tiex.InnerException;
-            }
         }
     }
 }

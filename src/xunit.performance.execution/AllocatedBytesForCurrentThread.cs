@@ -6,8 +6,12 @@ namespace Microsoft.Xunit.Performance.Execution
     /// <summary>
     ///
     /// </summary>
-    internal static class AllocatedBytesForCurrentThread
+    static class AllocatedBytesForCurrentThread
     {
+        static readonly Func<long> _GetAllocatedBytesForCurrentThread;
+
+        static readonly long s_minAllocatedBytes;
+
         /// <summary>
         /// Loads the GetAllocatedBytesForCurrentThread method.
         /// </summary>
@@ -49,7 +53,15 @@ namespace Microsoft.Xunit.Performance.Execution
             s_minAllocatedBytes = allocatedBytesAfter - allocatedBytesBefore;
         }
 
-        private static bool IsBugFixed()
+        public static bool IsAvailable { get; }
+
+        public static long LastAllocatedBytes => _GetAllocatedBytesForCurrentThread.Invoke();
+
+        public static string NoAvailabilityReason { get; }
+
+        public static long GetTotalAllocatedBytes(long allocatedBytesBefore, long allocatedBytesAfter) => (allocatedBytesAfter - allocatedBytesBefore - s_minAllocatedBytes);
+
+        static bool IsBugFixed()
         {
             GC.Collect();
             var allocatedBytesBeforeTest = LastAllocatedBytes;
@@ -58,19 +70,5 @@ namespace Microsoft.Xunit.Performance.Execution
 
             return (allocatedBytesAfterTest - allocatedBytesBeforeTest == 24);
         }
-
-        public static long LastAllocatedBytes => _GetAllocatedBytesForCurrentThread.Invoke();
-
-        public static bool IsAvailable { get; }
-
-        public static string NoAvailabilityReason { get; }
-
-        public static long GetTotalAllocatedBytes(long allocatedBytesBefore, long allocatedBytesAfter)
-        {
-            return (allocatedBytesAfter - allocatedBytesBefore - s_minAllocatedBytes);
-        }
-
-        private static readonly Func<long> _GetAllocatedBytesForCurrentThread;
-        private static readonly long s_minAllocatedBytes;
     }
 }

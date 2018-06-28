@@ -4,19 +4,57 @@
 
   <PropertyGroup>
     <AssemblyTitle>xunit.performance.api</AssemblyTitle>
-    <TargetFrameworks>netstandard1.6;net461</TargetFrameworks>
+    <TargetFrameworks>
+      <!-- netstandard1.0; -->
+      <!-- netstandard1.1; -->
+      <!-- netstandard1.2; -->
+      <!-- netstandard1.3; -->
+      <!-- netstandard1.4; -->
+      <!-- netstandard1.5; -->
+      <!-- netstandard1.6; -->
+      netstandard2.0;
+      <!-- netcoreapp1.0; -->
+      <!-- netcoreapp1.1; -->
+      <!-- netcoreapp2.0; -->
+      netcoreapp2.1;
+      <!-- net20; -->
+      <!-- net35; -->
+      <!-- net40; -->
+      <!--net45;
+      net451;
+      net452;
+      net46;
+      net461;
+      net462;
+      net47;
+      net471;-->
+      net472;
+    </TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netstandard1.6</TargetFrameworks>
     <Title>xUnit Performance Api</Title>
     <RootNamespace>Microsoft.Xunit.Performance.Api</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.1.1-beta" />
-    <PackageReference Include="Microsoft.3rdpartytools.MarkdownLog" Version="0.10.0-alpha-experimental" />
-    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="$(MicrosoftDiagnosticsTracingLibraryVersion)">
+    <PackageReference Include="CommandLineParser" Version="2.2.1" />
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="2.0.19">
       <IncludeAssets>All</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.ValueTuple" Version="4.3.1" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
     <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
     <PackageReference Include="xunit.runner.utility" Version="$(XunitPackageVersion)" />
@@ -27,5 +65,4 @@
     <ProjectReference Include="..\xunit.performance.execution\xunit.performance.execution.csproj" />
     <ProjectReference Include="..\xunit.performance.metrics\xunit.performance.metrics.csproj" />
   </ItemGroup>
-
 </Project>

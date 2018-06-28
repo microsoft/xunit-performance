@@ -12,14 +12,11 @@ using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal static class ETWProfiler
+    static class ETWProfiler
     {
-        private static SafeTerminateHandler<TraceEventSession> MakeSafeTerminateTraceEventSession(string sessionName, string fileName)
-        {
-            return new SafeTerminateHandler<TraceEventSession>(() => new TraceEventSession(sessionName, fileName));
-        }
-
         public static bool CanEnableEnableKernelProvider => TraceEventSession.IsElevated() == true;
+
+        static bool IsWindows8OrGreater => IsWindows8OrGreater();
 
         /// <summary>
         ///     1. In the specified assembly, get the ETW providers set as assembly attributes (PerformanceTestInfo)
@@ -37,7 +34,8 @@ namespace Microsoft.Xunit.Performance.Api
         {
             const int bufferSizeMB = 512;
             var name = $"{xUnitPerformanceSessionData.RunId}-{Path.GetFileNameWithoutExtension(xUnitPerformanceSessionData.AssemblyFileName)}";
-            var etwOutputData = new ETWOutputData {
+            var etwOutputData = new ETWOutputData
+            {
                 KernelFileName = Path.Combine(xUnitPerformanceSessionData.OutputDirectory, $"{name}.kernel.etl"), // without this parameter, EnableKernelProvider will fail
                 Name = name,
                 SessionName = $"Performance-Api-Session-{xUnitPerformanceSessionData.RunId}",
@@ -116,7 +114,7 @@ namespace Microsoft.Xunit.Performance.Api
             xUnitPerformanceSessionData.CollectOutputFilesCallback(csvFileName);
         }
 
-        private static AssemblyModel GetAssemblyModel(
+        static AssemblyModel GetAssemblyModel(
             string assemblyFileName,
             string etlFileName,
             string sessionName,
@@ -124,7 +122,8 @@ namespace Microsoft.Xunit.Performance.Api
         {
             using (var reader = GetEtwReader(etlFileName, sessionName, performanceTestMessages))
             {
-                var assemblyModel = new AssemblyModel {
+                var assemblyModel = new AssemblyModel
+                {
                     Name = Path.GetFileName(assemblyFileName),
                     Collection = new List<TestModel>()
                 };
@@ -134,14 +133,16 @@ namespace Microsoft.Xunit.Performance.Api
                     var metrics = new List<MetricModel>();
                     foreach (var metric in test.Metrics)
                     {
-                        metrics.Add(new MetricModel {
+                        metrics.Add(new MetricModel
+                        {
                             DisplayName = metric.DisplayName,
                             Name = metric.Id,
                             Unit = metric.Unit,
                         });
                     }
 
-                    var testModel = new TestModel {
+                    var testModel = new TestModel
+                    {
                         Name = test.TestCase.DisplayName,
                         Method = test.TestCase.TestMethod.Method.Name,
                         ClassName = test.TestCase.TestMethod.TestClass.Class.Name,
@@ -167,7 +168,7 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
-        private static EtwPerformanceMetricEvaluationContext GetEtwReader(
+        static EtwPerformanceMetricEvaluationContext GetEtwReader(
             string fileName,
             string sessionName,
             IEnumerable<PerformanceTestMessage> performanceTestMessages)
@@ -186,7 +187,55 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
-        private static void SetPreciseMachineCounters(IEnumerable<ProviderInfo> providers)
+        [Conditional("DEBUG")]
+        static void GetRegisteredProvidersInProcess() => TraceEventProviders.GetRegisteredProvidersInProcess(System.Diagnostics.Process.GetCurrentProcess().Id)
+                .Select(TraceEventProviders.GetProviderName)
+                .ForEach(name => Debug.WriteLine(name));
+
+        static SafeTerminateHandler<TraceEventSession> MakeSafeTerminateTraceEventSession(string sessionName, string fileName) => new SafeTerminateHandler<TraceEventSession>(() => new TraceEventSession(sessionName, fileName));
+
+        static bool NeedSeparateKernelSession(KernelProviderInfo kernelProviderInfo)
+        {
+            if (kernelProviderInfo == null)
+                return false;
+
+            // CPU counters need the special kernel session
+            var keywords = (KernelTraceEventParser.Keywords)kernelProviderInfo.Keywords
+                & (KernelTraceEventParser.Keywords.Profile | KernelTraceEventParser.Keywords.PMCProfile);
+            return (keywords != KernelTraceEventParser.Keywords.None);
+        }
+
+        [Conditional("DEBUG")]
+        static void PrintAvailableProfileSources()
+        {
+            var availableProfileSources = TraceEventProfileSources.GetInfo();
+
+            foreach (var kvp in availableProfileSources)
+            {
+                Debug.WriteLine("");
+                Debug.WriteLine($"Profile name: {kvp.Key}");
+                Debug.WriteLine($"  ID :          {kvp.Value.ID}");
+                Debug.WriteLine($"  Interval :    {kvp.Value.Interval}");
+                Debug.WriteLine($"  MaxInterval : {kvp.Value.MaxInterval}");
+                Debug.WriteLine($"  MinInterval : {kvp.Value.MinInterval}");
+                Debug.WriteLine("");
+            }
+        }
+
+        [Conditional("DEBUG")]
+        static void PrintProfilingInformation(string assemblyFileName, ETWOutputData etwOutputData)
+        {
+            WriteDebugLine("  ===== ETW Profiling information =====");
+            WriteDebugLine($"       Assembly: {assemblyFileName}");
+            WriteDebugLine($"     Process Id: {System.Diagnostics.Process.GetCurrentProcess().Id}");
+            WriteDebugLine($"   Session name: {etwOutputData.SessionName}");
+            WriteDebugLine($"  ETW file name: {etwOutputData.UserFileName}");
+            WriteDebugLine($"  Provider guid: {MicrosoftXunitBenchmarkTraceEventParser.ProviderGuid}");
+            WriteDebugLine($"  Provider name: {MicrosoftXunitBenchmarkTraceEventParser.ProviderName}");
+            WriteDebugLine("  =====================================");
+        }
+
+        static void SetPreciseMachineCounters(IEnumerable<ProviderInfo> providers)
         {
             if (IsWindows8OrGreater)
             {
@@ -212,57 +261,6 @@ namespace Microsoft.Xunit.Performance.Api
                     TraceEventProfileSources.Set(profileSourceIDs.ToArray(), profileSourceIntervals.ToArray());
                 }
             }
-        }
-
-        private static bool NeedSeparateKernelSession(KernelProviderInfo kernelProviderInfo)
-        {
-            if (kernelProviderInfo == null)
-                return false;
-
-            // CPU counters need the special kernel session
-            var keywords = (KernelTraceEventParser.Keywords)kernelProviderInfo.Keywords
-                & (KernelTraceEventParser.Keywords.Profile | KernelTraceEventParser.Keywords.PMCProfile);
-            return (keywords != KernelTraceEventParser.Keywords.None);
-        }
-
-        private static bool IsWindows8OrGreater => IsWindows8OrGreater();
-
-        [Conditional("DEBUG")]
-        private static void PrintProfilingInformation(string assemblyFileName, ETWOutputData etwOutputData)
-        {
-            WriteDebugLine("  ===== ETW Profiling information =====");
-            WriteDebugLine($"       Assembly: {assemblyFileName}");
-            WriteDebugLine($"     Process Id: {System.Diagnostics.Process.GetCurrentProcess().Id}");
-            WriteDebugLine($"   Session name: {etwOutputData.SessionName}");
-            WriteDebugLine($"  ETW file name: {etwOutputData.UserFileName}");
-            WriteDebugLine($"  Provider guid: {MicrosoftXunitBenchmarkTraceEventParser.ProviderGuid}");
-            WriteDebugLine($"  Provider name: {MicrosoftXunitBenchmarkTraceEventParser.ProviderName}");
-            WriteDebugLine("  =====================================");
-        }
-
-        [Conditional("DEBUG")]
-        private static void PrintAvailableProfileSources()
-        {
-            var availableProfileSources = TraceEventProfileSources.GetInfo();
-
-            foreach (var kvp in availableProfileSources)
-            {
-                Debug.WriteLine("");
-                Debug.WriteLine($"Profile name: {kvp.Key}");
-                Debug.WriteLine($"  ID :          {kvp.Value.ID}");
-                Debug.WriteLine($"  Interval :    {kvp.Value.Interval}");
-                Debug.WriteLine($"  MaxInterval : {kvp.Value.MaxInterval}");
-                Debug.WriteLine($"  MinInterval : {kvp.Value.MinInterval}");
-                Debug.WriteLine("");
-            }
-        }
-
-        [Conditional("DEBUG")]
-        private static void GetRegisteredProvidersInProcess()
-        {
-            TraceEventProviders.GetRegisteredProvidersInProcess(System.Diagnostics.Process.GetCurrentProcess().Id)
-                .Select(p => TraceEventProviders.GetProviderName(p))
-                .ForEach(name => Debug.WriteLine(name));
         }
     }
 }

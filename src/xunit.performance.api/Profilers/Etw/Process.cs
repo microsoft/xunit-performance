@@ -32,19 +32,9 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         }
 
         /// <summary>
-        /// Name of the process.
-        /// </summary>
-        public string Name { get; }
-
-        /// <summary>
         /// Unique identifier associated with this process.
         /// </summary>
         public int Id { get; }
-
-        /// <summary>
-        /// Unique identifier associated with this process' parent.
-        /// </summary>
-        public int ParentId { get; }
 
         /// <summary>
         /// Life span of this process (From the time that the associated process was started until the time that the associated process exited).
@@ -52,13 +42,23 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         public LifeSpan LifeSpan { get; }
 
         /// <summary>
-        /// TODO: Should PerformanceMonitorCounterData be exposed via a IReadOnlyDictionary?
-        /// </summary>
-        public IDictionary<PerformanceMonitorCounter, long> PerformanceMonitorCounterData { get; }
-
-        /// <summary>
         /// The modules that have been loaded by the associated process.
         /// </summary>
         public IList<Module> Modules { get; }
+
+        /// <summary>
+        /// Name of the process.
+        /// </summary>
+        public string Name { get; }
+
+        /// <summary>
+        /// Unique identifier associated with this process' parent.
+        /// </summary>
+        public int ParentId { get; }
+
+        /// <summary>
+        /// TODO: Should PerformanceMonitorCounterData be exposed via a IReadOnlyDictionary?
+        /// </summary>
+        public IDictionary<PerformanceMonitorCounter, long> PerformanceMonitorCounterData { get; }
     }
 }

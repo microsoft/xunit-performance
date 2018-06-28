@@ -9,7 +9,9 @@ namespace Microsoft.Xunit.Performance.Sdk
     public interface IPerformanceMetricReader : IDisposable
     {
         string LogPath { get; }
+
         IEnumerable<PerformanceMetricInfo> GetMetrics(string testCase);
+
         List<Dictionary<string, double>> GetValues(string testCase);
     }
 }

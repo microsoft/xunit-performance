@@ -12,10 +12,24 @@ using System.Linq;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal class EtwPerformanceMetricEvaluationContext : PerformanceMetricEvaluationContext, IDisposable, IPerformanceMetricReader
+    class EtwPerformanceMetricEvaluationContext : PerformanceMetricEvaluationContext, IPerformanceMetricReader
     {
+        readonly HashSet<int> _currentProcesses;
+
+        readonly Dictionary<string, List<KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>>> _evaluators;
+
+        readonly Dictionary<string, List<Dictionary<string, double>>> _metricValues;
+
+        readonly string _runid;
+
+        readonly TraceEventSource _traceEventSource;
+
+        int _currentIteration;
+
+        string _currentTestCase;
+
         public EtwPerformanceMetricEvaluationContext(
-            string logPath,
+                                                                    string logPath,
             TraceEventSource traceEventSource,
             IEnumerable<PerformanceTestMessage> testInfo,
             string runid)
@@ -76,7 +90,7 @@ namespace Microsoft.Xunit.Performance.Api
             // The current process was already running before the etl tracing even started.
             benchmarkParser.Source.Kernel.ProcessStart += delegate (ProcessTraceData args)
             {
-                if (_currentProcesses.Contains(args.ParentID))
+                if (_currentProcesses.Contains(args.ProcessID))
                     _currentProcesses.Add(args.ProcessID);
             };
             benchmarkParser.Source.Kernel.ProcessStop += delegate (ProcessTraceData args)
@@ -93,24 +107,9 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
-        public IEnumerable<PerformanceMetricInfo> GetMetrics(string testCase)
-        {
-            return _evaluators.GetOrDefault(testCase)?.Select(kvp => kvp.Key);
-        }
-
-        public List<Dictionary<string, double>> GetValues(string testCase)
-        {
-            return _metricValues.GetOrDefault(testCase);
-        }
-
-        public override TraceEventSource TraceEventSource => _traceEventSource;
-
         public string LogPath { get; private set; }
 
-        public override bool IsTestEvent(TraceEvent traceEvent)
-        {
-            return _currentProcesses.Contains(traceEvent.ProcessID);
-        }
+        public override TraceEventSource TraceEventSource => _traceEventSource;
 
         public void Dispose()
         {
@@ -119,12 +118,10 @@ namespace Microsoft.Xunit.Performance.Api
                     evaluator.Value.Dispose();
         }
 
-        private readonly Dictionary<string, List<KeyValuePair<PerformanceMetric, PerformanceMetricEvaluator>>> _evaluators;
-        private readonly Dictionary<string, List<Dictionary<string, double>>> _metricValues;
-        private readonly TraceEventSource _traceEventSource;
-        private readonly HashSet<int> _currentProcesses;
-        private readonly string _runid;
-        private string _currentTestCase;
-        private int _currentIteration;
+        public IEnumerable<PerformanceMetricInfo> GetMetrics(string testCase) => _evaluators.GetOrDefault(testCase)?.Select(kvp => kvp.Key);
+
+        public List<Dictionary<string, double>> GetValues(string testCase) => _metricValues.GetOrDefault(testCase);
+
+        public override bool IsTestEvent(TraceEvent traceEvent) => _currentProcesses.Contains(traceEvent.ProcessID);
     }
 }

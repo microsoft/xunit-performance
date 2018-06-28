@@ -8,17 +8,14 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal partial class InstructionsRetiredMetricDiscoverer : IPerformanceMetricDiscoverer
+    partial class InstructionsRetiredMetricDiscoverer : IPerformanceMetricDiscoverer
     {
-        public const int DefaultInterval = 1000000; // Instructions per event.
         public const string CounterName = "InstructionRetired";
+        public const int DefaultInterval = 1000000; // Instructions per event.
 
-        private int ProfileSource { get; }
+        public InstructionsRetiredMetricDiscoverer() => ProfileSource = PerformanceMetric.GetProfileSourceInfoId(CounterName);
 
-        public InstructionsRetiredMetricDiscoverer()
-        {
-            ProfileSource = PerformanceMetric.GetProfileSourceInfoId(CounterName);
-        }
+        int ProfileSource { get; }
 
         public IEnumerable<PerformanceMetricInfo> GetMetrics()
         {

@@ -1,22 +1,18 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Generic;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class BenchmarkDiscoverer : TheoryDiscoverer, ITraitDiscoverer
+    class BenchmarkDiscoverer : TheoryDiscoverer, ITraitDiscoverer
     {
-        private IMessageSink _diagnosticMessageSink;
+        readonly IMessageSink _diagnosticMessageSink;
 
         public BenchmarkDiscoverer(IMessageSink diagnosticMessageSink)
-            : base(diagnosticMessageSink)
-        {
-            _diagnosticMessageSink = diagnosticMessageSink;
-        }
+            : base(diagnosticMessageSink) => _diagnosticMessageSink = diagnosticMessageSink;
 
         public override IEnumerable<IXunitTestCase> Discover(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo benchmarkAttribute)
         {
@@ -41,7 +37,7 @@ namespace Microsoft.Xunit.Performance
             {
                 if (theoryCase is XunitTheoryTestCase)
                 {
-                    //                
+                    //
                     // TheoryDiscoverer returns one of these if it cannot enumerate the cases now.
                     // We'll return a BenchmarkTestCase with no data associated.
                     //
@@ -57,9 +53,6 @@ namespace Microsoft.Xunit.Performance
             }
         }
 
-        public IEnumerable<KeyValuePair<string, string>> GetTraits(IAttributeInfo traitAttribute)
-        {
-            return new[] { new KeyValuePair<string, string>("Benchmark", "true") };
-        }
+        public IEnumerable<KeyValuePair<string, string>> GetTraits(IAttributeInfo traitAttribute) => new[] { new KeyValuePair<string, string>("Benchmark", "true") };
     }
 }

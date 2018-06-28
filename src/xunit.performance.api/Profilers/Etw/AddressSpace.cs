@@ -8,7 +8,7 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Represents an address space as given by the Microsoft.Diagnostics.Tracing.Parsers
     /// </summary>
-    internal sealed class AddressSpace : IInterval<ulong>, IEquatable<AddressSpace>
+    sealed class AddressSpace : IInterval<ulong>, IEquatable<AddressSpace>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="AddressSpace"/> class.
@@ -23,6 +23,11 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         }
 
         /// <summary>
+        /// Start + Size
+        /// </summary>
+        public ulong End { get; }
+
+        /// <summary>
         /// The size of the address space.
         /// </summary>
         public uint Size { get; }
@@ -33,34 +38,27 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         public ulong Start { get; }
 
         /// <summary>
-        /// Start + Size
+        /// Determines whether two specified <see cref="AddressSpace"/> objects have different values.
         /// </summary>
-        public ulong End { get; }
+        /// <param name="lhs">The first <see cref="AddressSpace"/> to compare, or null.</param>
+        /// <param name="rhs">The second <see cref="AddressSpace"/> to compare, or null.</param>
+        /// <returns>True if the value of a is different from the value of b; otherwise, false.</returns>
+        public static bool operator !=(AddressSpace lhs, AddressSpace rhs) => !(lhs == rhs);
 
         /// <summary>
-        /// Determines if the specified address falls within this address space.
+        /// Determines whether two specified <see cref="AddressSpace"/> have the same value.
         /// </summary>
-        /// <param name="address">Address to test against this address space.</param>
-        /// <returns>True if the address is within this interval, false otherwise.</returns>
-        public int IsInInterval(ulong address)
-        {
-            if (address < Start)
-                return -1;
-            else if (address >= End)
-                return 1;
-            else
-                return 0;
-        }
+        /// <param name="lhs">The first <see cref="AddressSpace"/> to compare, or null.</param>
+        /// <param name="rhs">The second <see cref="AddressSpace"/> to compare, or null.</param>
+        /// <returns>True if its two operands refer to the same object or if the values of its operands are equal; otherwise, false.</returns>
+        public static bool operator ==(AddressSpace lhs, AddressSpace rhs) => (object)lhs != null ? lhs.Equals(rhs) : (object)rhs == null;
 
         /// <summary>
         /// Determines whether the specified object is equals to this object.
         /// </summary>
         /// <param name="obj">The object to compare with this object.</param>
         /// <returns>True if the specified object is equal to the current object; otherwise, false.</returns>
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as AddressSpace);
-        }
+        public override bool Equals(object obj) => Equals(obj as AddressSpace);
 
         /// <summary>
         /// Indicates whether the current object is equal to another <see cref="AddressSpace"/> object.
@@ -78,31 +76,21 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         /// Serves as the default hash function.
         /// </summary>
         /// <returns>A hash code for the current object.</returns>
-        public override int GetHashCode()
-        {
-            return Start.GetHashCode() ^ Size.GetHashCode();
-        }
+        public override int GetHashCode() => Start.GetHashCode() ^ Size.GetHashCode();
 
         /// <summary>
-        /// Determines whether two specified <see cref="AddressSpace"/> have the same value.
+        /// Determines if the specified address falls within this address space.
         /// </summary>
-        /// <param name="lhs">The first <see cref="AddressSpace"/> to compare, or null.</param>
-        /// <param name="rhs">The second <see cref="AddressSpace"/> to compare, or null.</param>
-        /// <returns>True if its two operands refer to the same object or if the values of its operands are equal; otherwise, false.</returns>
-        public static bool operator ==(AddressSpace lhs, AddressSpace rhs)
+        /// <param name="address">Address to test against this address space.</param>
+        /// <returns>True if the address is within this interval, false otherwise.</returns>
+        public int IsInInterval(ulong address)
         {
-            return (object)lhs != null ? lhs.Equals(rhs) : (object)rhs == null;
-        }
-
-        /// <summary>
-        /// Determines whether two specified <see cref="AddressSpace"/> objects have different values.
-        /// </summary>
-        /// <param name="lhs">The first <see cref="AddressSpace"/> to compare, or null.</param>
-        /// <param name="rhs">The second <see cref="AddressSpace"/> to compare, or null.</param>
-        /// <returns>True if the value of a is different from the value of b; otherwise, false.</returns>
-        public static bool operator !=(AddressSpace lhs, AddressSpace rhs)
-        {
-            return !(lhs == rhs);
+            if (address < Start)
+                return -1;
+            else if (address >= End)
+                return 1;
+            else
+                return 0;
         }
     }
 }

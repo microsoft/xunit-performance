@@ -10,8 +10,10 @@ using System.Text;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal sealed class CSVMetricReader
+    sealed class CSVMetricReader
     {
+        readonly Dictionary<string, List<Dictionary<string, double>>> _values;
+
         public CSVMetricReader(string csvPath)
         {
             _values = new Dictionary<string, List<Dictionary<string, double>>>();
@@ -63,7 +65,7 @@ namespace Microsoft.Xunit.Performance.Api
         {
             get
             {
-                foreach(string testCaseName in _values.Keys)
+                foreach (string testCaseName in _values.Keys)
                 {
                     yield return testCaseName;
                 }
@@ -75,18 +77,15 @@ namespace Microsoft.Xunit.Performance.Api
             yield return DurationMetric.Instance;
         }
 
-        public List<Dictionary<string, double>> GetValues(string testCase)
-        {
-            return _values.GetOrDefault(testCase);
-        }
+        public List<Dictionary<string, double>> GetValues(string testCase) => _values.GetOrDefault(testCase);
 
-        private class DurationMetric : PerformanceMetricInfo
+        class DurationMetric : PerformanceMetricInfo
         {
             public static readonly DurationMetric Instance = new DurationMetric();
 
-            private DurationMetric() : base("Duration", "Duration", PerformanceMetricUnits.Milliseconds) { }
+            DurationMetric() : base("Duration", "Duration", PerformanceMetricUnits.Milliseconds)
+            {
+            }
         }
-
-        private Dictionary<string, List<Dictionary<string, double>>> _values;
     }
 }

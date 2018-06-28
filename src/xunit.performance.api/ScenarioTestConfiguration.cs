@@ -10,6 +10,10 @@ namespace Microsoft.Xunit.Performance.Api
     /// </summary>
     public sealed class ScenarioTestConfiguration
     {
+        int _iterations;
+
+        IEnumerable<int> _successExitCodes;
+
         /// <summary>
         /// Initializes a new instance of the ScenarioConfiguration class.
         /// </summary>
@@ -47,9 +51,29 @@ namespace Microsoft.Xunit.Performance.Api
         }
 
         /// <summary>
-        /// The amount of time to wait for one iteration process to exit.
+        /// The action that will be executed after every benchmark scenario execution.
         /// </summary>
-        public TimeSpan TimeoutPerIteration { get; }
+        public Action<ScenarioExecutionResult> PostIterationDelegate { get; set; }
+
+        /// <summary>
+        /// The action that will be executed before every benchmark scenario execution.
+        /// </summary>
+        public Action<ScenarioTest> PreIterationDelegate { get; set; }
+
+        /// <summary>
+        /// Indicates whether the results from the test should be saved after it is run
+        /// </summary>
+        public bool SaveResults { get; set; } = true;
+
+        /// <summary>
+        /// The scenario to which this test belongs
+        /// </summary>
+        public ScenarioBenchmark Scenario { get; set; }
+
+        /// <summary>
+        /// The data with which to start the scenario.
+        /// </summary>
+        public ProcessStartInfo StartInfo { get; }
 
         /// <summary>
         /// Exit codes that indicates success when the benchmark scenario process terminates.
@@ -63,7 +87,7 @@ namespace Microsoft.Xunit.Performance.Api
             {
                 if (value == null)
                     throw new ArgumentNullException(nameof(SuccessExitCodes));
-                if (value.Count() == 0)
+                if (!value.Any())
                     throw new InvalidOperationException($"Assigned an empty collection to {nameof(SuccessExitCodes)}");
 
                 _successExitCodes = value.ToArray();
@@ -71,37 +95,13 @@ namespace Microsoft.Xunit.Performance.Api
         }
 
         /// <summary>
-        /// The data with which to start the scenario.
-        /// </summary>
-        public ProcessStartInfo StartInfo { get; }
-
-        /// <summary>
-        /// The action that will be executed before every benchmark scenario execution.
-        /// </summary>
-        public Action<ScenarioTest> PreIterationDelegate { get; set; }
-
-        /// <summary>
-        /// The action that will be executed after every benchmark scenario execution.
-        /// </summary>
-        public Action<ScenarioExecutionResult> PostIterationDelegate { get; set; }
-
-        /// <summary>
         /// The name of the test
         /// </summary>
         public string TestName { get; set; }
 
         /// <summary>
-        /// The scenario to which this test belongs
+        /// The amount of time to wait for one iteration process to exit.
         /// </summary>
-        public ScenarioBenchmark Scenario { get; set; }
-
-        /// <summary>
-        /// Indicates whether the results from the test should be saved after it is run
-        /// </summary>
-        public bool SaveResults { get; set; } = true;
-
-
-        private int _iterations;
-        private IEnumerable<int> _successExitCodes;
+        public TimeSpan TimeoutPerIteration { get; }
     }
 }

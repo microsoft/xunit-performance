@@ -7,19 +7,13 @@ namespace Microsoft.Xunit.Performance
     /// </summary>
     public struct BenchmarkIterationMeasurement : IDisposable
     {
-        private readonly BenchmarkIteration _iteration;
+        readonly BenchmarkIteration _iteration;
 
-        internal BenchmarkIterationMeasurement(BenchmarkIteration iteration)
-        {
-            _iteration = iteration;
-        }
+        internal BenchmarkIterationMeasurement(BenchmarkIteration iteration) => _iteration = iteration;
 
         /// <summary>
         /// Completes measurement of this iteration.
         /// </summary>
-        public void Dispose()
-        {
-            _iteration.StopMeasurement();
-        }
+        public void Dispose() => _iteration.StopMeasurement();
     }
 }

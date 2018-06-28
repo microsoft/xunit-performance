@@ -2,15 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.Xunit.Performance.Api.Table
 {
-    internal sealed class ColumnNameCollection : IEnumerable<ColumnName>
+    sealed class ColumnNameCollection : IEnumerable<ColumnName>
     {
-        private DataTable _Table;
-        private List<ColumnName> _ColumnNames;
+        readonly List<ColumnName> _ColumnNames;
+        readonly DataTable _Table;
 
         public ColumnNameCollection(DataTable table)
         {
@@ -18,9 +16,13 @@ namespace Microsoft.Xunit.Performance.Api.Table
             _ColumnNames = new List<ColumnName>();
         }
 
+        public IReadOnlyCollection<ColumnName> Names => _ColumnNames;
+
+        public ColumnName this[string columnName] => _ColumnNames.SingleOrDefault(c => c.Name == columnName);
+
         public ColumnName Add(string name)
         {
-            ColumnName column = new ColumnName(_Table, name);
+            var column = new ColumnName(_Table, name);
             if (_ColumnNames.Contains(column))
             {
                 throw new InvalidOperationException("Attempted to add a duplicate column.");
@@ -31,24 +33,8 @@ namespace Microsoft.Xunit.Performance.Api.Table
             return column;
         }
 
-        public IReadOnlyCollection<ColumnName> Names
-        {
-            get { return _ColumnNames; }
-        }
+        IEnumerator<ColumnName> IEnumerable<ColumnName>.GetEnumerator() => _ColumnNames.GetEnumerator();
 
-        public ColumnName this[string columnName]
-        {
-            get { return _ColumnNames.SingleOrDefault(c => c.Name == columnName); }
-        }
-
-        IEnumerator<ColumnName> IEnumerable<ColumnName>.GetEnumerator()
-        {
-            return _ColumnNames.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _ColumnNames.GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => _ColumnNames.GetEnumerator();
     }
 }

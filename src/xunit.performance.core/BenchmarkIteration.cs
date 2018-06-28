@@ -10,8 +10,8 @@ namespace Microsoft.Xunit.Performance
     /// </summary>
     public struct BenchmarkIteration
     {
-        private readonly BenchmarkIterator _iterator;
-        private readonly int _iterationNumber;
+        readonly int _iterationNumber;
+        readonly BenchmarkIterator _iterator;
 
         internal BenchmarkIteration(BenchmarkIterator iterator, int iterationNumber)
         {
@@ -29,9 +29,6 @@ namespace Microsoft.Xunit.Performance
             return new BenchmarkIterationMeasurement(this);
         }
 
-        internal void StopMeasurement()
-        {
-            _iterator.StopMeasurement(_iterationNumber);
-        }
+        internal void StopMeasurement() => _iterator.StopMeasurement(_iterationNumber);
     }
 }

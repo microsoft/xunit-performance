@@ -13,7 +13,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal sealed class BenchmarkTestInvoker : XunitTestInvoker
+    sealed class BenchmarkTestInvoker : XunitTestInvoker
     {
         public BenchmarkTestInvoker(ITest test,
                                 IMessageBus messageBus,
@@ -38,15 +38,15 @@ namespace Microsoft.Xunit.Performance
             //
             var benchmarkAttr = (BenchmarkAttribute)TestMethod.GetCustomAttribute(typeof(BenchmarkAttribute));
             var iterator = new BenchmarkIteratorImpl(DisplayName, benchmarkAttr.InnerIterationCount);
-            return iterator.RunAsync(async () => {
+            return iterator.RunAsync(async () =>
+            {
                 var success = false;
                 BenchmarkEventSource.Log.BenchmarkStart(BenchmarkConfiguration.Instance.RunId, DisplayName);
                 try
                 {
                     var result = TestMethod.Invoke(testClassInstance, TestMethodArguments);
 
-                    var task = result as Task;
-                    if (task != null)
+                    if (result is Task task)
                     {
                         await task;
                         success = true;
@@ -77,15 +77,15 @@ namespace Microsoft.Xunit.Performance
 
         internal sealed class BenchmarkIteratorImpl : BenchmarkIterator
         {
-            private readonly string _testName;
-            private readonly Stopwatch _overallTimer;
-            private bool _startedIteration;
-            private int _currentIteration;
-            private bool _currentIterationMeasurementStarted;
-            private bool _currentIterationMeasurementStopped;
-            private int _maxIterations;
-
-            internal string IterationStopReason { get; private set; }
+            static Random _randomDelayGenerator;
+            static int _randomDelaySpinLimit;
+            readonly int _maxIterations;
+            readonly Stopwatch _overallTimer;
+            readonly string _testName;
+            int _currentIteration;
+            bool _currentIterationMeasurementStarted;
+            bool _currentIterationMeasurementStopped;
+            bool _startedIteration;
 
             public BenchmarkIteratorImpl(string testName)
                 : this(testName, 1)
@@ -106,7 +106,20 @@ namespace Microsoft.Xunit.Performance
                 IterationStopReason = "NoIterations";
             }
 
-            private bool DoneIterating
+            internal string IterationStopReason { get; private set; }
+
+            protected internal override IEnumerable<BenchmarkIteration> Iterations
+            {
+                get
+                {
+                    if (_startedIteration)
+                        throw new InvalidOperationException("Cannot use Benchmark.Iterations twice in a single test method.");
+                    _startedIteration = true;
+                    return GetIterations();
+                }
+            }
+
+            bool DoneIterating
             {
                 get
                 {
@@ -130,42 +143,6 @@ namespace Microsoft.Xunit.Performance
                 }
             }
 
-            protected internal override IEnumerable<BenchmarkIteration> Iterations
-            {
-                get
-                {
-                    if (_startedIteration)
-                        throw new InvalidOperationException("Cannot use Benchmark.Iterations twice in a single test method.");
-                    _startedIteration = true;
-                    return GetIterations();
-                }
-            }
-
-            private IEnumerable<BenchmarkIteration> GetIterations()
-            {
-                GC.Collect(2, GCCollectionMode.Forced);
-                GC.WaitForPendingFinalizers();
-                GC.Collect(2, GCCollectionMode.Forced);
-
-                for (_currentIteration = 0; !DoneIterating; _currentIteration++)
-                {
-                    _currentIterationMeasurementStarted = false;
-                    _currentIterationMeasurementStopped = false;
-
-                    yield return CreateIteration(_currentIteration);
-
-                    if (!_currentIterationMeasurementStarted)
-                        throw new Exception("Test iteration was not measured.  Use Microsoft.Xunit.Performance.BenchmarkIteration.StartMeasurement in each iteration.");
-
-                    StopMeasurement(_currentIteration);
-
-                    if (_currentIteration == 0)
-                    {
-                        _overallTimer.Start();
-                    }
-                }
-            }
-
             protected internal override void StartMeasurement(int iterationNumber)
             {
                 if (iterationNumber == _currentIteration)
@@ -181,20 +158,28 @@ namespace Microsoft.Xunit.Performance
                 }
             }
 
-            static Random _randomDelayGenerator;
-            static int _randomDelaySpinLimit;
+            protected internal override void StopMeasurement(int iterationNumber)
+            {
+                if (iterationNumber == _currentIteration && !_currentIterationMeasurementStopped)
+                {
+                    Debug.Assert(_currentIterationMeasurementStarted);
+                    _currentIterationMeasurementStopped = true;
+
+                    BenchmarkEventSource.Log.BenchmarkIterationStop(BenchmarkConfiguration.Instance.RunId, _testName, iterationNumber);
+                }
+            }
 
             //
             // Insert a small random delay, to ensure that any noise introduced due to system timer resolution has a nice random distribution.
             //
-            private static void RandomizeMeasurementStartTime()
+            static void RandomizeMeasurementStartTime()
             {
                 int spinCount;
 
                 lock (typeof(BenchmarkIteratorImpl))
                 {
                     //
-                    // The first time we run this, we need to create a random number generator, and find a spin limit 
+                    // The first time we run this, we need to create a random number generator, and find a spin limit
                     // corresponding to a significant number of Stopwatch ticks.
                     //
                     if (_randomDelayGenerator == null)
@@ -225,21 +210,35 @@ namespace Microsoft.Xunit.Performance
                 SpinDelay(spinCount);
             }
 
-            private static void SpinDelay(int spinCount)
+            static void SpinDelay(int spinCount)
             {
                 // Spin for a bit.  The volatile read is just to make sure the compiler doesn't optimize away this loop.
                 for (int i = 0; i < spinCount; i++)
                     Volatile.Read(ref _randomDelayGenerator);
             }
 
-            protected internal override void StopMeasurement(int iterationNumber)
+            IEnumerable<BenchmarkIteration> GetIterations()
             {
-                if (iterationNumber == _currentIteration && !_currentIterationMeasurementStopped)
-                {
-                    Debug.Assert(_currentIterationMeasurementStarted);
-                    _currentIterationMeasurementStopped = true;
+                GC.Collect(2, GCCollectionMode.Forced);
+                GC.WaitForPendingFinalizers();
+                GC.Collect(2, GCCollectionMode.Forced);
 
-                    BenchmarkEventSource.Log.BenchmarkIterationStop(BenchmarkConfiguration.Instance.RunId, _testName, iterationNumber);
+                for (_currentIteration = 0; !DoneIterating; _currentIteration++)
+                {
+                    _currentIterationMeasurementStarted = false;
+                    _currentIterationMeasurementStopped = false;
+
+                    yield return CreateIteration(_currentIteration);
+
+                    if (!_currentIterationMeasurementStarted)
+                        throw new Exception("Test iteration was not measured.  Use Microsoft.Xunit.Performance.BenchmarkIteration.StartMeasurement in each iteration.");
+
+                    StopMeasurement(_currentIteration);
+
+                    if (_currentIteration == 0)
+                    {
+                        _overallTimer.Start();
+                    }
                 }
             }
         }

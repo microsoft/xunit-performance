@@ -11,7 +11,7 @@ namespace Microsoft.Xunit.Performance
     /// </summary>
     [TestFrameworkDiscoverer("Microsoft.Xunit.Performance.BenchmarkTestFrameworkTypeDiscoverer", "xunit.performance.execution")]
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false)]
-    public class OptimizeForBenchmarksAttribute : Attribute, ITestFrameworkAttribute
+    public sealed class OptimizeForBenchmarksAttribute : Attribute, ITestFrameworkAttribute
     {
     }
 }

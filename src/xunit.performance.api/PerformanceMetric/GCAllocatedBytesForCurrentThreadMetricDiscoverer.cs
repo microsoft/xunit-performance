@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal sealed class GCAllocatedBytesForCurrentThreadMetricDiscoverer : IPerformanceMetricDiscoverer
+    sealed class GCAllocatedBytesForCurrentThreadMetricDiscoverer : IPerformanceMetricDiscoverer
     {
         public IEnumerable<PerformanceMetricInfo> GetMetrics(IAttributeInfo metricAttribute)
         {

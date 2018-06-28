@@ -6,25 +6,19 @@ using Microsoft.Xunit.Performance.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal partial class BenchmarkMetricDiscoverer : IPerformanceMetricDiscoverer
+    partial class BenchmarkMetricDiscoverer : IPerformanceMetricDiscoverer
     {
         internal class BenchmarkDurationEvaluator : PerformanceMetricEvaluator
         {
-            private double _iterationStartRelativeMSec;
+            double _iterationStartRelativeMSec;
 
             public BenchmarkDurationEvaluator(PerformanceMetricEvaluationContext context)
             {
             }
 
-            public override void BeginIteration(TraceEvent beginEvent)
-            {
-                _iterationStartRelativeMSec = beginEvent.TimeStampRelativeMSec;
-            }
+            public override void BeginIteration(TraceEvent beginEvent) => _iterationStartRelativeMSec = beginEvent.TimeStampRelativeMSec;
 
-            public override double EndIteration(TraceEvent endEvent)
-            {
-                return endEvent.TimeStampRelativeMSec - _iterationStartRelativeMSec;
-            }
+            public override double EndIteration(TraceEvent endEvent) => endEvent.TimeStampRelativeMSec - _iterationStartRelativeMSec;
         }
     }
 }

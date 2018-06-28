@@ -7,12 +7,12 @@ using Microsoft.Xunit.Performance.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal partial class GCAllocationsMetricDiscoverer : IPerformanceMetricDiscoverer
+    partial class GCAllocationsMetricDiscoverer : IPerformanceMetricDiscoverer
     {
-        private class GCAllocationsEvaluator : PerformanceMetricEvaluator
+        class GCAllocationsEvaluator : PerformanceMetricEvaluator
         {
-            private readonly PerformanceMetricEvaluationContext _context;
-            private long _bytes;
+            readonly PerformanceMetricEvaluationContext _context;
+            long _bytes;
 
             public GCAllocationsEvaluator(PerformanceMetricEvaluationContext context)
             {
@@ -20,20 +20,14 @@ namespace Microsoft.Xunit.Performance
                 context.TraceEventSource.Clr.GCAllocationTick += Clr_GCAllocationTick;
             }
 
-            private void Clr_GCAllocationTick(GCAllocationTickTraceData ev)
+            public override void BeginIteration(TraceEvent beginEvent) => _bytes = 0;
+
+            public override double EndIteration(TraceEvent endEvent) => _bytes;
+
+            void Clr_GCAllocationTick(GCAllocationTickTraceData ev)
             {
                 if (_context.IsTestEvent(ev))
                     _bytes += ev.AllocationAmount64;
-            }
-
-            public override void BeginIteration(TraceEvent beginEvent)
-            {
-                _bytes = 0;
-            }
-
-            public override double EndIteration(TraceEvent endEvent)
-            {
-                return _bytes;
             }
         }
     }

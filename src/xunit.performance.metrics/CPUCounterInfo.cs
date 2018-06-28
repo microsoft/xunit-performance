@@ -10,12 +10,11 @@ namespace Microsoft.Xunit.Performance
     public sealed class CpuCounterInfo : ProviderInfo
     {
         public string CounterName { get; set; }
-        public int Interval { get; set; } 
+        public int Interval { get; set; }
 
         internal override void MergeInto(Dictionary<Guid, UserProviderInfo> userInfo, KernelProviderInfo kernelInfo, Dictionary<string, CpuCounterInfo> cpuInfo)
         {
-            CpuCounterInfo current;
-            if (!cpuInfo.TryGetValue(CounterName, out current))
+            if (!cpuInfo.TryGetValue(CounterName, out var current))
             {
                 cpuInfo.Add(CounterName, this);
             }
@@ -23,8 +22,8 @@ namespace Microsoft.Xunit.Performance
             {
                 cpuInfo[CounterName] = new CpuCounterInfo()
                 {
-                    CounterName = this.CounterName,
-                    Interval = Math.Min(current.Interval, this.Interval)
+                    CounterName = CounterName,
+                    Interval = Math.Min(current.Interval, Interval)
                 };
             }
         }

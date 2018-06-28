@@ -4,10 +4,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal sealed class PerformanceTestMessage
+    sealed class PerformanceTestMessage
     {
-        public ITestCase TestCase { get; set; }
-
         public IEnumerable<PerformanceMetricInfo> Metrics { get; set; }
+        public ITestCase TestCase { get; set; }
     }
 }

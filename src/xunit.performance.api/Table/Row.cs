@@ -3,15 +3,12 @@ using System.Collections.Generic;
 
 namespace Microsoft.Xunit.Performance.Api.Table
 {
-    internal sealed class Row
+    sealed class Row
     {
-        private DataTable _Table;
-        private Dictionary<ColumnName, string> _Cells = new Dictionary<ColumnName, string>();
+        readonly Dictionary<ColumnName, string> _Cells = new Dictionary<ColumnName, string>();
+        readonly DataTable _Table;
 
-        public Row(DataTable table)
-        {
-            _Table = table;
-        }
+        public Row(DataTable table) => _Table = table;
 
         public string this[ColumnName columnName]
         {
@@ -19,18 +16,17 @@ namespace Microsoft.Xunit.Performance.Api.Table
             {
                 if (_Table != columnName.Table)
                 {
-                    throw new ArgumentException("The specified column is not part of the current table.", "columnName");
+                    throw new ArgumentException("The specified column is not part of the current table.", nameof(columnName));
                 }
 
-                string value;
-                _Cells.TryGetValue(columnName, out value);
+                _Cells.TryGetValue(columnName, out string value);
                 return value;
             }
             set
             {
                 if (_Table != columnName.Table)
                 {
-                    throw new ArgumentException("The specified column is not part of the current table.", "columnName");
+                    throw new ArgumentException("The specified column is not part of the current table.", nameof(columnName));
                 }
 
                 _Cells[columnName] = value;

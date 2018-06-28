@@ -12,11 +12,9 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
     /// <summary>
     /// Provides a simple interface for ETW user providers.
     /// </summary>
-    internal sealed class UserProvider
+    sealed class UserProvider
     {
-        static UserProvider()
-        {
-            Defaults = new[] {
+        static UserProvider() => Defaults = new[] {
                 new UserProvider {
                     Guid = MicrosoftXunitBenchmarkTraceEventParser.ProviderGuid,
                     Keywords = ulong.MaxValue,
@@ -32,17 +30,16 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
                     Level = TraceEventLevel.Verbose,
                 },
             };
-        }
+
+        /// <summary>
+        /// Default ETW user providers enabled by the xUnit-Performance Api.
+        /// </summary>
+        public static IReadOnlyCollection<UserProvider> Defaults { get; }
 
         /// <summary>
         /// The Guid that represents the event provider enable.
         /// </summary>
         public Guid Guid { get; set; } = Guid.Empty;
-
-        /// <summary>
-        /// Verbosity to turn on.
-        /// </summary>
-        public TraceEventLevel Level { get; set; } = TraceEventLevel.Verbose;
 
         /// <summary>
         /// A bitvector representing the areas to turn on.
@@ -52,13 +49,13 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         public ulong Keywords { get; set; } = ulong.MaxValue;
 
         /// <summary>
+        /// Verbosity to turn on.
+        /// </summary>
+        public TraceEventLevel Level { get; set; } = TraceEventLevel.Verbose;
+
+        /// <summary>
         /// Additional options for the provider
         /// </summary>
         public TraceEventProviderOptions Options { get; set; } = null;
-
-        /// <summary>
-        /// Default ETW user providers enabled by the xUnit-Performance Api.
-        /// </summary>
-        public static IReadOnlyCollection<UserProvider> Defaults { get; }
     }
 }

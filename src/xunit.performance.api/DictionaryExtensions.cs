@@ -7,34 +7,24 @@ using System.Linq;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal static class DictionaryExtensions
+    static class DictionaryExtensions
     {
-        public static void Add<TKey, TValue>(this IDictionary<TKey, List<TValue>> dictionary, TKey key, TValue value)
-        {
-            dictionary.GetOrAdd(key).Add(value);
-        }
+        public static void Add<TKey, TValue>(this IDictionary<TKey, List<TValue>> dictionary, TKey key, TValue value) => dictionary.GetOrAdd(key).Add(value);
 
         public static bool Contains<TKey, TValue>(this IDictionary<TKey, List<TValue>> dictionary, TKey key, TValue value, IEqualityComparer<TValue> valueComparer)
         {
-            List<TValue> values;
-
-            if (!dictionary.TryGetValue(key, out values))
+            if (!dictionary.TryGetValue(key, out var values))
                 return false;
 
             return values.Contains(value, valueComparer);
         }
 
         public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
-            where TValue : new()
-        {
-            return dictionary.GetOrAdd<TKey, TValue>(key, () => new TValue());
-        }
+            where TValue : new() => dictionary.GetOrAdd<TKey, TValue>(key, () => new TValue());
 
         public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TValue> newValue)
         {
-            TValue result;
-
-            if (!dictionary.TryGetValue(key, out result))
+            if (!dictionary.TryGetValue(key, out var result))
             {
                 result = newValue();
                 dictionary[key] = result;
@@ -45,8 +35,7 @@ namespace Microsoft.Xunit.Performance.Api
 
         public static TValue GetOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue = default(TValue))
         {
-            TValue value;
-            if (!dictionary.TryGetValue(key, out value))
+            if (!dictionary.TryGetValue(key, out var value))
                 return defaultValue;
             return value;
         }

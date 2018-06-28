@@ -2,7 +2,7 @@
 
 namespace simpleharness
 {
-    public class EmptyBenchmarkTest
+    public static class EmptyBenchmarkTest
     {
         [Benchmark]
         public static void Implementation_1()
@@ -16,9 +16,6 @@ namespace simpleharness
         }
 
         [Benchmark]
-        public static void Implementation_2()
-        {
-            Benchmark.Iterate(() => { /*do nothing*/ });
-        }
+        public static void Implementation_2() => Benchmark.Iterate(() => { /*do nothing*/ });
     }
 }

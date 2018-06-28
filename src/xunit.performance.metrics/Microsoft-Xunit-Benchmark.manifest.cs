@@ -30,7 +30,9 @@ namespace Microsoft.Diagnostics.Tracing.Parsers
             Session0 = 0x800000000000,
         };
 
-        public MicrosoftXunitBenchmarkTraceEventParser(TraceEventSource source) : base(source) { }
+        public MicrosoftXunitBenchmarkTraceEventParser(TraceEventSource source) : base(source)
+        {
+        }
 
         public event Action<BenchmarkIterationStartArgs> BenchmarkIterationStart
         {
@@ -43,6 +45,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers
                 source.UnregisterEventTemplate(value, 3, ProviderGuid);
             }
         }
+
         public event Action<BenchmarkIterationStopArgs> BenchmarkIterationStop
         {
             add
@@ -54,6 +57,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers
                 source.UnregisterEventTemplate(value, 4, ProviderGuid);
             }
         }
+
         public event Action<BenchmarkStartArgs> BenchmarkStart
         {
             add
@@ -65,6 +69,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers
                 source.UnregisterEventTemplate(value, 1, ProviderGuid);
             }
         }
+
         public event Action<BenchmarkStopArgs> BenchmarkStop
         {
             add
@@ -76,6 +81,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers
                 source.UnregisterEventTemplate(value, 2, ProviderGuid);
             }
         }
+
         public event Action<EventSourceMessageArgs> EventSourceMessage
         {
             add
@@ -89,30 +95,36 @@ namespace Microsoft.Diagnostics.Tracing.Parsers
         }
 
         #region private
-        protected override string GetProviderName() { return ProviderName; }
+
+        protected override string GetProviderName() => ProviderName;
 
         static private BenchmarkIterationStartArgs BenchmarkIterationStartTemplate(Action<BenchmarkIterationStartArgs> action)
         {                  // action, eventid, taskid, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName
             return new BenchmarkIterationStartArgs(action, 3, 2, "BenchmarkIteration", Guid.Empty, 1, "Start", ProviderGuid, ProviderName);
         }
+
         static private BenchmarkIterationStopArgs BenchmarkIterationStopTemplate(Action<BenchmarkIterationStopArgs> action)
         {                  // action, eventid, taskid, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName
             return new BenchmarkIterationStopArgs(action, 4, 2, "BenchmarkIteration", Guid.Empty, 2, "Stop", ProviderGuid, ProviderName);
         }
+
         static private BenchmarkStartArgs BenchmarkStartTemplate(Action<BenchmarkStartArgs> action)
         {                  // action, eventid, taskid, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName
             return new BenchmarkStartArgs(action, 1, 1, "Benchmark", Guid.Empty, 1, "Start", ProviderGuid, ProviderName);
         }
+
         static private BenchmarkStopArgs BenchmarkStopTemplate(Action<BenchmarkStopArgs> action)
         {                  // action, eventid, taskid, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName
             return new BenchmarkStopArgs(action, 2, 1, "Benchmark", Guid.Empty, 2, "Stop", ProviderGuid, ProviderName);
         }
+
         static private EventSourceMessageArgs EventSourceMessageTemplate(Action<EventSourceMessageArgs> action)
         {                  // action, eventid, taskid, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName
             return new EventSourceMessageArgs(action, 0, 65534, "EventSourceMessage", Guid.Empty, 0, "", ProviderGuid, ProviderName);
         }
 
         static private volatile TraceEvent[] s_templates;
+
         protected override void EnumerateTemplates(Func<string, string, EventFilterResponse> eventsToObserve, Action<TraceEvent> callback)
         {
             if (s_templates == null)
@@ -130,7 +142,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers
                     callback(template);
         }
 
-        #endregion
+        #endregion private
     }
 }
 
@@ -138,30 +150,29 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
 {
     public sealed class BenchmarkIterationStartArgs : TraceEvent
     {
-        public string RunId { get { return GetUnicodeStringAt(0); } }
-        public string BenchmarkName { get { return GetUnicodeStringAt(SkipUnicodeString(0)); } }
-        public int Iteration { get { return GetInt32At(SkipUnicodeString(SkipUnicodeString(0))); } }
+        public string RunId => GetUnicodeStringAt(0);
+        public string BenchmarkName => GetUnicodeStringAt(SkipUnicodeString(0));
+        public int Iteration => GetInt32At(SkipUnicodeString(SkipUnicodeString(0)));
 
         #region Private
+
         internal BenchmarkIterationStartArgs(Action<BenchmarkIterationStartArgs> target, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName)
-            : base(eventID, task, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName)
-        {
-            this.m_target = target;
-        }
-        protected override void Dispatch()
-        {
-            m_target(this);
-        }
+            : base(eventID, task, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName) => m_target = target;
+
+        protected override void Dispatch() => m_target(this);
+
         protected override void Validate()
         {
             Debug.Assert(!(Version == 0 && EventDataLength != SkipUnicodeString(SkipUnicodeString(0)) + 12));
             Debug.Assert(!(Version > 0 && EventDataLength < SkipUnicodeString(SkipUnicodeString(0)) + 12));
         }
+
         protected override Delegate Target
         {
-            get { return m_target; }
-            set { m_target = (Action<BenchmarkIterationStartArgs>)value; }
+            get => m_target;
+            set => m_target = (Action<BenchmarkIterationStartArgs>)value;
         }
+
         public override StringBuilder ToXml(StringBuilder sb)
         {
             Prefix(sb);
@@ -188,10 +199,13 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
             {
                 case 0:
                     return RunId;
+
                 case 1:
                     return BenchmarkName;
+
                 case 2:
                     return Iteration;
+
                 default:
                     Debug.Assert(false, "Bad field index");
                     return null;
@@ -199,35 +213,36 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
         }
 
         private event Action<BenchmarkIterationStartArgs> m_target;
-        #endregion
+
+        #endregion Private
     }
+
     public sealed class BenchmarkIterationStopArgs : TraceEvent
     {
-        public string RunId { get { return GetUnicodeStringAt(0); } }
-        public string BenchmarkName { get { return GetUnicodeStringAt(SkipUnicodeString(0)); } }
-        public int Iteration { get { return GetInt32At(SkipUnicodeString(SkipUnicodeString(0))); } }
-        public long AllocatedBytes { get { return GetInt64At(SkipUnicodeString(SkipUnicodeString(0)) + 4); } }
+        public string RunId => GetUnicodeStringAt(0);
+        public string BenchmarkName => GetUnicodeStringAt(SkipUnicodeString(0));
+        public int Iteration => GetInt32At(SkipUnicodeString(SkipUnicodeString(0)));
+        public long AllocatedBytes => GetInt64At(SkipUnicodeString(SkipUnicodeString(0)) + 4);
 
         #region Private
+
         internal BenchmarkIterationStopArgs(Action<BenchmarkIterationStopArgs> target, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName)
-            : base(eventID, task, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName)
-        {
-            this.m_target = target;
-        }
-        protected override void Dispatch()
-        {
-            m_target(this);
-        }
+            : base(eventID, task, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName) => m_target = target;
+
+        protected override void Dispatch() => m_target(this);
+
         protected override void Validate()
         {
             Debug.Assert(!(Version == 0 && EventDataLength != SkipUnicodeString(SkipUnicodeString(0)) + 12));
             Debug.Assert(!(Version > 0 && EventDataLength < SkipUnicodeString(SkipUnicodeString(0)) + 12));
         }
+
         protected override Delegate Target
         {
-            get { return m_target; }
-            set { m_target = (Action<BenchmarkIterationStopArgs>)value; }
+            get => m_target;
+            set => m_target = (Action<BenchmarkIterationStopArgs>)value;
         }
+
         public override StringBuilder ToXml(StringBuilder sb)
         {
             Prefix(sb);
@@ -255,12 +270,16 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
             {
                 case 0:
                     return RunId;
+
                 case 1:
                     return BenchmarkName;
+
                 case 2:
                     return Iteration;
+
                 case 3:
                     return AllocatedBytes;
+
                 default:
                     Debug.Assert(false, "Bad field index");
                     return null;
@@ -268,34 +287,34 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
         }
 
         private event Action<BenchmarkIterationStopArgs> m_target;
-        #endregion
+
+        #endregion Private
     }
 
     public sealed class BenchmarkStartArgs : TraceEvent
     {
-        public string RunId { get { return GetUnicodeStringAt(0); } }
-        public string BenchmarkName { get { return GetUnicodeStringAt(SkipUnicodeString(0)); } }
+        public string RunId => GetUnicodeStringAt(0);
+        public string BenchmarkName => GetUnicodeStringAt(SkipUnicodeString(0));
 
         #region Private
+
         internal BenchmarkStartArgs(Action<BenchmarkStartArgs> target, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName)
-            : base(eventID, task, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName)
-        {
-            this.m_target = target;
-        }
-        protected override void Dispatch()
-        {
-            m_target(this);
-        }
+            : base(eventID, task, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName) => m_target = target;
+
+        protected override void Dispatch() => m_target(this);
+
         protected override void Validate()
         {
             Debug.Assert(!(Version == 0 && EventDataLength != SkipUnicodeString(SkipUnicodeString(0))));
             Debug.Assert(!(Version > 0 && EventDataLength < SkipUnicodeString(SkipUnicodeString(0))));
         }
+
         protected override Delegate Target
         {
-            get { return m_target; }
-            set { m_target = (Action<BenchmarkStartArgs>)value; }
+            get => m_target;
+            set => m_target = (Action<BenchmarkStartArgs>)value;
         }
+
         public override StringBuilder ToXml(StringBuilder sb)
         {
             Prefix(sb);
@@ -321,8 +340,10 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
             {
                 case 0:
                     return RunId;
+
                 case 1:
                     return BenchmarkName;
+
                 default:
                     Debug.Assert(false, "Bad field index");
                     return null;
@@ -330,34 +351,35 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
         }
 
         private event Action<BenchmarkStartArgs> m_target;
-        #endregion
+
+        #endregion Private
     }
+
     public sealed class BenchmarkStopArgs : TraceEvent
     {
-        public string RunId { get { return GetUnicodeStringAt(0); } }
-        public string BenchmarkName { get { return GetUnicodeStringAt(SkipUnicodeString(0)); } }
-        public string StopReason { get { return GetUnicodeStringAt(SkipUnicodeString(SkipUnicodeString(0))); } }
+        public string RunId => GetUnicodeStringAt(0);
+        public string BenchmarkName => GetUnicodeStringAt(SkipUnicodeString(0));
+        public string StopReason => GetUnicodeStringAt(SkipUnicodeString(SkipUnicodeString(0)));
 
         #region Private
+
         internal BenchmarkStopArgs(Action<BenchmarkStopArgs> target, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName)
-            : base(eventID, task, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName)
-        {
-            this.m_target = target;
-        }
-        protected override void Dispatch()
-        {
-            m_target(this);
-        }
+            : base(eventID, task, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName) => m_target = target;
+
+        protected override void Dispatch() => m_target(this);
+
         protected override void Validate()
         {
             Debug.Assert(!(Version == 0 && EventDataLength != SkipUnicodeString(SkipUnicodeString(SkipUnicodeString(0)))));
             Debug.Assert(!(Version > 0 && EventDataLength < SkipUnicodeString(SkipUnicodeString(SkipUnicodeString(0)))));
         }
+
         protected override Delegate Target
         {
-            get { return m_target; }
-            set { m_target = (Action<BenchmarkStopArgs>)value; }
+            get => m_target;
+            set => m_target = (Action<BenchmarkStopArgs>)value;
         }
+
         public override StringBuilder ToXml(StringBuilder sb)
         {
             Prefix(sb);
@@ -384,10 +406,13 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
             {
                 case 0:
                     return RunId;
+
                 case 1:
                     return BenchmarkName;
+
                 case 2:
                     return StopReason;
+
                 default:
                     Debug.Assert(false, "Bad field index");
                     return null;
@@ -395,36 +420,37 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
         }
 
         private event Action<BenchmarkStopArgs> m_target;
-        #endregion
+
+        #endregion Private
     }
+
     public sealed class EventSourceMessageArgs : TraceEvent
     {
-        public string message { get { return GetUnicodeStringAt(0); } }
+        public string Message => GetUnicodeStringAt(0);
 
         #region Private
+
         internal EventSourceMessageArgs(Action<EventSourceMessageArgs> target, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName)
-            : base(eventID, task, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName)
-        {
-            this.m_target = target;
-        }
-        protected override void Dispatch()
-        {
-            m_target(this);
-        }
+            : base(eventID, task, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName) => m_target = target;
+
+        protected override void Dispatch() => m_target(this);
+
         protected override void Validate()
         {
             Debug.Assert(!(Version == 0 && EventDataLength != SkipUnicodeString(0)));
             Debug.Assert(!(Version > 0 && EventDataLength < SkipUnicodeString(0)));
         }
+
         protected override Delegate Target
         {
-            get { return m_target; }
-            set { m_target = (Action<EventSourceMessageArgs>)value; }
+            get => m_target;
+            set => m_target = (Action<EventSourceMessageArgs>)value;
         }
+
         public override StringBuilder ToXml(StringBuilder sb)
         {
             Prefix(sb);
-            XmlAttrib(sb, "message", message);
+            XmlAttrib(sb, "message", Message);
             sb.Append("/>");
             return sb;
         }
@@ -444,7 +470,8 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
             switch (index)
             {
                 case 0:
-                    return message;
+                    return Message;
+
                 default:
                     Debug.Assert(false, "Bad field index");
                     return null;
@@ -452,6 +479,7 @@ namespace Microsoft.Diagnostics.Tracing.Parsers.MicrosoftXunitBenchmark
         }
 
         private event Action<EventSourceMessageArgs> m_target;
-        #endregion
+
+        #endregion Private
     }
 }

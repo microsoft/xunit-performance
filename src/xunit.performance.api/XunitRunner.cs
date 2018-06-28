@@ -12,7 +12,7 @@ using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal static class XunitRunner
+    static class XunitRunner
     {
         public static int Run(string assemblyPath, List<string> typeNames = null)
         {
@@ -45,7 +45,7 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
-        private static void Run(AssemblyRunner runner, int[] result, string typeName)
+        static void Run(AssemblyRunner runner, int[] result, string typeName)
         {
             if (typeName != null && string.IsNullOrWhiteSpace(typeName))
                 throw new ArgumentException("The test type name cannot be white space.");
@@ -63,13 +63,15 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
-        private static void SetupRunnerCallbacks(AssemblyRunner runner, ManualResetEvent manualResetEvent, object consoleLock, int[] result)
+        static void SetupRunnerCallbacks(AssemblyRunner runner, ManualResetEvent manualResetEvent, object consoleLock, int[] result)
         {
-            runner.TestCaseFilter = (ITestCase testCase) => {
+            runner.TestCaseFilter = (ITestCase testCase) =>
+            {
                 return testCase.SkipReason == null && testCase.GetType() == typeof(BenchmarkTestCase);
             };
 
-            runner.OnDiscoveryComplete = info => {
+            runner.OnDiscoveryComplete = info =>
+            {
                 lock (consoleLock)
                 {
                     var diff = info.TestCasesDiscovered - info.TestCasesToRun;
@@ -83,7 +85,8 @@ namespace Microsoft.Xunit.Performance.Api
                         WriteWarningLine($"Skipping {diff} microbenchmarks.");
                 }
             };
-            runner.OnErrorMessage = info => {
+            runner.OnErrorMessage = info =>
+            {
                 lock (consoleLock)
                 {
                     var sb = new StringBuilder();
@@ -93,7 +96,8 @@ namespace Microsoft.Xunit.Performance.Api
                     WriteErrorLine(sb.ToString());
                 }
             };
-            runner.OnExecutionComplete = info => {
+            runner.OnExecutionComplete = info =>
+            {
                 lock (consoleLock)
                 {
                     WriteInfoLine($"Finished {info.TotalTests} tests in {Math.Round(info.ExecutionTime, 3)}s ({info.TestsFailed} failed, {info.TestsSkipped} skipped)");
@@ -101,13 +105,15 @@ namespace Microsoft.Xunit.Performance.Api
 
                 manualResetEvent.Set();
             };
-            runner.OnTestStarting = info => {
+            runner.OnTestStarting = info =>
+            {
                 lock (consoleLock)
                 {
                     WriteInfoLine($"  {info.TestDisplayName}");
                 }
             };
-            runner.OnTestFailed = info => {
+            runner.OnTestFailed = info =>
+            {
                 lock (consoleLock)
                 {
                     // TODO: Stop reporting performance results of failed test!
@@ -120,7 +126,8 @@ namespace Microsoft.Xunit.Performance.Api
                 }
                 result[0] += 1;
             };
-            runner.OnTestSkipped = info => {
+            runner.OnTestSkipped = info =>
+            {
                 lock (consoleLock)
                 {
                     WriteWarningLine($"[SKIP] {info.TestDisplayName}: {info.SkipReason}");

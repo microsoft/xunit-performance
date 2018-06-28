@@ -1,14 +1,17 @@
-﻿using Microsoft.Diagnostics.Tracing.Session;
-using Microsoft.Xunit.Performance.Sdk;
+﻿using Microsoft.Xunit.Performance.Sdk;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal sealed class GenericPerformanceMonitorCounterDiscoverer<T> : IPerformanceMetricDiscoverer
+    sealed class GenericPerformanceMonitorCounterDiscoverer<T> : IPerformanceMetricDiscoverer
         where T : IPerformanceMonitorCounter, new()
     {
+        readonly T _performanceMonitorCounter;
+
+        readonly int _pmcId;
+
         public GenericPerformanceMonitorCounterDiscoverer()
         {
             _performanceMonitorCounter = new T();
@@ -23,8 +26,5 @@ namespace Microsoft.Xunit.Performance.Api
                 yield return new GenericPerformanceMonitorCounterMetric<T>(_performanceMonitorCounter);
             }
         }
-
-        private readonly int _pmcId;
-        private readonly T _performanceMonitorCounter;
     }
 }

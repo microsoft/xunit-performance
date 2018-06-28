@@ -9,18 +9,18 @@ namespace Microsoft.Xunit.Performance.Api
     /// Defines an interval with a mechanism for testing if a value falls in the range.
     /// </summary>
     /// <typeparam name="T">The type interval space.</typeparam>
-    internal interface IInterval<T>
+    interface IInterval<T>
         where T : IComparable, IComparable<T>
     {
-        /// <summary>
-        /// Start limit of the interval.
-        /// </summary>
-        T Start { get; }
-
         /// <summary>
         /// End limit of the interval.
         /// </summary>
         T End { get; }
+
+        /// <summary>
+        /// Start limit of the interval.
+        /// </summary>
+        T Start { get; }
 
         /// <summary>
         /// Determines if a value falls in this range.

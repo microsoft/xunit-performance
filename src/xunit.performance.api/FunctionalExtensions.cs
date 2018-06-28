@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal static class FunctionalExtensions
+    static class FunctionalExtensions
     {
         /// <summary>
         /// Performs the specified action on each element of the <see cref="System.Collections.Generic.IEnumerable{T}"/>.

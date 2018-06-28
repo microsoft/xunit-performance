@@ -10,7 +10,7 @@ namespace Microsoft.Xunit.Performance.Sdk
     /// how performance metrics should be discovered.  The discoverer type must implement <see cref="IPerformanceMetricDiscoverer"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-    public class PerformanceMetricDiscovererAttribute : Attribute
+    public sealed class PerformanceMetricDiscovererAttribute : Attribute
     {
         //
         // Summary:

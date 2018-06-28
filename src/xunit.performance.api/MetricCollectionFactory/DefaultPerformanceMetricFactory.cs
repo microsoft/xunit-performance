@@ -3,11 +3,8 @@ using System.Collections.Generic;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal sealed class DefaultPerformanceMetricFactory : IPerformanceMetricFactory
+    sealed class DefaultPerformanceMetricFactory : IPerformanceMetricFactory
     {
-        public IEnumerable<PerformanceMetric> GetMetrics()
-        {
-            return new List<PerformanceMetric>();
-        }
+        public IEnumerable<PerformanceMetric> GetMetrics() => new List<PerformanceMetric>();
     }
 }

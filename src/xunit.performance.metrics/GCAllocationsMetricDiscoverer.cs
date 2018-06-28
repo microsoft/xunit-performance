@@ -7,7 +7,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal partial class GCAllocationsMetricDiscoverer : IPerformanceMetricDiscoverer
+    partial class GCAllocationsMetricDiscoverer : IPerformanceMetricDiscoverer
     {
         public IEnumerable<PerformanceMetricInfo> GetMetrics(IAttributeInfo metricAttribute)
         {

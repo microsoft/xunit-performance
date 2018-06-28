@@ -9,37 +9,31 @@ namespace Microsoft.Xunit.Performance.Api
     /// to log: information, warning, errors and debug messages in a standard
     /// way with timestamp.
     /// </summary>
-    internal static class PerformanceLogger
+    static class PerformanceLogger
     {
-        public static void WriteInfoLine(string value)
-        {
-            WriteLine($"[INF] {value}", ConsoleColor.Black, ConsoleColor.White);
-        }
-
-        public static void WriteErrorLine(string value)
-        {
-            WriteLine($"[ERR] {value}", ConsoleColor.Black, ConsoleColor.Red);
-        }
-
-        public static void WriteWarningLine(string value)
-        {
-            WriteLine($"[WRN] {value}", ConsoleColor.Black, ConsoleColor.Yellow);
-        }
-
         [Conditional("DEBUG")]
-        public static void WriteDebugLine(string value)
-        {
-            WriteLine($"[DBG] {value}", ConsoleColor.Yellow, ConsoleColor.Blue);
-        }
+        public static void WriteDebugLine(string value) => WriteLine($"[DBG] {value}", ConsoleColor.Yellow, ConsoleColor.Blue);
 
-        private static void WriteLine(string value, ConsoleColor background, ConsoleColor foreground)
+        public static void WriteErrorLine(string value) => WriteLine($"[ERR] {value}", ConsoleColor.Black, ConsoleColor.Red);
+
+        public static void WriteInfoLine(string value) => WriteLine($"[INF] {value}", ConsoleColor.Black, ConsoleColor.White);
+
+        public static void WriteWarningLine(string value) => WriteLine($"[WRN] {value}", ConsoleColor.Black, ConsoleColor.Yellow);
+
+        static void WriteLine(string value, ConsoleColor background, ConsoleColor foreground)
         {
             using (var conColor = new ConsoleSettings(background, foreground))
                 Console.Out.WriteLine($"[{DateTime.Now}]{value}");
         }
 
-        private sealed class ConsoleSettings : IDisposable
+        sealed class ConsoleSettings : IDisposable
         {
+            readonly ConsoleColor _background;
+
+            readonly Encoding _encoding;
+
+            readonly ConsoleColor _foreground;
+
             public ConsoleSettings(ConsoleColor background, ConsoleColor foreground)
             {
                 // Save previous setting.
@@ -60,10 +54,6 @@ namespace Microsoft.Xunit.Performance.Api
                 Console.ForegroundColor = _foreground;
                 Console.OutputEncoding = _encoding;
             }
-
-            private readonly ConsoleColor _background;
-            private readonly ConsoleColor _foreground;
-            private readonly Encoding _encoding;
         }
     }
 }

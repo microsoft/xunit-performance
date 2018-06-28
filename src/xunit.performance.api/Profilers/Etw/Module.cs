@@ -46,14 +46,14 @@ namespace Microsoft.Xunit.Performance.Api.Profilers.Etw
         }
 
         /// <summary>
-        /// The fully qualified name of the module file.
-        /// </summary>
-        public string FullName { get; }
-
-        /// <summary>
         /// Module's checksum.
         /// </summary>
         public int Checksum { get; }
+
+        /// <summary>
+        /// The fully qualified name of the module file.
+        /// </summary>
+        public string FullName { get; }
 
         /// <summary>
         /// TODO: Should PerformanceMonitorCounterData be exposed via a IReadOnlyDictionary?

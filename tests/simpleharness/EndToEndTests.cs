@@ -4,6 +4,8 @@ namespace simpleharness
 {
     public static class EndToEndTests
     {
+        static volatile string s_formatterString;
+
         [Benchmark(InnerIterationCount = 10000)]
         public static void BenchmarkIterationMeasurementDoubleDispose()
         {
@@ -26,7 +28,5 @@ namespace simpleharness
                 }
             }
         }
-
-        private static volatile string s_formatterString;
     }
 }

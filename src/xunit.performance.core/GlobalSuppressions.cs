@@ -1,0 +1,12 @@
+﻿// This file is used by Code Analysis to maintain SuppressMessage
+// attributes that are applied to this project.
+// Project-level suppressions either have no target or are given
+// a specific target and scoped to a namespace, type, member, etc.
+
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3442:\"abstract\" classes should not have \"public\" constructors", Justification = "<Pending>", Scope = "member", Target = "~M:Microsoft.Xunit.Performance.Sdk.PerformanceMetricInfo.#ctor(System.String,System.String,System.String)")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Redundancies in Symbol Declarations", "RECS0154:Parameter is never used", Justification = "<Pending>", Scope = "member", Target = "~M:Microsoft.Xunit.Performance.MeasureInstructionsRetiredAttribute.#ctor(System.Int32)")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Redundancies in Symbol Declarations", "RECS0154:Parameter is never used", Justification = "<Pending>", Scope = "member", Target = "~M:Microsoft.Xunit.Performance.Sdk.PerformanceMetricDiscovererAttribute.#ctor(System.String,System.String)")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Redundancies in Symbol Declarations", "RECS0154:Parameter is never used", Justification = "<Pending>", Scope = "member", Target = "~M:Microsoft.Xunit.Performance.BenchmarkIterationMeasurement.#ctor(Microsoft.Xunit.Performance.BenchmarkIteration)")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Redundancies in Symbol Declarations", "RECS0154:Parameter is never used", Justification = "<Pending>", Scope = "member", Target = "~M:Microsoft.Xunit.Performance.Internal.BenchmarkIterator.#ctor(System.Int64)")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "<Pending>", Scope = "type", Target = "~T:Microsoft.Xunit.Performance.BenchmarkIteration")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "<Pending>", Scope = "type", Target = "~T:Microsoft.Xunit.Performance.BenchmarkIterationMeasurement")]

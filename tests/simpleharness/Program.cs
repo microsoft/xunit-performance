@@ -12,18 +12,8 @@ using Xunit;
 namespace simpleharness
 {
     [MeasureGCAllocations]
-    public class Program
+    public static class Program
     {
-        static void Main(string[] args)
-        {
-            using (var p = new XunitPerformanceHarness(args))
-            {
-                Console.Out.WriteLine($"[{DateTime.Now}] Harness start");
-                p.RunBenchmarks(Assembly.GetEntryAssembly().Location);
-                Console.Out.WriteLine($"[{DateTime.Now}] Harness stop");
-            }
-        }
-
         public static IEnumerable<object[]> InputData()
         {
             var args = new string[] { "FOO", "\u03C3", "x\u0305" };
@@ -66,9 +56,16 @@ namespace simpleharness
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static string FormattedString(string a, string b, string c, string d)
+        static string FormattedString(string a, string b, string c, string d) => string.Format("{0}{1}{2}{3}", a, b, c, d);
+
+        static void Main(string[] args)
         {
-            return string.Format("{0}{1}{2}{3}", a, b, c, d);
+            using (var p = new XunitPerformanceHarness(args))
+            {
+                Console.Out.WriteLine($"[{DateTime.Now}] Harness start");
+                p.RunBenchmarks(Assembly.GetEntryAssembly().Location);
+                Console.Out.WriteLine($"[{DateTime.Now}] Harness stop");
+            }
         }
 
         [MeasureGCAllocations]
@@ -139,7 +136,27 @@ namespace simpleharness
             }
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            private static double MemoryAccessPerformance()
+            static IEnumerable<int> BranchPredictionPerformance(int seed)
+            {
+                const int nCards = 52;
+                var deck = new List<int>(Enumerable.Range(0, nCards));
+                var rnd = new Random((int)DateTime.Now.Ticks + seed);
+
+                for (int i = 0; i < deck.Count; ++i)
+                {
+                    var pos = rnd.Next(nCards);
+                    if (pos % 3 != 0)
+                        pos = rnd.Next(nCards);
+                    var temp = deck[i];
+                    deck[i] = deck[pos];
+                    deck[pos] = temp;
+                }
+
+                return deck;
+            }
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            static double MemoryAccessPerformance()
             {
                 var doubles = new double[8 * 1024 * 1024];
                 for (int i = 0; i < doubles.Length; i += 100)
@@ -153,26 +170,6 @@ namespace simpleharness
                 for (int i = 0; i < doubles.Length; i += 1600)
                     doubles[i] *= 11.0;
                 return doubles.Average();
-            }
-
-            [MethodImpl(MethodImplOptions.NoInlining)]
-            private static IEnumerable<int> BranchPredictionPerformance(int seed)
-            {
-                const int nCards = 52;
-                var deck = new List<int>(Enumerable.Range(0, nCards));
-                var rnd = new Random((int)DateTime.Now.Ticks + seed);
-
-                for (int i = 0; i < deck.Count(); ++i)
-                {
-                    var pos = rnd.Next(nCards);
-                    if (pos % 3 != 0)
-                        pos = rnd.Next(nCards);
-                    var temp = deck[i];
-                    deck[i] = deck[pos];
-                    deck[pos] = temp;
-                }
-
-                return deck;
             }
         }
     }

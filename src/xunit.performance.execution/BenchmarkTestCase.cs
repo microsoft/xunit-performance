@@ -9,18 +9,21 @@ using Xunit.Sdk;
 
 namespace Microsoft.Xunit.Performance
 {
-    internal class BenchmarkTestCase : XunitTestCase
+    class BenchmarkTestCase : XunitTestCase
     {
-        public bool DiscoverArguments { get; protected set; }
-
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         [Obsolete("Called by the de-serializer; should only be called by deriving classes for de-serialization purposes")]
         public BenchmarkTestCase() { }
 
         public BenchmarkTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, IAttributeInfo attr, object[] testMethodArguments = null)
-            : base(diagnosticMessageSink, defaultMethodDisplay, testMethod, testMethodArguments)
+            : base(diagnosticMessageSink, defaultMethodDisplay, testMethod, testMethodArguments) => DiscoverArguments = testMethodArguments == null;
+
+        public bool DiscoverArguments { get; protected set; }
+
+        public override void Deserialize(IXunitSerializationInfo data)
         {
-            DiscoverArguments = testMethodArguments == null;
+            DiscoverArguments = data.GetValue<bool>(nameof(DiscoverArguments));
+            base.Deserialize(data);
         }
 
         /// <inheritdoc />
@@ -28,21 +31,12 @@ namespace Microsoft.Xunit.Performance
                                                   IMessageBus messageBus,
                                                   object[] constructorArguments,
                                                   ExceptionAggregator aggregator,
-                                                  CancellationTokenSource cancellationTokenSource)
-        {
-            return new BenchmarkTestCaseRunner(this, DisplayName, SkipReason, constructorArguments, DiscoverArguments ? null : TestMethodArguments, diagnosticMessageSink, messageBus, aggregator, cancellationTokenSource).RunAsync();
-        }
+                                                  CancellationTokenSource cancellationTokenSource) => new BenchmarkTestCaseRunner(this, DisplayName, SkipReason, constructorArguments, DiscoverArguments ? null : TestMethodArguments, diagnosticMessageSink, messageBus, aggregator, cancellationTokenSource).RunAsync();
 
         public override void Serialize(IXunitSerializationInfo data)
         {
             base.Serialize(data);
             data.AddValue(nameof(DiscoverArguments), DiscoverArguments);
-        }
-
-        public override void Deserialize(IXunitSerializationInfo data)
-        {
-            DiscoverArguments = data.GetValue<bool>(nameof(DiscoverArguments));
-            base.Deserialize(data);
         }
     }
 }

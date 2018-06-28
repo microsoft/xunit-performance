@@ -15,7 +15,8 @@ namespace Microsoft.Xunit.Performance.Api
         public ScenarioTest(ScenarioTestConfiguration configuration)
         {
             _disposedValue = false;
-            Process = new Process {
+            Process = new Process
+            {
                 StartInfo = configuration.StartInfo,
             };
         }
@@ -26,7 +27,11 @@ namespace Microsoft.Xunit.Performance.Api
         public Process Process { get; }
 
         #region IDisposable Support
-        private bool _disposedValue; // To detect redundant calls
+
+        bool _disposedValue; // To detect redundant calls
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose() => Dispose(true);
 
         void Dispose(bool disposing)
         {
@@ -38,11 +43,6 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
-        // This code added to correctly implement the disposable pattern.
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-        #endregion
+        #endregion IDisposable Support
     }
 }

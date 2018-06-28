@@ -5,8 +5,10 @@ using static Microsoft.Xunit.Performance.Api.PerformanceLogger;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal sealed class GCAPIPerformanceMetricFactory : IPerformanceMetricFactory
+    sealed class GCAPIPerformanceMetricFactory : IPerformanceMetricFactory
     {
+        readonly List<PerformanceMetric> _metrics;
+
         public GCAPIPerformanceMetricFactory()
         {
             _metrics = new List<PerformanceMetric>();
@@ -22,11 +24,6 @@ namespace Microsoft.Xunit.Performance.Api
             }
         }
 
-        public IEnumerable<PerformanceMetric> GetMetrics()
-        {
-            return _metrics;
-        }
-
-        private readonly List<PerformanceMetric> _metrics;
+        public IEnumerable<PerformanceMetric> GetMetrics() => _metrics;
     }
 }

@@ -3,19 +3,13 @@ using System.Collections.Generic;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal static partial class XunitBenchmark
+    static partial class XunitBenchmark
     {
         internal sealed class PerformanceMetricInfoComparer : IEqualityComparer<PerformanceMetricInfo>
         {
-            public bool Equals(PerformanceMetricInfo x, PerformanceMetricInfo y)
-            {
-                return x.GetType().Equals(y.GetType());
-            }
+            public bool Equals(PerformanceMetricInfo x, PerformanceMetricInfo y) => x.GetType().Equals(y.GetType());
 
-            public int GetHashCode(PerformanceMetricInfo obj)
-            {
-                return obj.GetType().GetHashCode();
-            }
+            public int GetHashCode(PerformanceMetricInfo obj) => obj.GetType().GetHashCode();
         }
     }
 }
