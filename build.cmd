@@ -72,10 +72,10 @@ setlocal
   cd /d %~dp0tests\simpleharness
   call :dotnet_build || exit /b 1
 
-  for %%v in (netcoreapp2.1) do (
+  for %%v in (net472 netcoreapp2.1) do (
     dotnet.exe publish -c %BuildConfiguration% --framework "%%v"                            || exit /b 1
     pushd ".\bin\%BuildConfiguration%\%%v\publish"
-    if "%%v" == "net461" (
+    if "%%v" == "net472" (
       ".\simpleharness.exe"            --perf:collect default+gcapi --perf:outputdir "!cd!" || exit /b 1
     ) else (
       dotnet.exe ".\simpleharness.dll" --perf:collect default+gcapi --perf:outputdir "!cd!" || exit /b 1
@@ -90,10 +90,10 @@ setlocal
   cd /d %~dp0tests\scenariobenchmark
   call :dotnet_build || exit /b 1
 
-  for %%v in (netcoreapp2.1) do (
+  for %%v in (net472 netcoreapp2.1) do (
     dotnet.exe publish -c %BuildConfiguration% --framework "%%v"                          || exit /b 1
     pushd ".\bin\%BuildConfiguration%\%%v\publish"
-    if "%%v" == "net461" (
+    if "%%v" == "net472" (
       ".\scenariobenchmark.exe"            --perf:collect default --perf:outputdir "!cd!" || exit /b 1
     ) else (
       dotnet.exe ".\scenariobenchmark.dll" --perf:collect default --perf:outputdir "!cd!" || exit /b 1

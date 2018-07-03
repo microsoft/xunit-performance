@@ -11,7 +11,7 @@ setlocal
     exit /b 1
   )
 
-  set DotNet_Path=%~dp0tools\dotnet\%DotNet_Version%
+  set DotNet_Path=%~dp0packages\dotnet\%DotNet_Version%
   set DotNet=%DotNet_Path%\dotnet.exe
   set Init_Tools_Log=%DotNet_Path%\install.log
   set DotNet_Installer_Url=https://raw.githubusercontent.com/dotnet/cli/release/2.0.0/scripts/obtain/dotnet-install.ps1
