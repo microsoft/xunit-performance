@@ -56,7 +56,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\xunit.performance.api\xunit.performance.api.csproj" />
     <ProjectReference Include="..\..\src\xunit.performance.core\xunit.performance.core.csproj" />
-    <ProjectReference Include="..\..\src\xunit.performance.execution\xunit.performance.execution.csproj" />
+    <!--<ProjectReference Include="..\..\src\xunit.performance.execution\xunit.performance.execution.csproj" />-->
   </ItemGroup>
 
 </Project>

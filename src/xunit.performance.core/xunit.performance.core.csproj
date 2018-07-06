@@ -4,35 +4,11 @@
 
   <PropertyGroup>
     <AssemblyTitle>xunit.performance.core</AssemblyTitle>
-    <TargetFrameworks>
-      <!-- netstandard1.0; -->
-      <!-- netstandard1.1; -->
-      <!-- netstandard1.2; -->
-      <!-- netstandard1.3; -->
-      <!-- netstandard1.4; -->
-      <!-- netstandard1.5; -->
-      <!-- netstandard1.6; -->
-      netstandard2.0;
-      <!-- netcoreapp1.0; -->
-      <!-- netcoreapp1.1; -->
-      <!-- netcoreapp2.0; -->
-      netcoreapp2.1;
-      <!-- net20; -->
-      <!-- net35; -->
-      <!-- net40; -->
-      <!--net45;
-      net451;
-      net452;
-      net46;
-      net461;
-      net462;
-      net47;
-      net471;-->
-      net472;
-    </TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netcoreapp2.1;net471</TargetFrameworks>
     <Title>xUnit Performance Core</Title>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Version>1.0.0.0</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard2.0|AnyCPU'">

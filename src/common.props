@@ -2,6 +2,15 @@
   <!--<Import Project="dependencies.props" />-->
   <Import Project="$(MSBuildThisFileDirectory)/version.props" />
 
+  <PropertyGroup>
+    <GitHeadSha>$(GitHeadSha)</GitHeadSha>
+    <DotGitDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../.git'))</DotGitDir>
+    <HeadFileContent Condition="Exists('$(DotGitDir)/HEAD')">$([System.IO.File]::ReadAllText('$(DotGitDir)/HEAD').Trim())</HeadFileContent>
+    <RefPath Condition="$(HeadFileContent.StartsWith('ref: '))">$(DotGitDir)/$(HeadFileContent.Substring(5))</RefPath>
+    <GitHeadSha Condition="'$(RefPath)' != '' AND Exists('$(RefPath)')">$([System.IO.File]::ReadAllText('$(RefPath)').Trim())</GitHeadSha>
+    <GitHeadSha Condition="'$(HeadFileContent)' != '' AND '$(RefPath)' == ''">$(HeadFileContent)</GitHeadSha>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(GitHeadSha)' != ''">
     <CommitHash>$(GitHeadSha)</CommitHash>
   </PropertyGroup>

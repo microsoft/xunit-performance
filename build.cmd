@@ -6,9 +6,9 @@ setlocal enabledelayedexpansion
   set errorlevel=
   set BuildConfiguration=%~1
   if "%BuildConfiguration%"=="" set BuildConfiguration=Release
-
-  set VersionSuffix=%~2
-  if "%VersionSuffix%"=="" set VersionSuffix=release
+  
+  set BuildVersion=%~2
+  if "%BuildVersion%"=="" set /p BuildVersion=<"%~dp0BuildVersion.txt"
 
   set OutputDirectory=%~dp0LocalPackages
   call :remove_directory "%OutputDirectory%" || exit /b 1
@@ -72,7 +72,7 @@ setlocal
   cd /d %~dp0tests\simpleharness
   call :dotnet_build || exit /b 1
 
-  for %%v in (net472 netcoreapp2.1) do (
+  for %%v in (netcoreapp2.1) do (
     dotnet.exe publish -c %BuildConfiguration% --framework "%%v"                            || exit /b 1
     pushd ".\bin\%BuildConfiguration%\%%v\publish"
     if "%%v" == "net472" (
@@ -90,7 +90,7 @@ setlocal
   cd /d %~dp0tests\scenariobenchmark
   call :dotnet_build || exit /b 1
 
-  for %%v in (net472 netcoreapp2.1) do (
+  for %%v in (netcoreapp2.1) do (
     dotnet.exe publish -c %BuildConfiguration% --framework "%%v"                          || exit /b 1
     pushd ".\bin\%BuildConfiguration%\%%v\publish"
     if "%%v" == "net472" (
@@ -111,7 +111,7 @@ setlocal
   call :remove_directory bin                                                                  || exit /b 1
   call :remove_directory obj                                                                  || exit /b 1
   dotnet.exe restore --no-cache --packages "%~dp0packages"                                    || exit /b 1
-  dotnet.exe build --no-dependencies -c %BuildConfiguration% --version-suffix %VersionSuffix% || exit /b 1
+  dotnet.exe build --no-dependencies -c %BuildConfiguration%                                  || exit /b 1
   exit /b 0
 
 :dotnet_pack
@@ -125,7 +125,6 @@ setlocal
   set MsBuildArgs=
   set "MsBuildArgs=%MsBuildArgs% --no-build"
   set "MsBuildArgs=%MsBuildArgs% -c %BuildConfiguration%"
-  set "MsBuildArgs=%MsBuildArgs% --version-suffix %VersionSuffix%"
   set "MsBuildArgs=%MsBuildArgs% --output "%OutputDirectory%""
   set "MsBuildArgs=%MsBuildArgs% --include-symbols --include-source"
   if defined LV_GIT_HEAD_SHA (
