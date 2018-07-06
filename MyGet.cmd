@@ -21,16 +21,6 @@ setlocal enabledelayedexpansion
   echo Where is dotnet.exe?
   where.exe dotnet.exe
 
-  set /a count = 0
-  for /f %%l in ('git clean -xdn') do set /a count += 1
-  for /f %%l in ('git status --porcelain') do set /a count += 1
-  if %count% neq 0 (
-    call :print_error_message "The repo contains uncommitted changes"
-    exit /b 1
-  )
-
-  git clean -xdf
-
   set LV_GIT_HEAD_SHA=
   for /f %%c in ('git rev-parse HEAD') do set "LV_GIT_HEAD_SHA=%%c"
 
