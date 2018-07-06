@@ -1,1 +1,1 @@
-& .MyGet
+& .\MyGet
