@@ -30,6 +30,6 @@
 
   <ItemGroup>
     <PackageReference Include="xunit" Version="$(XunitPackageVersion)" />
-    <!--<PackageReference Include="xunit.analyzers" Version="0.9.0" />-->
+    <PackageReference Include="xunit.analyzers" Version="0.9.0" />
   </ItemGroup>
 </Project>
