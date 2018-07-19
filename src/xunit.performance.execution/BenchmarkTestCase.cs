@@ -17,8 +17,8 @@ namespace Microsoft.Xunit.Performance
         [Obsolete("Called by the de-serializer; should only be called by deriving classes for de-serialization purposes")]
         public BenchmarkTestCase() { }
 
-        public BenchmarkTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, IAttributeInfo attr, object[] testMethodArguments = null)
-            : base(diagnosticMessageSink, defaultMethodDisplay, testMethod, testMethodArguments)
+        public BenchmarkTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, IAttributeInfo attr, object[] testMethodArguments = null)
+            : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, testMethodArguments)
         {
             DiscoverArguments = testMethodArguments == null;
         }

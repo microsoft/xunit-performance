@@ -4,8 +4,7 @@
 
   <PropertyGroup>
     <AssemblyTitle>xunit.performance.metrics</AssemblyTitle>
-    <TargetFrameworks>netstandard1.6;net461</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netstandard1.6</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <Title>xUnit Performance Metrics</Title>
   </PropertyGroup>
 
@@ -15,7 +14,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="$(MicrosoftDiagnosticsTracingLibraryVersion)" />
-    <PackageReference Include="System.Runtime.Serialization.Formatters" Version="4.3.0" />
   </ItemGroup>
 
 </Project>
