@@ -72,7 +72,7 @@ setlocal
   cd /d %~dp0tests\simpleharness
   call :dotnet_build || exit /b 1
 
-  for %%v in (netcoreapp1.0 netcoreapp1.1 netcoreapp2.0 net461) do (
+  for %%v in (netcoreapp2.0 net461) do (
     dotnet.exe publish -c %BuildConfiguration% --framework "%%v"                            || exit /b 1
     pushd ".\bin\%BuildConfiguration%\%%v\publish"
     if "%%v" == "net461" (
@@ -90,7 +90,7 @@ setlocal
   cd /d %~dp0tests\scenariobenchmark
   call :dotnet_build || exit /b 1
 
-  for %%v in (netcoreapp1.0 netcoreapp1.1 netcoreapp2.0 net461) do (
+  for %%v in (netcoreapp2.0 net461) do (
     dotnet.exe publish -c %BuildConfiguration% --framework "%%v"                          || exit /b 1
     pushd ".\bin\%BuildConfiguration%\%%v\publish"
     if "%%v" == "net461" (
