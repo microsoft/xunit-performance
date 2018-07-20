@@ -7,7 +7,9 @@ using System.Reflection;
 
 public class Program
 {
+#pragma warning disable xUnit1013 // Public method should be marked as test
     public static void Main(string[] args)
+#pragma warning restore xUnit1013 // Public method should be marked as test
     {
         using (XunitPerformanceHarness p = new XunitPerformanceHarness(args))
         {
@@ -16,14 +18,14 @@ public class Program
         }
     }
 
-    [Benchmark(InnerIterationCount=10000)]
+    [Benchmark(InnerIterationCount = 10000)]
     public void TestBenchmark()
     {
-        foreach(BenchmarkIteration iter in Benchmark.Iterations)
+        foreach (BenchmarkIteration iter in Benchmark.Iterations)
         {
-            using(iter.StartMeasurement())
+            using (iter.StartMeasurement())
             {
-                for(int i=0; i<Benchmark.InnerIterationCount; i++)
+                for (int i = 0; i < Benchmark.InnerIterationCount; i++)
                 {
                     string.Format("{0}{1}{2}{3}", "a", "b", "c", "d");
                 }
@@ -31,14 +33,14 @@ public class Program
         }
     }
 
-    [Benchmark(InnerIterationCount=10000)]
+    [Benchmark(InnerIterationCount = 10000)]
     public void TestBenchmark1()
     {
-        foreach(BenchmarkIteration iter in Benchmark.Iterations)
+        foreach (BenchmarkIteration iter in Benchmark.Iterations)
         {
-            using(iter.StartMeasurement())
+            using (iter.StartMeasurement())
             {
-                for(int i=0; i<Benchmark.InnerIterationCount; i++)
+                for (int i = 0; i < Benchmark.InnerIterationCount; i++)
                 {
                     string.Format("{0}{1}{2}{3}", "a", "b", "c", "d");
                 }
@@ -46,14 +48,14 @@ public class Program
         }
     }
 
-    [Benchmark(InnerIterationCount=10000)]
+    [Benchmark(InnerIterationCount = 10000)]
     public void TestBenchmark2()
     {
-        foreach(BenchmarkIteration iter in Benchmark.Iterations)
+        foreach (BenchmarkIteration iter in Benchmark.Iterations)
         {
-            using(iter.StartMeasurement())
+            using (iter.StartMeasurement())
             {
-                for(int i=0; i<Benchmark.InnerIterationCount; i++)
+                for (int i = 0; i < Benchmark.InnerIterationCount; i++)
                 {
                     string.Format("{0}{1}{2}{3}", "a", "b", "c", "d");
                 }

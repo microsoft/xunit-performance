@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace simpleharness
+namespace scenariobenchmark
 {
     public class Program
     {
