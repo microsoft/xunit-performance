@@ -7,9 +7,7 @@ using System.Reflection;
 
 public class Program
 {
-#pragma warning disable xUnit1013 // Public method should be marked as test
-    public static void Main(string[] args)
-#pragma warning restore xUnit1013 // Public method should be marked as test
+    private static void Main(string[] args)
     {
         using (XunitPerformanceHarness p = new XunitPerformanceHarness(args))
         {

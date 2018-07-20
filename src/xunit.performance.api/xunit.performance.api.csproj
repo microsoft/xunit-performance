@@ -7,6 +7,7 @@
     <TargetFrameworks>netstandard2.0;net461;netcoreapp2.0</TargetFrameworks>
     <Title>xUnit Performance Api</Title>
     <RootNamespace>Microsoft.Xunit.Performance.Api</RootNamespace>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -6,6 +6,7 @@
     <AssemblyTitle>xunit.performance.core</AssemblyTitle>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Title>xUnit Performance Core</Title>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -4,8 +4,9 @@
 
   <PropertyGroup>
     <AssemblyTitle>xunit.performance.metrics</AssemblyTitle>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <Title>xUnit Performance Metrics</Title>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
