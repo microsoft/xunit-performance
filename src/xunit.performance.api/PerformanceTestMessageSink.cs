@@ -3,26 +3,30 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.Xunit.Performance.Api
 {
-    internal sealed class PerformanceTestMessageVisitor : TestMessageVisitor<IDiscoveryCompleteMessage>
+    internal sealed class PerformanceTestMessageSink : TestMessageSink
     {
-        public PerformanceTestMessageVisitor()
+        public PerformanceTestMessageSink()
         {
+            Finished = new ManualResetEvent(false);
             Tests = new List<PerformanceTestMessage>();
+            Discovery.TestCaseDiscoveryMessageEvent += OnTestCaseDiscoveryMessageEvent;
+            Discovery.DiscoveryCompleteMessageEvent += OnDiscoveryCompleteMessageEvent;
         }
 
         public List<PerformanceTestMessage> Tests { get; }
 
-        protected override bool Visit(ITestCaseDiscoveryMessage testCaseDiscovered)
+        private void OnTestCaseDiscoveryMessageEvent(MessageHandlerArgs<ITestCaseDiscoveryMessage> args)
         {
-            var testCase = testCaseDiscovered.TestCase;
+            var testCase = args.Message.TestCase;
             if (string.IsNullOrEmpty(testCase.SkipReason)) /* TODO: Currently there are not filters */
             {
-                var testMethod = testCaseDiscovered.TestMethod;
+                var testMethod = args.Message.TestMethod;
                 var metrics = new List<PerformanceMetricInfo>();
                 var attributesInfo = GetMetricAttributes(testMethod);
 
@@ -38,12 +42,16 @@ namespace Microsoft.Xunit.Performance.Api
                 {
                     Tests.Add(new PerformanceTestMessage
                     {
-                        TestCase = testCaseDiscovered.TestCase,
+                        TestCase = args.Message.TestCase,
                         Metrics = metrics
                     });
                 }
             }
-            return true;
+        }
+
+        private void OnDiscoveryCompleteMessageEvent(MessageHandlerArgs<IDiscoveryCompleteMessage> args)
+        {
+            Finished.Set();
         }
 
         private static IEnumerable<IAttributeInfo> GetMetricAttributes(ITestMethod testMethod)
@@ -78,5 +86,15 @@ namespace Microsoft.Xunit.Performance.Api
 
             return null;
         }
+
+        public override void Dispose()
+        {
+            Discovery.DiscoveryCompleteMessageEvent -= OnDiscoveryCompleteMessageEvent;
+            Discovery.TestCaseDiscoveryMessageEvent -= OnTestCaseDiscoveryMessageEvent;
+
+            base.Dispose();
+        }
+
+        public ManualResetEvent Finished { get; }
     }
 }

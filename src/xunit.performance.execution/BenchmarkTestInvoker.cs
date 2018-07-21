@@ -45,8 +45,7 @@ namespace Microsoft.Xunit.Performance
                 {
                     var result = TestMethod.Invoke(testClassInstance, TestMethodArguments);
 
-                    var task = result as Task;
-                    if (task != null)
+                    if (result is Task task)
                     {
                         await task;
                         success = true;
@@ -83,7 +82,7 @@ namespace Microsoft.Xunit.Performance
             private int _currentIteration;
             private bool _currentIterationMeasurementStarted;
             private bool _currentIterationMeasurementStopped;
-            private int _maxIterations;
+            private readonly int _maxIterations;
 
             internal string IterationStopReason { get; private set; }
 

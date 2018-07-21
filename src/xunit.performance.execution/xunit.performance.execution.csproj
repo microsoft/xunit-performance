@@ -4,10 +4,10 @@
 
   <PropertyGroup>
     <AssemblyTitle>xunit.performance.execution</AssemblyTitle>
-    <TargetFrameworks>netstandard1.5;net461</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netstandard1.5</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <Title>xUnit Performance Execution</Title>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

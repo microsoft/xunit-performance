@@ -4,21 +4,18 @@
 
   <PropertyGroup>
     <AssemblyTitle>xunit.performance.api</AssemblyTitle>
-    <TargetFrameworks>netstandard1.6;net461</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netstandard1.6</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net461;netcoreapp2.0</TargetFrameworks>
     <Title>xUnit Performance Api</Title>
     <RootNamespace>Microsoft.Xunit.Performance.Api</RootNamespace>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.1.1-beta" />
+    <PackageReference Include="CommandLineParser.NS20" Version="2.3.1" />
     <PackageReference Include="Microsoft.3rdpartytools.MarkdownLog" Version="0.10.0-alpha-experimental" />
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="$(MicrosoftDiagnosticsTracingLibraryVersion)">
       <IncludeAssets>All</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.ValueTuple" Version="4.3.1" />
-    <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
-    <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
     <PackageReference Include="xunit.runner.utility" Version="$(XunitPackageVersion)" />
   </ItemGroup>
 
