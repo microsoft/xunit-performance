@@ -1,25 +1,23 @@
-@echo off
-@if defined _echo echo on
+@if not defined _echo echo off
 
 :install_dotnet_cli
 setlocal
   set "DOTNET_MULTILEVEL_LOOKUP=0"
-
+  set "UseSharedCompilation=false"
   set /p DotNet_Version=<"%~dp0DotNetCLIVersion.txt"
   if not defined DotNet_Version (
     call :print_error_message Unknown DotNet CLI Version.
     exit /b 1
   )
 
-  set DotNet_Path=%~dp0tools\dotnet\%DotNet_Version%
-  set DotNet=%DotNet_Path%\dotnet.exe
-  set Init_Tools_Log=%DotNet_Path%\install.log
-  set DotNet_Installer_Url=https://raw.githubusercontent.com/dotnet/cli/release/2.0.0/scripts/obtain/dotnet-install.ps1
+  set "DotNet_Path=%~dp0tools\dotnet\%DotNet_Version%"
+  set "DotNet=%DotNet_Path%\dotnet.exe"
+  set "DotNet_Installer_Url=https://raw.githubusercontent.com/dotnet/cli/v%DotNet_Version%/scripts/obtain/dotnet-install.ps1"
 
   REM dotnet.exe might exist, but it might not be the right version.
   REM Here we verify that if it is not the right version, then we install it
   if exist "%DotNet%" (
-    (call "%DotNet%" --version|findstr /i "%DotNet_Version%" 1>nul 2>&1) && goto :install_dotnet_cli_exit
+    (call "%DotNet%" --version|findstr.exe /i /c:"%DotNet_Version%" 1>nul 2>&1) && goto :install_dotnet_cli_exit
     call :print_error_message Current version of "%DotNet%" does not match expected version "%DotNet_Version%"
     call :remove_directory "%DotNet_Path%" || exit /b 1
   )
@@ -30,25 +28,24 @@ setlocal
     exit /b 1
   )
 
-  echo Installing Dotnet CLI
-  echo Downloading dotnet installer script dotnet-install.ps1
+  call :print_header_message Downloading dotnet-install.ps1
   powershell -NoProfile -ExecutionPolicy unrestricted -Command "Invoke-WebRequest -Uri '%DotNet_Installer_Url%' -OutFile '%DotNet_Path%\dotnet-install.ps1'"
   if not exist "%DotNet_Path%\dotnet-install.ps1" (
     call :print_error_message Failed to download "%DotNet_Path%\dotnet-install.ps1"
     exit /b 1
   )
 
-  echo Executing dotnet installer script "%DotNet_Path%\dotnet-install.ps1"
-  for %%v in (2.0.0) do (
-    echo Installing dotnet sdk version %%~v
+  call :print_header_message Executing dotnet installer script "%DotNet_Path%\dotnet-install.ps1"
+  for %%v in (%DotNet_Version%) do (
+    call :print_header_message Installing .NET Core SDK %%~v
     powershell -NoProfile -ExecutionPolicy unrestricted -Command "&'%DotNet_Path%\dotnet-install.ps1' -InstallDir '%DotNet_Path%' -Version '%%~v'" || (
-      call :print_error_message Failed to install dotnet shared runtime %%~v
+      call :print_error_message Failed to install .NET Core SDK %%~v
       exit /b 1
     )
   )
 
   if not exist "%DotNet%" (
-    call :print_error_message Could not install dotnet cli correctly. See '%Init_Tools_Log%' for more details.
+    call :print_error_message Failed to install dotnet cli.
     exit /b 1
   )
 
@@ -66,6 +63,16 @@ endlocal& (
   echo/  [ERROR] %*
   echo/
   exit /b %errorlevel%
+
+
+:print_header_message
+  echo/
+  echo/------------------------------------------------------------------------------
+  echo/  %*
+  echo/------------------------------------------------------------------------------
+  echo/
+  exit /b %errorlevel%
+
 
 :remove_directory
   if "%~1" == "" (

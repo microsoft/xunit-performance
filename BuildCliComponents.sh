@@ -18,39 +18,39 @@ declare dotnetVersion=`cat DotNetCliVersion.txt`
 declare outputDirectory=${currentDir}/LocalPackages
 declare dotnetPath=${currentDir}/tools/dotnet/${dotnetVersion}
 declare dotnetCmd=${dotnetPath}/dotnet
-declare dotnetInstallerUrl=https://raw.githubusercontent.com/dotnet/cli/release/2.0.0/scripts/obtain/dotnet-install.sh
+declare dotnetInstallerUrl=https://raw.githubusercontent.com/dotnet/cli/v2.1.302/scripts/obtain/dotnet-install.sh
 declare dotnetInstallerScript=${dotnetPath}/dotnet-install.sh
 
 if ! [ -f $dotnetCmd ]
 then
-	echo Installing Dotnet CLI
-	if ! [ -f $dotnetPath ]
-	then
-		mkdir -p $dotnetPath
-	fi
+    echo Installing Dotnet CLI
+    if ! [ -f $dotnetPath ]
+    then
+        mkdir -p $dotnetPath
+    fi
 
-	curl $dotnetInstallerUrl -o $dotnetInstallerScript
-	chmod +x $dotnetInstallerScript
+    curl $dotnetInstallerUrl -o $dotnetInstallerScript
+    chmod +x $dotnetInstallerScript
 
-	$dotnetInstallerScript --version $dotnetVersion --install-dir $dotnetPath --no-path
+    $dotnetInstallerScript --version $dotnetVersion --install-dir $dotnetPath --no-path
 fi
 
 if ! [ -f $dotnetCmd ]
 then
-	echo Unable to install Dotnet CLI.  Exiting.
-	exit -1
+    echo Unable to install Dotnet CLI.  Exiting.
+    exit -1
 fi
 
 declare buildConfiguration=$1
 if [ "$buildConfiguration" == "" ]
 then
-	buildConfiguration="debug"
+    buildConfiguration="debug"
 fi
 
 declare versionSuffix=$2
 if [ "$versionSuffix" == "" ]
 then
-	versionSuffix="beta-build0000"
+    versionSuffix="beta-build0000"
 fi
 
 # TODO: Update groovy file and this file.
