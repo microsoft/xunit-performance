@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <AssemblyTitle>xunit.performance.execution</AssemblyTitle>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net461;netcoreapp2.0</TargetFrameworks>
     <Title>xUnit Performance Execution</Title>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsPackable>true</IsPackable>
