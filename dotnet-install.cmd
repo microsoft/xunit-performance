@@ -36,12 +36,10 @@ setlocal
   )
 
   call :print_header_message Executing dotnet installer script "%DotNet_Path%\dotnet-install.ps1"
-  for %%v in (%DotNet_Version%) do (
-    call :print_header_message Installing .NET Core SDK %%~v
-    powershell -NoProfile -ExecutionPolicy unrestricted -Command "&'%DotNet_Path%\dotnet-install.ps1' -InstallDir '%DotNet_Path%' -Version '%%~v'" || (
-      call :print_error_message Failed to install .NET Core SDK %%~v
-      exit /b 1
-    )
+  call :print_header_message Installing .NET Core SDK %DotNet_Version%
+  powershell -NoProfile -ExecutionPolicy unrestricted -Command "&'%DotNet_Path%\dotnet-install.ps1' -InstallDir '%DotNet_Path%' -Version '%DotNet_Version%'" || (
+    call :print_error_message Failed to install .NET Core SDK %DotNet_Version%
+    exit /b 1
   )
 
   if not exist "%DotNet%" (
