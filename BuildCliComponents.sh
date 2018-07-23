@@ -18,7 +18,7 @@ declare dotnetVersion=`cat DotNetCliVersion.txt`
 declare outputDirectory=${currentDir}/LocalPackages
 declare dotnetPath=${currentDir}/tools/dotnet/${dotnetVersion}
 declare dotnetCmd=${dotnetPath}/dotnet
-declare dotnetInstallerUrl=https://raw.githubusercontent.com/dotnet/cli/v2.1.302/scripts/obtain/dotnet-install.sh
+declare dotnetInstallerUrl=https://raw.githubusercontent.com/dotnet/cli/v${dotnetVersion}/scripts/obtain/dotnet-install.sh
 declare dotnetInstallerScript=${dotnetPath}/dotnet-install.sh
 
 if ! [ -f $dotnetCmd ]
