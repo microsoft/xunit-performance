@@ -1,5 +1,6 @@
 {
     "recommendations": [
-        "ms-vscode.csharp"
+        "ms-vscode.csharp",
+        "DavidAnson.vscode-markdownlint",
     ]
 }
