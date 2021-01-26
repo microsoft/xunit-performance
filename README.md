@@ -1,11 +1,6 @@
 # xunit.performance
 
-Build | Status
------------- | -------------
-Release | [![Build Status](https://ci.dot.net/job/Microsoft_xunit-performance/job/master/job/LinuxFlow_Ubuntu_release/badge/icon)](https://ci.dot.net/job/Microsoft_xunit-performance/job/master/job/LinuxFlow_Ubuntu_release/)
-Debug | [![Build Status](https://ci.dot.net/job/Microsoft_xunit-performance/job/master/job/LinuxFlow_Ubuntu_debug/badge/icon)](https://ci.dot.net/job/Microsoft_xunit-performance/job/master/job/LinuxFlow_Ubuntu_debug/)
-
-Provides extensions over xUnit to author performance tests.
+***This repo has been archived, as this project is no longer maintained.  We recommend that you use [BenchmarkDotNet](https://github.com/dotnet/benchmarkdotnet) for your benchmarking needs.***
 
 ## Authoring benchmarks
 
